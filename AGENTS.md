@@ -25,7 +25,7 @@ This repository is quirq's Gatsby 4 / React website, adapted from the PostHog de
 | Desktop, menus, and local search | `src/components/Desktop/`, `src/components/TaskBarMenu/`, `src/components/QuirqSearch/` |
 | Window state and controls | `src/context/App.tsx`, `src/components/AppWindow/` |
 
-`src/pages/index.tsx`, `src/pages/display-options.tsx`, and `src/pages/404.js` are the active filesystem pages. App routes come from the catalog. Most inherited PostHog pages, content, and build helpers remain on disk for reference and asset reuse, but are excluded from this site's active page generation. Do not re-enable the old CMS, customer, analytics, billing, or notification integrations as a side effect of a change.
+`src/pages/index.tsx`, `src/pages/display-options.tsx`, and `src/pages/404.js` are the active filesystem pages. App routes come from the catalog. Inherited PostHog pages, components, and build helpers remain in `src/` and `scripts/` for reference and asset reuse, but are excluded from this site's active page generation. PostHog's `contents/` docs and its published brand files were removed (they remain in git history). Do not re-enable the old CMS, customer, analytics, billing, or notification integrations as a side effect of a change.
 
 ## Catalog changes
 

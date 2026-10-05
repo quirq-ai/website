@@ -78,18 +78,47 @@ export async function fetchRepositoryReadme(repo, { fetchImpl = fetch, token } =
     return { readmeMarkdown: Buffer.from(readme.content, 'base64').toString('utf8'), readmePath: readme.path }
 }
 
+/** Drop README text kept for repositories that are no longer visible apps. Needs no network. */
+export function pruneHiddenReadmes(snapshot, config) {
+    const visible = new Set(buildQuirqApps(snapshot, config).map((app) => app.id))
+    let pruned = 0
+    for (const repo of snapshot.repositories) {
+        if (!visible.has(repo.full_name) && (repo.readmeMarkdown || repo.readmePath)) {
+            repo.readmeMarkdown = null
+            repo.readmePath = null
+            pruned += 1
+        }
+    }
+    return pruned
+}
+
+async function writeSnapshot(outputPath, snapshot) {
+    const temporaryPath = `${outputPath}.${process.pid}.tmp`
+    try {
+        await writeFile(temporaryPath, `${JSON.stringify(snapshot, null, 4)}\n`, { flag: 'wx' })
+        // Replace only after the entire fetch and mapping validation have succeeded.
+        await rename(temporaryPath, outputPath)
+    } finally {
+        await rm(temporaryPath, { force: true })
+    }
+}
+
 export async function syncQuirqApps({
     configPath = resolve(projectRoot, 'quirq.apps.json'),
     outputPath = resolve(projectRoot, 'src/data/quirq-repositories.json'),
     fetchImpl = fetch,
     token = process.env.GITHUB_TOKEN,
     check = false,
+    prune = false,
     warn = console.warn,
 } = {}) {
     const config = validateQuirqConfig(JSON.parse(await readFile(configPath, 'utf8')))
-    if (check) {
+    if (check || prune) {
         const snapshot = JSON.parse(await readFile(outputPath, 'utf8'))
-        return { snapshot, apps: buildQuirqApps(snapshot, config), written: false }
+        const apps = buildQuirqApps(snapshot, config)
+        if (!prune || pruneHiddenReadmes(snapshot, config) === 0) return { snapshot, apps, written: false }
+        await writeSnapshot(outputPath, snapshot)
+        return { snapshot, apps, written: true }
     }
     const repositories = await fetchOrganizationRepositories(config.organization, { fetchImpl, token })
     const snapshot = { organization: config.organization, fetchedAt: new Date().toISOString(), repositories }
@@ -108,29 +137,23 @@ export async function syncQuirqApps({
         )
     }
     const apps = buildQuirqApps(snapshot, config)
-    const temporaryPath = `${outputPath}.${process.pid}.tmp`
-    try {
-        await writeFile(temporaryPath, `${JSON.stringify(snapshot, null, 4)}\n`, { flag: 'wx' })
-        // Replace only after the entire fetch and mapping validation have succeeded.
-        await rename(temporaryPath, outputPath)
-    } finally {
-        await rm(temporaryPath, { force: true })
-    }
+    await writeSnapshot(outputPath, snapshot)
     return { snapshot, apps, written: true }
 }
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
-    const unknown = process.argv.slice(2).filter((arg) => arg !== '--check')
+    const unknown = process.argv.slice(2).filter((arg) => arg !== '--check' && arg !== '--prune')
     if (unknown.length) {
-        console.error('Usage: node scripts/sync-quirq-apps.mjs [--check]')
+        console.error('Usage: node scripts/sync-quirq-apps.mjs [--check | --prune]')
         process.exitCode = 1
     } else {
-        syncQuirqApps({ check: process.argv.includes('--check') })
+        const prune = process.argv.includes('--prune')
+        syncQuirqApps({ check: process.argv.includes('--check'), prune })
             .then(({ snapshot, apps, written }) => {
                 console.log(
-                    `${written ? 'Synced' : 'Validated'} ${snapshot.repositories.length} public repositories from ${
-                        snapshot.organization
-                    }; ${apps.length} visible apps.`
+                    `${written ? (prune ? 'Pruned hidden READMEs from' : 'Synced') : 'Validated'} ${
+                        snapshot.repositories.length
+                    } public repositories from ${snapshot.organization}; ${apps.length} visible apps.`
                 )
             })
             .catch((error) => {

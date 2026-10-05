@@ -63,7 +63,12 @@ const cursorOptions: ToggleOption[] = [
     {
         label: 'XL',
         value: 'xl',
-        icon: <div dangerouslySetInnerHTML={{ __html: XL_CURSOR_SVG }} className="h-5 w-full relative -top-1" />,
+        icon: (
+            <div
+                dangerouslySetInnerHTML={{ __html: XL_CURSOR_SVG }}
+                className="h-5 w-auto relative -top-1 [&>svg]:h-full [&>svg]:w-auto"
+            />
+        ),
     },
 ]
 
