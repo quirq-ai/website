@@ -13,7 +13,8 @@
 # so far. The toolchain roller (quirq-ai/rollers) moves this pin; do not edit it by hand.
 #
 # Not in the canary yet: infra-config lists no channels for website. TODO(expert): deploy target.
-# vercel.json and .vercelignore suggest Vercel, but nothing here deploys it, so qq deploys nothing.
+# Vercel's GitHub app deploys a preview of each PR (its "Vercel" status), but the production target
+# is not verified from here, so qq deploys nothing.
 schema = "quirq-repo/1"
 
 [[targets]]
