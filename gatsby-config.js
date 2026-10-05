@@ -17,10 +17,10 @@ module.exports = {
     siteMetadata: {
         title: name,
         titleTemplate: '%s',
-        description: 'A home base for Quirq apps, experiments, and open source projects.',
+        description: 'A home base for quirq apps, experiments, and open source projects.',
         url: siteUrl,
         siteUrl,
-        image: '/quirq-icon.svg',
+        image: '/brand/quirq/og.jpg',
         twitterUsername: '',
     },
     trailingSlash: 'never',

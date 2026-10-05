@@ -32,7 +32,11 @@
         // The classic skin has been retired; always render the modern skin
         document.body.setAttribute('data-skin', 'modern')
         var siteSettings = JSON.parse(localStorage.getItem('siteSettings') || '{}')
-        document.body.setAttribute('data-wallpaper', siteSettings.wallpaper || 'keyboard-garden')
+        var wallpaper = siteSettings.wallpaper
+        document.body.setAttribute(
+            'data-wallpaper',
+            wallpaper === 'mobius' || wallpaper === 'light-beam' ? wallpaper : 'mobius'
+        )
         document.body.setAttribute(
             'data-reduce-transparency',
             siteSettings.reduceTransparency ? 'true' : 'false'

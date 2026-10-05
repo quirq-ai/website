@@ -1,4 +1,4 @@
-# Quirq app mapping
+# quirq app mapping
 
 The GitHub organization is the catalog. Its public repositories become apps in Home Base, the desktop, and navigation. The shared window system, wallpapers, themes, and app-specific URLs stay available.
 
@@ -24,7 +24,7 @@ The key must match an actual repository name in the organization. Unlisted repos
 ```json
 {
     "organization": "quirq-ai",
-    "name": "Quirq",
+    "name": "quirq",
     "defaults": {
         "category": "Apps",
         "presentation": "overview",
@@ -66,8 +66,8 @@ An embedded site's own security policy can prevent it from appearing in an ifram
 
 ## What is included
 
-Public, non-archived repositories are included by default. Forks remain included because Quirq's Docs and XO Space are forks. `.github` is organization configuration and is excluded. Use `hidden` or `defaults.excludeRepositories` to hide infrastructure repositories you do not want presented as apps; relevance is an explicit mapping choice, not guessed from a repository's name.
+Public, non-archived repositories are included by default. Forks remain included because quirq's Docs and XO Space are forks. `.github` is organization configuration and is excluded. Use `hidden` or `defaults.excludeRepositories` to hide infrastructure repositories you do not want presented as apps; relevance is an explicit mapping choice, not guessed from a repository's name.
 
-Names, descriptions, homepage URLs, language, topics, star counts, update times, default branches, and README text come from GitHub. Missing descriptions stay empty unless you provide an override. The six featured apps have short editorial descriptions based on their synced READMEs; these remain in the mapping when you refresh GitHub data. No deployments or product claims are invented. README fetch failures leave the repository link available. API, ownership, pagination, or mapping failures leave the previous snapshot untouched.
+Names, descriptions, homepage URLs, language, topics, star counts, update times, default branches, and README text come from GitHub. Missing descriptions stay empty unless you provide an override. The featured apps have short editorial descriptions based on their synced READMEs; these remain in the mapping when you refresh GitHub data. No deployments or product claims are invented. README fetch failures leave the repository link available. API, ownership, pagination, or mapping failures leave the previous snapshot untouched.
 
 `src/lib/quirqApps.ts` exposes `getQuirqApps()`, `getQuirqApp(pathOrSlug)`, `quirqConfig`, and the snapshot's fetch time. Both build-time routing and the UI use the same mapping logic in `scripts/lib/quirq-catalog.mjs`, so the URLs in the catalog match the generated pages.

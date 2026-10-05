@@ -1,13 +1,13 @@
 # Licensing and attribution
 
-This repository combines Quirq additions with material inherited from
+This repository combines quirq additions with material inherited from
 [PostHog/posthog.com](https://github.com/PostHog/posthog.com), starting from commit
 `4c27ff7578f24c75b40d1024e4e0cbd40c9922ba`.
 
-## Quirq additions
+## quirq additions
 
 The new `quirq-ai/website` repository was initialized with the Apache License 2.0.
-That original [LICENSE](LICENSE) is retained for Quirq's original additions.
+That original [LICENSE](LICENSE) is retained for quirq's original additions.
 It does not replace the terms attached to inherited material.
 
 ## Inherited PostHog material
@@ -18,10 +18,11 @@ It contains two different sets of terms:
 
 - Outside `contents/`, the upstream notice asks that the website not be
   duplicated, copied, or used for commercial or noncommercial purposes.
-- Within `contents/`, the upstream notice includes MIT license terms.
+- Within `contents/`, the upstream notice includes MIT license terms. That inherited
+  PostHog content was removed from this repository on 2026-10-05; it remains in git history.
 
 The inherited desktop interface, artwork, components, fonts, and reference content
-are not relicensed by adding Quirq branding or an Apache license to this repository.
+are not relicensed by adding quirq branding or an Apache license to this repository.
 Read the original notices when determining permissions for their use or distribution.
 The package metadata deliberately does not describe the entire repository as MIT
 or Apache licensed.
@@ -33,4 +34,4 @@ That material remains attributable to its source repositories and subject to the
 respective terms. Every app page links back to its source repository.
 
 Dependencies, external images, and other third-party assets retain their own
-licenses and notices. Their inclusion does not transfer ownership to Quirq.
+licenses and notices. Their inclusion does not transfer ownership to quirq.

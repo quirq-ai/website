@@ -1,7 +1,7 @@
- # Security Policy
+# Security policy
 
-## Reporting a Vulnerability
+## Reporting a vulnerability
 
-Security vulnerabilities and other security related findings can be reported via our [vulnerability disclosure program](https://bugcrowd.com/engagements/posthog-vdp-pro) or by emailing [security-reports@posthog.com](mailto:security-reports@posthog.com).
+Please report security problems in this website privately. Use GitHub's private vulnerability reporting: open the repository's **Security** tab and choose **Report a vulnerability**. If that option is not available, open an issue that asks for a private contact, without any details of the problem, and a maintainer will reach out.
 
-We currently do not operate a bug bounty program, but we will generously reward you with merch for any actionable security vulnerabilities found.
+Do not include exploit details in public issues or pull requests.

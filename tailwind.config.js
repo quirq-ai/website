@@ -1,5 +1,5 @@
 module.exports = {
-    content: ['./src/**/*.{js,jsx,ts,tsx}', './contents/**/*.{js,jsx,ts,tsx,mdx}', './safelist.txt'],
+    content: ['./src/**/*.{js,jsx,ts,tsx}', './safelist.txt'],
     options: {
         safelist: [
             // use safelist.txt
@@ -522,10 +522,8 @@ module.exports = {
         function ({ addVariant }) {
             addVariant('skin-modern', 'body[data-skin="modern"] &')
             addVariant('skin-classic', 'body[data-skin="classic"] &')
-            addVariant('wallpaper-keyboard-garden', 'body[data-wallpaper="keyboard-garden"] &')
-            addVariant('wallpaper-hogzilla', 'body[data-wallpaper="hogzilla"] &')
-            addVariant('wallpaper-office-party', 'body[data-wallpaper="office-party"] &')
-            addVariant('wallpaper-startup-monopoly', 'body[data-wallpaper="startup-monopoly"] &')
+            addVariant('wallpaper-mobius', 'body[data-wallpaper="mobius"] &')
+            addVariant('wallpaper-light-beam', 'body[data-wallpaper="light-beam"] &')
             // Site toggle (data attr, set early in theme-init) + OS prefers-reduced-transparency
             addVariant('reduce-transparency', [
                 'body[data-reduce-transparency="true"] &',

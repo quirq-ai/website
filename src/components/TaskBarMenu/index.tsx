@@ -58,7 +58,7 @@ function TaskBarMenu() {
                     }}
                     className={`${TASKBAR_BG} ${
                         isAnimating ? MOTION_LAYER : ''
-                    } skin-classic:bg-accent wallpaper-keyboard-garden:dark:bg-black/15 border-secondary rounded px-2 shadow-2xl`}
+                    } skin-classic:bg-accent border-secondary rounded px-2 shadow-2xl`}
                 >
                     <div
                         aria-hidden="true"
@@ -79,7 +79,7 @@ function TaskBarMenu() {
                                         onClick={() => openSearch()}
                                         size="sm"
                                         className="relative top-px"
-                                        aria-label="Search Quirq apps"
+                                        aria-label="Search quirq apps"
                                     >
                                         <IconSearch className="size-5" />
                                     </OSButton>

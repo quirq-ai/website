@@ -425,13 +425,13 @@ export const AppLink = ({
             </span>
             <figcaption
                 className={`text-[13px] font-medium leading-tight ${
-                    source === 'desktop' ? 'text-white' : 'text-primary'
+                    source === 'desktop' ? 'text-primary dark:text-white' : 'text-primary'
                 } ${orientation === 'row' ? 'text-left' : 'text-center text-balance'}`}
             >
                 <span className={`inline-block leading-tight`}>
                     <span
                         className={`skin-classic:underline decoration-dotted decoration-primary underline-offset-[3px] ${finalBackground}  rounded-[2px] px-0.5 py-0 ${
-                            source === 'desktop' ? 'text-shadow-desktop' : ''
+                            source === 'desktop' ? 'dark:text-shadow-desktop' : ''
                         } font-medium`}
                     >
                         {label}

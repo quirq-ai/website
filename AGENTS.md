@@ -1,6 +1,6 @@
-# Working on Quirq Home base
+# Working on quirq Home base
 
-This repository is Quirq's Gatsby 4 / React website, adapted from the PostHog desktop interface. Public repositories in the configured GitHub organization become app pages inside a shared desktop. Read [README.md](README.md) and the [app mapping guide](docs/quirq-app-mapping.md) before changing the catalog or routes.
+This repository is quirq's Gatsby 4 / React website, adapted from the PostHog desktop interface. Public repositories in the configured GitHub organization become app pages inside a shared desktop. Read [README.md](README.md) and the [app mapping guide](docs/quirq-app-mapping.md) before changing the catalog or routes.
 
 ## Preserve the character
 
@@ -67,4 +67,4 @@ The quirq infra workflows (`.github/workflows/qq-website-*.yml`, generated in qu
 - Describe the user-visible result, relevant validation, and any remaining limitations in pull requests.
 - Preserve license and attribution notices for inherited code and assets.
 
-The inherited [apps](agents/apps.md), [components](agents/components.md), [styling](agents/styling.md), and [window system](agents/windows.md) guides can help explain shared code. They are historical reference: their PostHog data sources, integration steps, and contributor approval requirements do not override this file or the active Quirq implementation.
+The inherited [apps](agents/apps.md), [components](agents/components.md), [styling](agents/styling.md), and [window system](agents/windows.md) guides can help explain shared code. They are historical reference: their PostHog data sources, integration steps, and contributor approval requirements do not override this file or the active quirq implementation.

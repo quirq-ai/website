@@ -116,7 +116,7 @@ export const SEO = ({
 export default SEO
 
 /**
- * Quirq as a schema.org Organization. Shared so the homepage and every product page
+ * quirq as a schema.org Organization. Shared so the homepage and every product page
  * describe the same entity rather than drifting copies of it.
  */
 const ORGANIZATION = {
@@ -129,7 +129,7 @@ const ORGANIZATION = {
 }
 
 /**
- * Build schema.org JSON-LD for a product/app page: a SoftwareApplication, the Quirq
+ * Build schema.org JSON-LD for a product/app page: a SoftwareApplication, the quirq
  * Organization, and (optionally) a FAQPage. Pass the result to <SEO structuredData={...} />.
  * FAQ entries without an `answer` are skipped, so FAQPage only renders once answers exist.
  */

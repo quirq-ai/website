@@ -11,7 +11,7 @@ export default function NotFound() {
                 not to index it. */}
             <SEO title="404: Page not found" noindex />
             <Explorer template="generic" slug="404" title="This app isn't here" showAddressBar={false}>
-                <p>This address isn't part of the current Quirq app collection.</p>
+                <p>This address isn't part of the current quirq app collection.</p>
                 <OSButton asLink to="/" variant="primary">
                     Back to home base
                 </OSButton>

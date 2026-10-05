@@ -1,6 +1,6 @@
-# Quirq home base
+# quirq home base
 
-A customizable desktop for the apps, experiments, and open source projects in the [Quirq GitHub organization](https://github.com/quirq-ai).
+A customizable desktop for the apps, experiments, and open source projects in the [quirq GitHub organization](https://github.com/quirq-ai).
 
 Repositories become app entries with their own URLs. Home base, desktop shortcuts, the Apps menu, and search all use the same catalog. The interface keeps the playful desktop experience: glass icons, wallpapers, light and dark themes, screensavers, appearance settings, and multiple app windows with expand, restore, and close controls.
 
@@ -201,8 +201,8 @@ The committed snapshot is deployed as part of the website. A normal Vercel build
 
 ## Upstream attribution and license
 
-The desktop interface, much of the component library, artwork, and retained source originate from [PostHog/posthog.com](https://github.com/PostHog/posthog.com). Quirq's organization catalog, mapping, app views, and active build configuration adapt that source for this project. This repository is not the official PostHog website.
+The desktop interface, much of the component library, artwork, and retained source originate from [PostHog/posthog.com](https://github.com/PostHog/posthog.com). quirq's organization catalog, mapping, app views, and active build configuration adapt that source for this project. This repository is not the official PostHog website.
 
 The repository retains its [Apache 2.0 license](LICENSE), and the original upstream terms are preserved separately in [LICENSE.posthog](LICENSE.posthog). The upstream license contains different terms for the `contents/` directory and the rest of the website, including an explicit website reuse restriction. The repository license does not replace those upstream terms. Read [LICENSING.md](LICENSING.md) for the scope of each license before reusing or redistributing material; this project should not be described as wholly MIT- or Apache-licensed.
 
-Legacy PostHog pages, documentation, scripts, and assets remain in the tree as an inactive design and implementation reference. They are excluded from the active page-generation pipeline. Upstream instructions and service integrations found in those files do not describe the Quirq setup documented here.
+Legacy PostHog pages, documentation, scripts, and assets remain in the tree as an inactive design and implementation reference. They are excluded from the active page-generation pipeline. Upstream instructions and service integrations found in those files do not describe the quirq setup documented here.

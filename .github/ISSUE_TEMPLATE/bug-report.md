@@ -1,6 +1,6 @@
 ---
 name: Website bug
-about: Report a problem with Quirq Home base, app pages, or desktop controls.
+about: Report a problem with quirq Home base, app pages, or desktop controls.
 title: ''
 labels: ''
 assignees: ''

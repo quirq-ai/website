@@ -146,7 +146,6 @@ export default function RepositoryApp({ app }: { app: QuirqApp }) {
                             </div>
                         )}
                         <div className="min-w-0">
-                            <p className="font-mono text-xs text-secondary mb-2 break-all">{app.id}</p>
                             <h1
                                 className={`font-bold tracking-tight mb-3 ${
                                     gallery ? 'text-5xl @xl:text-6xl' : 'text-3xl @xl:text-4xl'
@@ -158,9 +157,6 @@ export default function RepositoryApp({ app }: { app: QuirqApp }) {
                                 <p className="text-secondary max-w-2xl mb-3 text-base">{app.description}</p>
                             )}
                             <div className={`flex gap-2 flex-wrap text-xs ${gallery ? 'justify-center' : ''}`}>
-                                <span className="border border-primary rounded-full px-2 py-0.5 bg-primary/50">
-                                    {app.category}
-                                </span>
                                 {app.language && (
                                     <span className="border border-primary rounded-full px-2 py-0.5 bg-primary/50">
                                         {app.language}
