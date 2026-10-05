@@ -2,8 +2,8 @@
     "image": "mcr.microsoft.com/devcontainers/universal:2",
     "features": {
         "ghcr.io/devcontainers/features/node:1": {
-            "version": "22"
+            "version": "24"
         }
     },
-    "postCreateCommand": ". ${NVM_DIR}/nvm.sh && nvm install --lts && nvm use 22"
+    "postCreateCommand": ". ${NVM_DIR}/nvm.sh && nvm install --lts && nvm use 24"
 }
