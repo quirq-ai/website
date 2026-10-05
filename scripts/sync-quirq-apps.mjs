@@ -112,11 +112,18 @@ export async function syncQuirqApps({
     prune = false,
     warn = console.warn,
 } = {}) {
+    if (check && prune) throw new Error('Use either --check or --prune, not both.')
     const config = validateQuirqConfig(JSON.parse(await readFile(configPath, 'utf8')))
     if (check || prune) {
         const snapshot = JSON.parse(await readFile(outputPath, 'utf8'))
         const apps = buildQuirqApps(snapshot, config)
-        if (!prune || pruneHiddenReadmes(snapshot, config) === 0) return { snapshot, apps, written: false }
+        const pruned = pruneHiddenReadmes(snapshot, config)
+        if (check && pruned > 0) {
+            throw new Error(
+                `${pruned} hidden repositories still carry README text in the snapshot. Run pnpm apps:prune (or pnpm apps:sync).`
+            )
+        }
+        if (pruned === 0) return { snapshot, apps, written: false }
         await writeSnapshot(outputPath, snapshot)
         return { snapshot, apps, written: true }
     }

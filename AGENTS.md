@@ -25,12 +25,13 @@ This repository is quirq's Gatsby 4 / React website, adapted from the PostHog de
 | Desktop, menus, and local search | `src/components/Desktop/`, `src/components/TaskBarMenu/`, `src/components/QuirqSearch/` |
 | Window state and controls | `src/context/App.tsx`, `src/components/AppWindow/` |
 
-`src/pages/index.tsx`, `src/pages/display-options.tsx`, and `src/pages/404.js` are the active filesystem pages. App routes come from the catalog. Inherited PostHog pages, components, and build helpers remain in `src/` and `scripts/` for reference and asset reuse, but are excluded from this site's active page generation. PostHog's `contents/` docs and its published brand files were removed (they remain in git history). Do not re-enable the old CMS, customer, analytics, billing, or notification integrations as a side effect of a change.
+`src/pages/index.tsx`, `src/pages/display-options.tsx`, and `src/pages/404.js` are the active filesystem pages. App routes come from the catalog. Inherited PostHog pages, components, and build helpers remain in `src/` and `scripts/` for reference and asset reuse, but are excluded from this site's active page generation. `static/` also still holds PostHog art (`wp-content/`, `images/`, `lotties/`, `sounds/`, `fonts/` and more), and Gatsby publishes everything in `static/`, although the active pages load only a few of those files. PostHog's `contents/` docs and its published brand files were removed (they remain in git history). Do not re-enable the old CMS, customer, analytics, billing, or notification integrations as a side effect of a change.
 
 ## Catalog changes
 
 - Keep app mapping in `quirq.apps.json`; avoid separate hard-coded app lists in menus, search, or the homepage.
 - Refresh the generated snapshot with `pnpm apps:sync`. Do not hand-edit repository data or invent a deployment URL.
+- After hiding a repository, run `pnpm apps:sync` (or the offline `pnpm apps:prune`) so its README text leaves the bundled snapshot; `pnpm apps:check` fails until then.
 - Only public repositories belong in the snapshot. Never commit tokens or private repository metadata.
 - A repository page displays metadata and a README. Opening it does not install or run the repository's code.
 - Embedding requires an explicit per-app setting and a destination that permits framing. Preserve the external launch fallback.

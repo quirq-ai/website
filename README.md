@@ -115,7 +115,8 @@ For all supported values, validation rules, organization changes, and embedding 
 | --- | --- |
 | `pnpm start` | Run the development server at `http://localhost:8001` |
 | `pnpm apps:sync` | Fetch public GitHub metadata and READMEs into the snapshot |
-| `pnpm apps:check` | Validate the mapping and snapshot without network access |
+| `pnpm apps:check` | Validate the mapping and snapshot without network access; fails if a hidden repository still carries README text |
+| `pnpm apps:prune` | Offline: clear README text for repositories that are no longer visible apps, without refetching |
 | `pnpm test` | Run catalog and app route regression tests |
 | `pnpm apps:test` | Run catalog tests only |
 | `pnpm test:app-routes` | Run Gatsby app route tests only |
@@ -205,4 +206,4 @@ The desktop interface, much of the component library, artwork, and retained sour
 
 The repository retains its [Apache 2.0 license](LICENSE), and the original upstream terms are preserved separately in [LICENSE.posthog](LICENSE.posthog). The upstream license contains different terms for the `contents/` directory and the rest of the website, including an explicit website reuse restriction. The repository license does not replace those upstream terms. Read [LICENSING.md](LICENSING.md) for the scope of each license before reusing or redistributing material; this project should not be described as wholly MIT- or Apache-licensed.
 
-Inherited PostHog pages, components and scripts remain in `src/` and `scripts/` as an inactive design and implementation reference; PostHog's docs and blog content (`contents/`), its published brand files and its security reports were removed on 2026-10-05 and remain in git history. They are excluded from the active page-generation pipeline. Upstream instructions and service integrations found in those files do not describe the quirq setup documented here.
+Inherited PostHog pages, components and scripts remain in `src/` and `scripts/` as an inactive design and implementation reference. `static/` still holds PostHog art (`wp-content/`, `images/`, `lotties/`, `sounds/`, `fonts/` and more); Gatsby publishes all of it, although the active pages load only a few of those files. PostHog's docs and blog content (`contents/`), its published brand files and its security reports were removed on 2026-10-05 and remain in git history. They are excluded from the active page-generation pipeline. Upstream instructions and service integrations found in those files do not describe the quirq setup documented here.
