@@ -39,7 +39,7 @@ This repository is Quirq's Gatsby 4 / React website, adapted from the PostHog de
 
 ## Development and checks
 
-Use Node.js 22 and the version of pnpm pinned in `package.json` (10.23.0). Use pnpm for project commands.
+Use Node.js 24 and the version of pnpm pinned in `package.json` (10.23.0). Use pnpm for project commands.
 
 ```sh
 pnpm install --frozen-lockfile

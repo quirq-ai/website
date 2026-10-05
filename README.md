@@ -13,7 +13,7 @@ This is a **Gatsby 4 / React 18 website**, adapted from [PostHog/posthog.com](ht
 Prerequisites:
 
 - Git.
-- **Node.js 22.x**, matching [`.nvmrc`](.nvmrc) and the package engine.
+- **Node.js 24.x**, matching [`.nvmrc`](.nvmrc) and the package engine.
 - **pnpm 10.23.0**, pinned by `packageManager` in [`package.json`](package.json). Use pnpm for this workspace.
 
 ```sh
@@ -131,9 +131,17 @@ pnpm build
 pnpm serve -H 127.0.0.1 -p 9000
 ```
 
-GitHub Actions runs `pnpm apps:check`, `pnpm test`, and `pnpm build` on pushes to `main` and pull requests, using Node 22 and a frozen pnpm install.
+GitHub Actions runs `pnpm apps:check`, `pnpm test`, and `pnpm build` on pushes to `main` and pull requests, using Node 24 and a frozen pnpm install.
 
 Check Home base, an app route, search, Appearance, and narrow and wide layouts in both themes when changing the UI. The catalog and routing tests do not replace browser checks. Other scripts retained in `package.json` serve upstream functionality and are not required for this app's normal workflow.
+
+## quirq infra (qq)
+
+This repository is being onboarded to [quirq infra](https://github.com/quirq-ai/infra-config), the build, test and land system shared by the quirq repositories:
+
+- [`infra/repo.toml`](infra/repo.toml) is the qq manifest: one `site` target of kind `gatsby-site` and the Node toolchain pin. Read or change it only with `qqsync` from [quirq-ai/sync](https://github.com/quirq-ai/sync).
+- The presubmit and post-submit workflows (`.github/workflows/qq-*.yml`) are generated in [quirq-ai/infra-config](https://github.com/quirq-ai/infra-config) and copied here. Change them there, never by hand.
+- The landing rules on `main` (merge queue, squash merges, required checks) come from [quirq-ai/gate](https://github.com/quirq-ai/gate) `settings/github.toml`.
 
 ## Architecture
 
@@ -175,7 +183,7 @@ For Gatsby, configuration loads `.env.development.local` and `.env.development` 
 ## Deploy on Vercel
 
 1. Import `quirq-ai/website` into your Vercel team and select the repository root as the project directory.
-2. Use **Node.js 22.x**, the repository's pinned pnpm version, and `pnpm install --frozen-lockfile` for installation.
+2. Use **Node.js 24.x**, the repository's pinned pnpm version, and `pnpm install --frozen-lockfile` for installation.
 3. Keep the settings in [`vercel.json`](vercel.json): **Gatsby**, build command **`pnpm build`**, and output directory **`public`**.
 4. Optionally set `GATSBY_SITE_URL` to the production domain, then deploy.
 5. Open Home base and a direct app URL in the deployment to check routing and the hydrated desktop UI.
