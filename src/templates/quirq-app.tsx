@@ -7,7 +7,7 @@ export default function QuirqAppPage({ pageContext }: { pageContext: { app: Quir
     const { app } = pageContext
     return (
         <>
-            <SEO title={app.name} description={app.description || `${app.name}, from the Quirq app collection.`} />
+            <SEO title={app.name} description={app.description || `${app.name}, from the quirq app collection.`} />
             <RepositoryApp app={app} />
         </>
     )

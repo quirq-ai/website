@@ -1,4 +1,4 @@
-# Quirq search
+# quirq search
 
 `SearchOverlay` replaces global PostHog search in the desktop wrapper. It consumes the same `getQuirqApps()` catalog as Home base, the desktop icons, and the taskbar. The index contains visible organization repositories plus Home base and Display options. Hidden, archived, and excluded repositories never enter it.
 

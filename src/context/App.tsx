@@ -249,16 +249,7 @@ const applyStyles = (content: string) => {
 }
 
 const updateCursor = (cursor: string) => {
-    if (cursor === 'james') {
-        applyStyles(`
-            :root {
-                --cursor-default: url(https://res.cloudinary.com/dmukukwp6/image/upload/james_cursor_default_d6f7983b0a.png), auto;
-                --cursor-pointer: url(https://res.cloudinary.com/dmukukwp6/image/upload/james_cursor_pointer_8bf0dd7a15.png), auto;
-            }
-            * { cursor: var(--cursor-default) !important; }
-            button, a { cursor: var(--cursor-pointer) !important; }
-        `)
-    } else if (cursor === 'xl') {
+    if (cursor === 'xl') {
         // Default XL cursor
         const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><path fill="#000" stroke="#fff" stroke-width="5" d="m57.77 96.196.024.01.025.008c.48.177 1.014.286 1.58.286.665 0 1.28-.147 1.837-.392l.012-.006.013-.006 8.8-3.997.002-.001a4.5 4.5 0 0 0 2.225-5.969l-10.73-23.395 16.828-1.446.008-.001a4.504 4.504 0 0 0 2.678-7.78L33.073 8.712a4.51 4.51 0 0 0-4.858-.844l-.011.006A4.499 4.499 0 0 0 25.5 12v66a4.503 4.503 0 0 0 2.715 4.132l.01.004a4.505 4.505 0 0 0 4.86-.859L45.01 70.072l10.259 23.717.005.012.005.011a4.527 4.527 0 0 0 2.492 2.384Z"/></svg>`
         const encodedSvg = encodeURIComponent(svg)
@@ -349,7 +340,7 @@ export const Context = createContext<AppContextType>({
         colorMode: 'light',
         skinMode: 'modern',
         cursor: 'default',
-        wallpaper: 'keyboard-garden',
+        wallpaper: 'mobius',
         screensaverDisabled: true,
         reduceTransparency: false,
         scrollbars: 'system',
@@ -437,7 +428,7 @@ export const SettingsContext = createContext<AppSettingsContextType>({
         colorMode: 'light',
         skinMode: 'modern',
         cursor: 'default',
-        wallpaper: 'keyboard-garden',
+        wallpaper: 'mobius',
         screensaverDisabled: true,
         reduceTransparency: false,
         scrollbars: 'system',
@@ -1643,8 +1634,8 @@ export interface SiteSettings {
     colorMode: 'light' | 'dark' | 'system'
     theme: 'light' | 'dark'
     skinMode: 'modern' | 'classic'
-    cursor: 'default' | 'xl' | 'james'
-    wallpaper: 'keyboard-garden' | 'hogzilla' | 'startup-monopoly' | 'office-party'
+    cursor: 'default' | 'xl'
+    wallpaper: 'mobius' | 'light-beam'
     screensaverDisabled?: boolean
     reduceTransparency?: boolean
     clickBehavior?: 'single' | 'double'
@@ -1667,7 +1658,7 @@ const getInitialSiteSettings = (): SiteSettings => {
         theme: (typeof window !== 'undefined' && (window as any).__theme) || 'light',
         skinMode: 'modern',
         cursor: 'default',
-        wallpaper: 'keyboard-garden',
+        wallpaper: 'mobius',
         clickBehavior: 'double',
         performanceBoost: false,
         screensaverDisabled: true,
@@ -1676,9 +1667,14 @@ const getInitialSiteSettings = (): SiteSettings => {
         ...savedSettings,
     }
 
-    const retiredWallpapers = ['action-figure', '2001-bliss', 'parade', 'coding-at-night']
-    if (retiredWallpapers.includes(siteSettings.wallpaper)) {
-        siteSettings.wallpaper = 'keyboard-garden'
+    // The inherited "James' face" cursor was removed; fall back to the default cursor.
+    if (!['default', 'xl'].includes(siteSettings.cursor)) {
+        siteSettings.cursor = 'default'
+    }
+
+    // Only quirq wallpapers remain; anything else saved earlier falls back to the default.
+    if (!['mobius', 'light-beam'].includes(siteSettings.wallpaper)) {
+        siteSettings.wallpaper = 'mobius'
     }
 
     // The classic skin has been retired; force anyone with it saved back to modern
@@ -1698,7 +1694,7 @@ export const Provider = ({ children, element, location }: AppProviderProps) => {
         theme: 'light',
         skinMode: 'modern',
         cursor: 'default',
-        wallpaper: 'keyboard-garden',
+        wallpaper: 'mobius',
         clickBehavior: 'double',
         performanceBoost: false,
         screensaverDisabled: true,
@@ -2248,7 +2244,7 @@ export const Provider = ({ children, element, location }: AppProviderProps) => {
     }
 
     // Preserve the shell context API for shared controls without mounting upstream
-    // PostHog authentication or signup flows in the Quirq home base.
+    // PostHog authentication or signup flows in the quirq home base.
     const openSignIn = (_onSuccess?: (user: User) => void) => {
         addToast({ description: 'This home base is public. Open an app to use its own sign-in.', duration: 3000 })
     }

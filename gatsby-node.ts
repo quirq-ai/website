@@ -28,7 +28,7 @@ export const createPages: GatsbyNode['createPages'] = ({ actions }) => {
     }
 }
 
-// Retain upstream source on disk, but publish only the Quirq catalog and settings.
+// Retain upstream source on disk, but publish only the quirq catalog and settings.
 // The stateful source-page creator can run after createPages, so deleting a legacy
 // /docs collision alone would also remove the catalog's page at that path. Restore
 // the catalog page immediately; its matching component ends the callback recursion.

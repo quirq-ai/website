@@ -9,7 +9,6 @@ import DesktopIcon from './DesktopIcon'
 import { Screensaver } from '../Screensaver'
 import { useInactivityDetection } from '../../hooks/useInactivityDetection'
 import Wallpapers, { getWallpaperGlow } from './Wallpapers'
-import HedgeHogModeEmbed from 'components/HedgehogMode'
 import ReactConfetti from 'react-confetti'
 import { useToast } from '../../context/Toast'
 
@@ -212,11 +211,7 @@ function Desktop() {
                     },
                 ]}
             >
-                <div
-                    data-scheme="primary"
-                    data-app="Desktop"
-                    className="fixed inset-0 pointer-events-none"
-                >
+                <div data-scheme="primary" data-app="Desktop" className="fixed inset-0 pointer-events-none">
                     <Wallpapers />
 
                     <nav className="px-1" style={{ paddingTop: DESKTOP_TOP_OFFSET + 16 }}>
@@ -254,7 +249,6 @@ function Desktop() {
                         onDismiss={handleScreensaverDismiss}
                     />
                 )}
-                <HedgeHogModeEmbed />
             </ContextMenu>
             {confetti && (
                 <div className="fixed inset-0 pointer-events-none">
