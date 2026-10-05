@@ -1,0 +1,112 @@
+---
+title: Privacy compliance
+sidebarTitle: Overview
+sidebar: Docs
+showTitle: true
+---
+
+Posthog gives you privacy controls at different levels to protect user privacy and comply with regulations.
+This guide covers the different privacy controls we provide and guidance on how to use them.
+
+- **What you're responsible for**: It's your responsibility to decide what data you collect, if it complies with regulations, and communicate with your users.
+- **What PostHog does for you**: We provide tools and features to help you manage what's collected and store the collected data securely.
+
+## Privacy control features
+
+You can control data collection, ingestion, and storage at different levels. Explore the guides below to learn more about the different privacy control features:
+
+- [Manage data collection](/docs/privacy/data-collection)
+- [Manage data processing](/docs/privacy/data-storage#processing-data-before-storage)
+- [Manage data storage](/docs/privacy/data-storage)
+
+
+## Guidance on navigating regulations
+
+In these guides, we offer advice for using PostHog in a compliant manner under the following legal frameworks:
+
+- [The General Data Protection Regulation](/docs/privacy/gdpr-compliance/) (GDPR), which applies to all businesses collecting data on EU citizens
+
+- [The Health Insurance Portability and Accountability Act](/docs/privacy/hipaa-compliance/) (HIPAA), which applies to businesses capturing and processing health data in the US
+
+- [The California Consumer Privacy Act](/docs/privacy/ccpa-compliance/) (CCPA), which applies to qualifying for-profit businesses collecting personal information on residents of California
+
+import { CalloutBox } from 'components/Docs/CalloutBox'
+
+<CalloutBox type="info" title="These are not legal advice">
+
+It is up to you to ensure you're compliant with regulations. We strongly recommend reading the relevant regulations in full and seeking independent legal advice regarding your obligations. 
+
+</CalloutBox>
+
+## Frequently asked questions
+
+This overview covers some frequently asked questions about PostHog and privacy. Have a question not covered here? Use the 'Ask a question' box at the bottom of the page.
+
+### Is it ok for my API key to be exposed and public?
+
+import ExposedApiKeys from "../_snippets/exposed-api-keys.mdx"
+
+<ExposedApiKeys />
+
+### What is and isn't considered personal data?
+
+It's hard to have a single legal definition of personal data because every legal privacy framework has different ideas, and even names, for it. The GDPR calls it 'personal data' but the US uses the term 'personally identifiable information' (PII) and others refer to it as 'personal information'.
+
+According to the GDPR, personal data is any information which: 
+
+1. Identifies a 'data subject' directly
+2. Can be used to identify a 'data subject' when combined with other information
+
+Read our [simple guide to personal data and PII](/blog/what-is-personal-data-pii) for more specific examples to help you identify what personal data you are collecting.
+
+### How does the GDPR impact analytics?
+
+There are three key GDPR principles that impact your use PostHog and analytics in general:
+
+1. You need to have a good reason to collect personal data
+2. You need to acquire unambiguous consent
+3. Data must be handled securely
+
+Our [guide to personal data](/blog/what-is-personal-data-pii) provides an overview of what's considered personal data under the GDPR, but suffice it to say that its definition is broad.
+
+### Is PostHog GDPR compliant?
+
+We have [in-depth GDPR guidance documentation](/docs/privacy/gdpr-compliance) for advice on deploying PostHog in a GDPR-compliant way, including [how to configure GDPR consent in PostHog](/docs/privacy/gdpr-compliance#step-4-configure-consent) and complying with ['right to be forgotten' requests](/docs/privacy/gdpr-compliance#complying-with-right-to-be-forgotten-requests).
+
+We also offer [PostHog Cloud EU](https://eu.posthog.com/signup) – a managed version of PostHog with servers hosted in Frankfurt, ensuring user data never leaves EU jurisdiction. 
+
+### How do I get a signed DPA?
+
+A Data Processing Agreement (DPA) is the contract between a data controller and a data processor. If you use PostHog Cloud, PostHog may be considered your data processor. All PostHog Cloud customers can get a DPA, on any plan. This includes the free plan.
+
+To get your signed copy:
+
+1. Open [app.posthog.com/legal](https://app.posthog.com/legal). It sends you to your own cloud region.
+2. Click "+ New" and then "Data Processing Agreement (DPA)".
+3. Add your company details, including legal company name, then click "Send for signature".
+4. PandaDoc sends an email to the address in your company details. Open that email and sign the DPA. PostHog has already countersigned it.
+5. The DPA is effective as soon as you sign. You receive an email with the completed document. You can also download it from PandaDoc, or find it on the legal dashboard.
+
+The DPA is self-serve, so you do not wait for our team to approve or sign it. You can also [read the full text of the DPA](/dpa) first. The "Get countersigned DPA" button on that page opens the same legal page in the app. The text on `/dpa` is a preview only. Only the copy that you generate in the app is valid.
+
+If you need changes to the standard DPA, [contact us](/talk-to-a-human) first.
+
+### Will PostHog sign my redlines or a confidentiality agreement?
+
+We're unable to sign customer-specific secrecy agreements. That's a consistent policy on our end, not a reflection of any concern with your request specifically. We've held the same line each time, primarily to keep our contractual commitments standardized across our customer base. Our standard DPA already includes confidentiality obligations on PostHog and our personnel, along with flow-down requirements to subprocessors.
+
+On DPA redlines: due to the business and legal work involved, we don't generally negotiate or accept comments to our DPA unless a customer has committed to a long term contract, which typically goes through our sales team.
+
+### Which subprocessors do PostHog's subprocessors use?
+
+We don't control which subprocessors our subprocessors use – we place no contractual restriction on their choice of vendor beyond requiring that any subprocessor they engage be bound to data protection obligations equivalent to their own. Each vendor's own list is linked from the *Additional information* column on our [subprocessors page](/subprocessors). For detail beyond that, contact the subprocessor directly.
+
+### Can I use PostHog Cloud under HIPAA?
+
+Yes. A Business Associate Agreement (BAA) may be required for HIPAA-compliant use of PostHog Cloud, but a signed BAA does not make your setup compliant on its own. It does not cover every feature, and compliance also depends on how you configure the features you use. Read our [HIPAA guidance](/docs/privacy/hipaa-compliance) to see which features a BAA covers, and check your configuration before you send protected health information to PostHog.
+
+You generate and download a countersigned BAA on the legal page in your PostHog organization, in the same way as the DPA. You can [read the full text of the BAA](/baa) first. PostHog offers a BAA to customers on the [Boost, Scale, or Enterprise package](/platform-packages). [Contact us](/talk-to-a-human) to discuss your requirements. 
+
+### Is Google Analytics HIPAA compliant?
+
+No, [Google Analytics isn't HIPAA compliant](/blog/is-google-analytics-hipaa-compliant), so it can't be used in any context where you're collecting or processing personal health information. PostHog can be used to collect user data under HIPAA. Read our [HIPAA guidance](/docs/privacy/hipaa-compliance) for more information.

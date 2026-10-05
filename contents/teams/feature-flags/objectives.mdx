@@ -1,0 +1,56 @@
+### Q3 2026 Objectives
+
+#### Real-time cohorts  — <TeamMember name="Gustavo Henrique Strassburger" photo />
+
+This is our most-requested feature. Dynamic cohorts today are computed on a delay, which makes them useless for real-time targeting decisions like "user did X in the last 5 minutes." If we can make cohort membership evaluate in real-time at the point of flag evaluation, we collapse a whole category of custom targeting logic people currently build themselves.
+
+**What we'll ship:**
+
+- Real-time cohorts starting with person properties
+- Behavioral data as a follow-up
+- Migration path from existing dynamic cohorts
+
+#### AI Native — <TeamMember name="James Gill" photo />
+
+Feature flags will feature heavily in self-driving products. We want first-time founders as well as experienced engineers to be able to use our product.
+
+**What we'll ship:**
+
+- Signal (stale flags, proactive flags)
+- A complete MCP
+- Skills
+
+#### Dedicated Persons Store — <TeamMember name="Matheus Batista" photo />
+
+In order to make pre-computed flags a reality (as well as to improve reliability and isolation of our service), we need a dedicated persons store.
+
+**What we'll ship:**
+
+- A streaming dedicated persons store
+
+#### Improved Customer Visibility — <TeamMember name="Patricio Tarantino" photo />
+
+Customers don't have visibility into how their users are using flags, billing, what SDKs are making requests, how many `$feature_flag_called` events they raise.
+
+**What we'll ship:**
+
+- A breakdown of `/flags` requests by SDK and other parameters.
+- Public latency metrics
+
+#### Standardize on Infrastructure — <TeamMember name="Matheus Batista" photo />
+
+We are a special snowflake, but not that special. We should adopt company standards for infrastructure and ops and port any custom work over.
+
+**What we'll ship:**
+
+- Golden charts
+
+### Improved Experiments — <TeamMember name="Phil Haack" photo />
+
+Support the Experiments team's goals to make experiments built on flags more flexible and useful.
+
+**What we'll ship:**
+
+- Boolean flag experiments
+- Multiple experiments on a single flag
+- Dedicated exposure event

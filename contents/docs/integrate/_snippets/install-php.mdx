@@ -1,0 +1,17 @@
+Install the package with Composer:
+
+```bash
+composer require posthog/posthog-php
+```
+
+In your app, set your project token before making any calls.
+
+```php
+PostHog\PostHog::init("<ph_project_token>",
+  ['host' => '<ph_client_api_host>'] // TIP: You can remove this line if you're using us.i.posthog.com
+);
+```
+
+> **Note:** As a rule of thumb, we do not recommend having API keys or tokens in plaintext. Setting them as environment variables is best. The PHP SDK reads `POSTHOG_API_KEY` and `POSTHOG_HOST` when you omit the project token or host.
+
+You can find your project token and instance address in the [project settings](https://app.posthog.com/project/settings) page in PostHog.

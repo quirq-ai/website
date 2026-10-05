@@ -1,0 +1,176 @@
+---
+title: Sharing and embedding insights and dashboards
+---
+
+export const shareOrEmbedLight =
+  "https://res.cloudinary.com/dmukukwp6/image/upload/v1710055416/posthog.com/contents/images/docs/product-analytics/share-or-embed-light-mode.png";
+export const shareOrEmbedDark =
+  "https://res.cloudinary.com/dmukukwp6/image/upload/v1710055416/posthog.com/contents/images/docs/product-analytics/share-or-embed-dark-mode.png";
+export const sharePubliclyLight =
+  "https://res.cloudinary.com/dmukukwp6/image/upload/v1710055416/posthog.com/contents/images/docs/product-analytics/share-publicly-light-mode.png";
+export const sharePubliclyDark =
+  "https://res.cloudinary.com/dmukukwp6/image/upload/v1710055416/posthog.com/contents/images/docs/product-analytics/share-publicly-dark-mode.png";
+export const embedInsightLight =
+  "https://res.cloudinary.com/dmukukwp6/image/upload/v1710055416/posthog.com/contents/images/docs/product-analytics/embed-insight-light-mode.png";
+export const embedInsightDark =
+  "https://res.cloudinary.com/dmukukwp6/image/upload/v1710055416/posthog.com/contents/images/docs/product-analytics/embed-insight-dark-mode.png";
+
+For any dashboard or insight, you can share a public link and/or embed it using an iframe. This is useful if you want to share your data with customers or partners, but don't want to share your entire account.
+
+> **Note:** When you share an insight or dashboard, anyone with the link can view it. To limit who can view it, [add a password](#password-protecting-a-shared-link) or consider setting up [embedded analytics](/tutorials/embedded-analytics).
+
+If a query references tables denied by [warehouse access control](/docs/settings/warehouse-access-control), you can't enable public sharing or update already-shared content.
+
+## Sharing an insight
+
+To share an insight, click the `...` (more options) menu next to its name and choose **Share or embed**.
+
+<ProductScreenshot
+  imageLight={shareOrEmbedLight}
+  imageDark={shareOrEmbedDark}
+  classes="rounded"
+  alt="Sharing an insight via the PostHog app"
+/>
+
+Next, toggle ON the option to share the insight publicly.
+
+<ProductScreenshot
+  imageLight={sharePubliclyLight}
+  imageDark={sharePubliclyDark}
+  classes="rounded"
+  alt="Share PostHog insight publicly"
+/>
+
+Adjust the details such as PostHog branding or legend. Once done, click **Copy public link** to share it with anyone. This link and insight won't require authentication to view.
+
+<ProductScreenshot
+  imageLight={embedInsightLight}
+  imageDark={embedInsightDark}
+  classes="rounded"
+  alt="Sharing an insight via the PostHog app"
+/>
+
+The insight is displayed exactly how it is set up. External users can't change the visualization or date range.
+
+### Embedding an insight
+
+In the same panel as above, copy the HTML code to embed the insight on a webpage.
+
+```html
+<iframe
+  width="100%"
+  height="400"
+  frameborder="0"
+  allowfullscreen
+  src="https://us.posthog.com/embedded/qLsGKZMMkpgibHcDcPcQUY0gUZzcRA"
+></iframe>
+```
+
+You can adjust the width, height, and other attributes of the iframe to customize its appearance.
+
+### Refreshing shared insights
+
+If your insight needs to be refreshed on each load, add `?refresh=true` to the end of the insight ID in the iframe code. Example:
+
+```html
+<iframe
+  width="100%"
+  height="400"
+  frameborder="0"
+  allowfullscreen
+  src="https://us.posthog.com/embedded/123456?refresh=true"
+></iframe>
+```
+
+## Sharing a dashboard
+
+To share an entire dashboard, start by clicking the **Share** button in the top right of the dashboard.
+
+<ProductScreenshot
+  imageLight="https://res.cloudinary.com/dmukukwp6/image/upload/v1715335397/posthog.com/contents/images/docs/product-analytics/embed-dash-light.png"
+  imageDark="https://res.cloudinary.com/dmukukwp6/image/upload/v1715335397/posthog.com/contents/images/docs/product-analytics/embed-dash-dark.png"
+  classes="rounded"
+  alt="Sharing a dashboard via the PostHog app"
+/>
+
+Next, toggle ON the option to share the dashboard publicly.
+
+Finally, copy the public link and share with anyone. This link and dashboard won't require authentication to view.
+
+> **Tip:** Enabling or disabling dashboard sharing, as well as refreshing the access token, is logged in [activity logs](/docs/settings/activity-logs). This helps you track who shared dashboards publicly.
+
+You can also choose a **Theme** for the shared dashboard page from the sharing modal:
+
+- **Light** – Uses the light color scheme
+- **Dark** – Uses the dark color scheme
+- **System** – Matches the viewer's system preference (default)
+
+### Embedding a dashboard
+
+In the same panel as above, copy the HTML code to embed the dashboard on a webpage.
+
+```html
+<iframe
+  width="100%"
+  height="400"
+  frameborder="0"
+  allowfullscreen
+  src="https://us.posthog.com/embedded/2lMtXLAWsgsUDlPZaUSqQrQJZbOrFw"
+></iframe>
+```
+
+Again, you can adjust the width, height, and other attributes of the iframe to customize its appearance.
+
+The dashboard fires a `posthog:dimensions` event when it loads and you can use the height value from it to adjust the iframe like this:
+
+```html
+<html>
+  <iframe
+    id="my-posthog-iframe"
+    name="MyPostHogIframe"
+    width="100%"
+    height="400"
+    src="https://us.posthog.com/embedded/2lMtXLAWsgsUDlPZaUSqQrQJZbOrFw"
+  ></iframe>
+
+  <script type="text/javascript">
+    window.addEventListener("message", (e) => {
+      if (e.data.event === "posthog:dimensions" && e.data.name === "MyPostHogIframe") {
+        document.getElementById("my-posthog-iframe").height = e.data.height;
+      }
+    });
+  </script>
+</html>
+```
+
+### Refreshing shared dashboards
+
+Shared and embedded dashboards auto-refresh every 30 minutes while the page is open. Auto-refresh pauses when the browser tab is inactive and resumes when the tab becomes visible again.
+
+If the dashboard data is more than 30 minutes old when you first open a shared link, the dashboard automatically triggers a one-time full refresh to ensure you see up-to-date data. This also applies when you return to an inactive browser tab – the dashboard checks for staleness and refreshes if needed.
+
+## Password protecting a shared link
+
+You can require a password to view a shared insight or dashboard. This works for public links and embeds. Password protection is part of [access control](/docs/settings/access-control), available on the [Boost, Scale, and Enterprise plans](/platform-packages).
+
+To add a password:
+
+1. Open the sharing modal and turn on sharing.
+2. Turn on **Password protect**.
+3. Click **Add**.
+4. Enter a password, or leave the field empty to generate a random one. You can also add a note, such as who the password is for.
+5. Click **Create password**, then copy the password.
+
+PostHog shows the password only once, so store it somewhere safe before you close the modal. The link stays locked until you add at least one password.
+
+You can add more than one password to the same link. For example, give each team their own password so you can remove one without affecting the others. The sharing modal lists each password with its note, who created it, and when.
+
+### Viewing a password-protected link
+
+When someone opens the link, they see a page that asks for the password. After they enter a correct password, they can view the insight or dashboard in that browser for 24 hours. After that, they need to enter the password again.
+
+### Removing access
+
+- **Remove one password:** Click the trash icon next to it. Anyone who used that password loses access immediately.
+- **Remove password protection:** Turn off **Password protect**. Anyone with the link can view it again.
+- **Stop sharing:** Turn off sharing. Nobody can view the link, with or without a password.

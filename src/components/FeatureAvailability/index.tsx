@@ -1,0 +1,141 @@
+import React from 'react'
+import InfoIcon from '../InfoIcon/Index'
+import CheckIcon from '../../images/check.svg'
+import XIcon from '../../images/x.svg'
+import Tooltip from 'components/Tooltip'
+
+// A tier is either available (true) / unavailable (false), or available with a
+// caveat described inline (e.g. "Up to 5") so limited tiers don't read as unlimited.
+type TierAvailability = boolean | string
+
+type FeatureAvailabilityProps = {
+    availability:
+        | {
+              openSource?: TierAvailability
+              free: TierAvailability
+              selfServe: TierAvailability
+              boost?: TierAvailability
+              scale?: TierAvailability
+              enterprise: TierAvailability
+          }
+        | boolean
+}
+
+const renderAvailability = (availability: TierAvailability) => {
+    if (typeof availability === 'string') {
+        return <span className="text-sm font-semibold mr-2">{availability}</span>
+    }
+    return availability ? (
+        <img src={CheckIcon} alt="Available" className="h-4 w-4 mr-2" aria-hidden="true" />
+    ) : (
+        <img src={XIcon} alt="Not available" className="h-4 w-4 mr-2" aria-hidden="true" />
+    )
+}
+
+export function FeatureAvailability({ availability }: FeatureAvailabilityProps): JSX.Element {
+    const diffOpenSource = typeof availability !== 'boolean' && 'openSource' in availability
+
+    const getGridColsClass = () => {
+        const count = typeof availability === 'boolean' ? 1 : Object.keys(availability).length
+        const columnCount = Math.max(3, count) // minimum 3 columns
+        return `grid-cols-${columnCount}`
+    }
+
+    const gridColsClass = getGridColsClass()
+
+    return (
+        <div className="border-t border-b border-solid border-primary dark: py-2 space-y-2 mt-2 mb-5 ">
+            <h6 className="text-muted !my-0 font-semibold text-base">Where is this feature available?</h6>
+
+            <div className={`grid grid-flow-col-dense ${gridColsClass} sm:grid-flow-row-dense gap-x-4 items-center`}>
+                {diffOpenSource ? (
+                    <div>
+                        <h5 className="flex items-center space-x-1.5 text-base !my-0">
+                            <span>Open-source</span>
+                            <Tooltip content="Free and Open-source">
+                                <span>
+                                    <InfoIcon className="w-4 h-4" />
+                                </span>
+                            </Tooltip>
+                        </h5>
+                    </div>
+                ) : null}
+
+                <div>
+                    <h5 className="flex items-center space-x-1.5 text-base !my-0">
+                        {diffOpenSource ? <span>Free</span> : <span>Free / Open-source</span>}
+                        <Tooltip content="PostHog Cloud (no credit card added) or FOSS">
+                            <span>
+                                <InfoIcon className="w-4 h-4" />
+                            </span>
+                        </Tooltip>
+                    </h5>
+                </div>
+
+                <div>
+                    <h5 className="flex items-center space-x-1.5 text-base !my-0">
+                        <span>Paid</span>
+                        <Tooltip content="Paid plans on PostHog Cloud (even if you're within the free tier for the month!)">
+                            <span>
+                                <InfoIcon className="w-4 h-4" />
+                            </span>
+                        </Tooltip>
+                    </h5>
+                </div>
+
+                {typeof availability === 'object' && 'boost' in availability && (
+                    <div>
+                        <h5 className="flex items-center space-x-1.5 text-base !my-0">
+                            <span>Boost</span>
+                            <Tooltip content="Available on PostHog Cloud">
+                                <span>
+                                    <InfoIcon className="w-4 h-4" />
+                                </span>
+                            </Tooltip>
+                        </h5>
+                    </div>
+                )}
+
+                {typeof availability === 'object' && 'scale' in availability && (
+                    <div>
+                        <h5 className="flex items-center space-x-1.5 text-base !my-0">
+                            <span>Scale</span>
+                            <Tooltip content="Available on PostHog Cloud">
+                                <span>
+                                    <InfoIcon className="w-4 h-4" />
+                                </span>
+                            </Tooltip>
+                        </h5>
+                    </div>
+                )}
+
+                <div>
+                    <h5 className="flex items-center space-x-1.5 text-base !my-0">
+                        <span>Enterprise</span>
+                        <Tooltip content="Available on PostHog Cloud">
+                            <span>
+                                <InfoIcon className="w-4 h-4" />
+                            </span>
+                        </Tooltip>
+                    </h5>
+                </div>
+
+                {diffOpenSource ? renderAvailability(availability.openSource || false) : null}
+
+                {renderAvailability(typeof availability === 'boolean' ? availability : availability.free)}
+
+                {renderAvailability(typeof availability === 'boolean' ? availability : availability.selfServe)}
+
+                {typeof availability === 'object' &&
+                    'boost' in availability &&
+                    renderAvailability(typeof availability === 'boolean' ? availability : availability.boost || false)}
+
+                {typeof availability === 'object' &&
+                    'scale' in availability &&
+                    renderAvailability(typeof availability === 'boolean' ? availability : availability.scale || false)}
+
+                {renderAvailability(typeof availability === 'boolean' ? availability : availability.enterprise)}
+            </div>
+        </div>
+    )
+}

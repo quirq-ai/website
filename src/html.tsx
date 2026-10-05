@@ -1,0 +1,49 @@
+import React from 'react'
+
+export interface HTMLProps {
+    htmlAttributes: React.DetailedHTMLProps<React.HtmlHTMLAttributes<HTMLHtmlElement>, HTMLHtmlElement>
+    bodyAttributes: React.DetailedHTMLProps<React.HTMLAttributes<HTMLBodyElement>, HTMLBodyElement>
+    headComponents?: JSX.Element | JSX.Element[] | null
+    preBodyComponents?: JSX.Element | JSX.Element[] | null
+    postBodyComponents?: JSX.Element | JSX.Element[] | null
+    body: string
+}
+
+export default function HTML(props: HTMLProps): JSX.Element {
+    return (
+        // `lang` is a default: pages that set their own override it via htmlAttributes.
+        <html lang="en" {...props.htmlAttributes}>
+            <head>
+                <meta charSet="utf-8" />
+                <meta httpEquiv="x-ua-compatible" content="ie=edge" />
+                <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+                <link
+                    rel="preload"
+                    as="font"
+                    type="font/woff2"
+                    href="/fonts/squeak-bold-webfont.woff2"
+                    crossOrigin="anonymous"
+                />
+                <link
+                    rel="preload"
+                    as="font"
+                    type="font/woff"
+                    href="/fonts/squeak-bold-webfont.woff"
+                    crossOrigin="anonymous"
+                />
+                {props.headComponents}
+            </head>
+            <body
+                {...props.bodyAttributes}
+                className="light"
+                data-wallpaper="keyboard-garden"
+                data-reduce-transparency="false"
+            >
+                {props.preBodyComponents}
+                {/* nosemgrep: typescript.react.security.audit.react-dangerouslysetinnerhtml.react-dangerouslysetinnerhtml - Gatsby body content from build, not user input */}
+                <div key={`body`} id="___gatsby" dangerouslySetInnerHTML={{ __html: props.body }} />
+                {props.postBodyComponents}
+            </body>
+        </html>
+    )
+}

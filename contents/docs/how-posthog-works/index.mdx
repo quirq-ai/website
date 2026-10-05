@@ -1,0 +1,114 @@
+---
+title: PostHog's architecture
+---
+
+This section covers PostHog's [data model](/docs/how-posthog-works/data-model), [ingestion pipeline](/docs/how-posthog-works/ingestion-pipeline), [ClickHouse setup](/docs/how-posthog-works/clickhouse) and [data querying](/docs/how-posthog-works/queries). This page provides an overview of how PostHog is structured.
+
+## Broad overview
+
+PostHog has a few main systems:
+
+- **Web app and API** – Django serves the UI and REST API for users
+- **Rust microservices** – High-throughput services for event capture, feature flag evaluation, and session replay ingestion
+- **Kafka** – Central message bus connecting ingestion to storage
+- **Background workers** – Celery (short tasks), Temporal (reliable workflows), and Dagster (scheduled data pipelines)
+- **CDP** (Customer Data Platform) – Processes events on ingestion and exports to destinations
+
+```mermaid
+graph LR
+    sdk[Client Apps/SDKs]
+    u[User]
+    ex[Export destinations]
+
+    capture[Capture services<br/>Rust]
+    web[Web/API<br/>Django]
+    cdp[CDP<br/>Node.js]
+    workers[Background workers<br/>Celery · Temporal · Dagster]
+    kafka{{Kafka}}
+    ds[(Data stores<br/>ClickHouse · PostgreSQL · Redis · Blob storage)]
+
+    sdk -->|events & recordings| capture
+    sdk -->|feature flags| capture
+    u --> web
+
+    capture --> kafka
+    kafka --> cdp
+    cdp --> kafka
+    kafka --> ds
+
+    cdp --> ex
+    web <--> ds
+    workers <--> ds
+    web --> workers
+```
+
+## Zooming closer
+
+Adding detail reveals the individual services and how data flows between them.
+
+```mermaid
+graph TD
+    u[User] --> web[Django web app / API]
+    sdk[Client Apps/SDKs] -->|events| cap[Capture]
+    sdk -->|flags| flags[Feature flags]
+    sdk -->|recordings| replay[Replay capture]
+
+    web <--> redis[(Redis)]
+    web --> workers[Background workers<br/>Celery · Temporal · Dagster]
+
+    cap --> kafka{{Kafka}}
+    replay --> kafka
+    replay --> blob[(Blob storage)]
+
+    kafka --> cdp[CDP worker]
+    cdp -->|processed events| kafka
+    cdp --> ex[Export destinations]
+
+    web <--> ch[(ClickHouse)]
+    workers <--> ch
+    kafka --> ch
+
+    web <--> pg[(PostgreSQL)]
+    workers <--> pg
+    flags <--> pg
+    cdp <--> pg
+```
+
+## Infrastructure view
+
+On PostHog Cloud, the application services run in an EKS (Kubernetes) cluster on AWS, while the data stores are managed separately.
+
+```mermaid
+flowchart TD
+    ClientApps("Client Apps / SDKs") --> ALB
+
+    subgraph EKS ["EKS cluster (Kubernetes)"]
+        ALB --> Django["Django (web app, API)"]
+        ALB --> Rust["Rust services<br/>(capture, feature flags, replay)"]
+        Workers["Background workers<br/>(Celery, Temporal, Dagster)"]
+        CDP["CDP worker (Node.js)"]
+    end
+
+    Django <--> Redis[("Redis / Valkey")]
+    Rust --> S3[("S3 (recordings, exports)")]
+
+    Rust --> Kafka{{Kafka / WarpStream}}
+    Kafka --> CDP
+    CDP --> Kafka
+
+    Django --read path--> CH
+    Workers --read path--> CH
+    Kafka --write path--> CH
+
+    subgraph CH ["ClickHouse cluster (self-managed EC2)"]
+        direction LR
+        S1["Shard 1<br/>(Replica A · Replica B)"] ~~~ SN["... Shard N<br/>(Replica A · Replica B)"]
+    end
+
+    CH -.- ZK[ZooKeeper]
+
+    Django --> PgBouncer
+    Workers --> PgBouncer
+    CDP --> PgBouncer
+    PgBouncer[PgBouncer] --> PG[("Aurora PostgreSQL")]
+```

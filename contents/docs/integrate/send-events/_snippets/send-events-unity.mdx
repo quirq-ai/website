@@ -1,0 +1,34 @@
+import SettingProperties from "./setting-properties-text.mdx"
+import Intro from "./intro.mdx"
+
+<Intro />
+
+```csharp
+PostHog.Capture("level_completed");
+```
+
+> **Tip:** We recommend naming events in an `[object] [verb]` format, where `[object]` is the entity the behavior relates to, and `[verb]` is the behavior itself. For example, `level completed`, `item purchased`, or `quest started`.
+
+<SettingProperties />
+
+```csharp
+PostHog.Capture("level_completed", new Dictionary<string, object>
+{
+    { "level_id", 5 },
+    { "score", 1250 }
+});
+```
+
+### Capturing screen views
+
+Track screen views to understand user navigation through your game:
+
+```csharp
+PostHog.Screen("Main Menu");
+
+// With additional properties
+PostHog.Screen("Level Select", new Dictionary<string, object>
+{
+    { "unlocked_levels", 5 }
+});
+```

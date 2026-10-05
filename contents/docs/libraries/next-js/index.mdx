@@ -1,0 +1,115 @@
+---
+title: Next.js
+platformLogo: nextjs
+features:
+  eventCapture: true
+  userIdentification: true
+  autoCapture: true
+  sessionRecording: true
+  featureFlags: true
+  groupAnalytics: true
+  surveys: true
+  aiObservability: true
+  errorTracking: true
+---
+
+import TracingHeaders from '../../_snippets/tracing-headers.mdx'
+
+import DetailSetUpReverseProxy from "../../integrate/_snippets/details/set-up-reverse-proxy.mdx"
+import DetailGroupProductsInOneProject from "../../integrate/_snippets/details/group-products-in-one-project.mdx"
+import DetailPostHogIPs from "../../integrate/_snippets/details/posthog-ips.mdx"
+
+PostHog makes it easy to get data about traffic and usage of your [Next.js](https://nextjs.org/) app. Integrating PostHog into your site enables analytics about user behavior, custom events capture, session recordings, feature flags, and more.
+
+This guide walks you through integrating PostHog into your Next.js app using the [React](/docs/libraries/react) and the [Node.js](/docs/libraries/node) SDKs.
+
+> You can see a working example of this integration in our [Next.js demo app](https://github.com/PostHog/posthog-js/tree/main/playground/nextjs).
+
+Next.js has both client and server-side rendering, as well as pages and app routers. We'll cover all of these options in this guide.
+
+> **Try `@posthog/next` (pre-release):** A simplified Next.js integration with synchronized client/server identity, server-side flag bootstrapping, and a built-in API proxy. [Read the setup guide →](/docs/libraries/next-js/posthog-next)
+
+## Prerequisites
+
+To follow this guide along, you need:
+
+1. A PostHog instance (either [Cloud](https://app.posthog.com/signup) or [self-hosted](/docs/self-host))
+2. A Next.js application
+
+import AgentIntegrationSection from "../../components/AgentIntegrationSection.mdx"
+
+<AgentIntegrationSection framework="Next.js" />
+
+## Client-side setup
+
+import NextJSInstall from "../../integrate/_snippets/nextjs/install-nextjs.mdx"
+
+<NextJSInstall />
+
+## Identifying users
+
+import IdentifyFrontendCallout from '../../_snippets/identify-frontend-callout.mdx'
+
+<IdentifyFrontendCallout />
+
+### Linking client and server events
+
+Next.js apps usually capture on both sides. To keep them on the same person, use the same distinct ID in both, and let the browser tell your server which one that is.
+
+<TracingHeaders />
+
+<DetailSetUpReverseProxy />
+
+<DetailGroupProductsInOneProject />
+
+<DetailPostHogIPs />
+
+## Accessing PostHog
+
+import InstrumentationClientSetup from "./_snippets/instrumentation-client-access.mdx"
+
+<InstrumentationClientSetup />
+
+### Usage
+
+See the [React SDK docs](/docs/libraries/react) for examples of how to use:
+
+- [`posthog-js` functions like custom event capture, user identification, and more.](/docs/libraries/react#using-posthog-js-functions)
+- [Feature flags including variants and payloads.](/docs/libraries/react#feature-flags)
+
+You can also read [the full `posthog-js` documentation](/docs/libraries/js/usage) for all the usable functions.
+
+## Server-side analytics
+
+import NextJSInstallServer from "../../integrate/_snippets/nextjs/install-nextjs-server.mdx"
+
+<NextJSInstallServer />
+
+### Server-side configuration
+
+Next.js overrides the default `fetch` behavior on the server to introduce their own cache. PostHog ignores that cache by default, as this is Next.js's default behavior for any fetch call.
+
+You can override that configuration when initializing PostHog, but make sure you understand the pros/cons of using Next.js's cache and that you might get cached results rather than the actual result our server would return. This is important for feature flags, for example.
+
+```tsx
+posthog.init(process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN, {
+  // ... your configuration
+  fetch_options: {
+    cache: 'force-cache', // Use Next.js cache
+    next_options: {       // Passed to the `next` option for `fetch`
+      revalidate: 60,     // Cache for 60 seconds
+      tags: ['posthog'],  // Can be used with Next.js `revalidateTag` function
+    },
+  }
+})
+```
+
+## Configuring a reverse proxy to PostHog
+
+To improve the reliability of client-side tracking and make requests less likely to be intercepted by tracking blockers, you can setup a reverse proxy in Next.js. Read more about deploying a reverse proxy using [Next.js rewrites](/docs/advanced/proxy/nextjs), [Next.js middleware](/docs/advanced/proxy/nextjs-middleware), and [Vercel rewrites](/docs/advanced/proxy/vercel).
+
+## Further reading
+
+- [How to set up Next.js analytics, feature flags, and more](/tutorials/nextjs-analytics)
+- [How to set up Next.js pages router analytics, feature flags, and more](/tutorials/nextjs-pages-analytics)
+- [How to set up Next.js A/B tests](/tutorials/nextjs-ab-tests)

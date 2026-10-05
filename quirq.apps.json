@@ -1,0 +1,62 @@
+{
+    "organization": "quirq-ai",
+    "name": "Quirq",
+    "defaults": {
+        "category": "Apps",
+        "presentation": "overview",
+        "launchMode": "external",
+        "includeForks": true,
+        "includeArchived": false,
+        "excludeRepositories": [".github"]
+    },
+    "repositories": {
+        "xo-space": {
+            "name": "XO Space",
+            "description": "Build, observe, and measure work across your local coding agents.",
+            "path": "/xo-space",
+            "icon": "rocket",
+            "color": "purple",
+            "featured": true
+        },
+        "quirq_ai": {
+            "name": "Quirq",
+            "description": "The Quirq website and research on verified agent work.",
+            "path": "/quirq",
+            "icon": "globe",
+            "color": "orange",
+            "featured": true
+        },
+        "docs": {
+            "name": "Docs",
+            "description": "XO documentation.",
+            "path": "/docs",
+            "icon": "book",
+            "color": "blue",
+            "category": "Knowledge",
+            "presentation": "reader",
+            "featured": true
+        },
+        "innernet": {
+            "name": "Innernet",
+            "description": "Search projects and explore the stories behind your folders.",
+            "icon": "globe",
+            "color": "green",
+            "featured": true
+        },
+        "instants": {
+            "name": "Instants",
+            "description": "A team collaboration prototype for sharing work and getting feedback.",
+            "icon": "rocket",
+            "color": "yellow",
+            "presentation": "gallery",
+            "featured": true
+        },
+        "quitter": {
+            "name": "Quitter",
+            "description": "A prototype feed for agent and thread activity, with customizable posts.",
+            "icon": "chat",
+            "color": "red",
+            "featured": true
+        }
+    }
+}

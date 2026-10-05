@@ -1,0 +1,29 @@
+#### Frontend SDKs
+
+We make a request to fetch feature flags (using the [`/flags` endpoint](/docs/api/flags)) when one of the below occurs:
+
+- The PostHog SDK is initialized
+- A user is [identified](/docs/product-analytics/identify) 
+- A user's [properties](/docs/product-analytics/person-properties) are updated
+- You call `posthog.reloadFeatureFlags()` in your code
+- You create a [group](/docs/product-analytics/group-analytics)
+
+For the [JavaScript web SDK](/docs/libraries/js), you can estimate how many feature flag requests you will make by doing the following:
+
+1. Check the networks tab in Chrome inspector tools for the number of `/flags` requests
+2. Find out your number of monthly page views
+3. Multiply your number of `/flags` requests by your monthly page views
+
+For example, if on refresh, you see 2 `/flags` requests per pageview and you have ~150,000 pageviews, your monthly feature flag requests should be around ~300,000.
+
+#### Backend SDKs
+
+##### Without local evaluation 
+
+If you're not using [local evaluation](/docs/feature-flags/local-evaluation), a request to get feature flags is made every time your backend evaluates flags. For example, each server-side snapshot evaluation call like `evaluateFlags()` or Python's `posthog.evaluate_flags()` makes one `/flags` request. Your estimated usage is based on how often you call this code.
+
+##### With local evaluation
+
+If you're using [local evaluation](/docs/feature-flags/local-evaluation), each poll for feature flag definitions is charged as 10 feature flag requests when the definitions changed, and as 1 request when they didn't. The SDK sends the ETag of the definitions it holds, and PostHog answers `304 Not Modified` when nothing changed. Polls are made every 30 seconds by default. Assuming your server is constantly running, making 2 polls per minute, and your flags rarely change, you will be charged about `2 * 60 * 24 * 30 = 86,400 feature flag requests` each month, plus 10 requests for each poll that returns new definitions. SDK versions without ETag support are charged 10 requests for every poll, which adds up to `10 * 2 * 60 * 24 * 30 = 864,000 feature flag requests`. See [reducing local evaluation costs](/docs/feature-flags/cutting-costs#reducing-local-evaluation-costs) for the supported versions.
+
+> **Note:** This figure is for a single server and a single instance of PostHog. If you have multiple servers, PostHog instances, or a different poll duration, you need to multiply your estimates too.

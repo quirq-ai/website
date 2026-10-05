@@ -1,0 +1,29 @@
+import WizardCommand from 'components/WizardCommand'
+import DetailSetUpReverseProxy from "../../integrate/_snippets/details/set-up-reverse-proxy.mdx"
+import DetailGroupProductsInOneProject from "../../integrate/_snippets/details/group-products-in-one-project.mdx"
+import DetailPostHogIPs from "../../integrate/_snippets/details/posthog-ips.mdx"
+import WizardSupportedFrameworks from 'components/WizardSupportedFrameworks'
+import List from 'components/List'
+import { getLogo } from 'constants/logos'
+
+Install PostHog in minutes with our wizard by running this command in your project directory:
+
+<WizardCommand />
+
+Wait for it to finish and test the setup once the wizard is complete.
+
+## Frameworks and languages
+
+The wizard supports the following frameworks and languages:
+
+<WizardSupportedFrameworks className="grid gap-4 grid-cols-2 not-prose" />
+
+We've got more on the way.
+
+Check out the wizard's [GitHub repo](https://github.com/PostHog/wizard) for more details.
+
+<DetailSetUpReverseProxy />
+
+<DetailGroupProductsInOneProject />
+
+<DetailPostHogIPs />

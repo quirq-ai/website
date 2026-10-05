@@ -1,0 +1,90 @@
+PostHog's backend SDKs and API capture identified events by default. To capture anonymous events, set the `$process_person_profile` property to `false` and use a distinct ID that isn't linked to a person profile. Generate a random value, such as a UUID, and reuse it for the rest of the visit or session instead of sharing one ID like `system` across all anonymous events. Anonymous events are stored without person properties and don't link to [groups](/docs/product-analytics/group-analytics), so group analytics doesn't count them. If the distinct ID already belongs to a person, the event is still linked to that person and counts as an identified event – it just can't update their person properties:
+
+<MultiLanguage>
+
+```node
+client.capture({
+    distinctId: 'anonymous_distinct_id',
+    event: 'your_event_name',
+    properties: {
+        $process_person_profile: false,
+    },
+})
+```
+
+```python
+posthog.capture(
+    "your_event_name",
+    distinct_id="anonymous_distinct_id",
+    properties={
+        "$process_person_profile": false
+    }
+)
+```
+
+```php
+PostHog::capture([
+  'distinctId' => 'anonymous_distinct_id',
+  'event' => 'your_event_name',
+  'properties' => [
+    '$process_person_profile' => false
+  ]
+]);
+```
+
+```ruby
+posthog.capture({
+    distinct_id: 'anonymous_distinct_id',
+    event: 'your_event_name',
+    properties: {
+        '$process_person_profile': false
+    }
+})
+```
+
+```go
+client.Enqueue(posthog.Capture{
+    DistinctId: "anonymous_distinct_id",
+    Event:      "your_event_name",
+    Properties: posthog.NewProperties().
+      Set("$process_person_profile", false),
+})
+```
+
+```java
+posthog.capture("anonymous_distinct_id", "your_event_name", new HashMap<String, Object>() {
+  {
+    put("$process_person_profile", false);
+  }
+});
+```
+
+```rust
+let mut event = Event::new("your_event_name", "anonymous_distinct_id");
+
+event.insert_prop("$process_person_profile", false).unwrap();
+
+client.capture(event);
+```
+
+```elixir
+PostHog.capture("your_event_name", %{
+  distinct_id: "anonymous_distinct_id",
+  "$process_person_profile": false
+})
+```
+
+```bash
+curl -v -L --header "Content-Type: application/json" -d '{
+    "api_key": "<ph_project_token>",
+    "properties": {
+        "$process_person_profile": false
+    },
+    "distinct_id": "anonymous_distinct_id",
+    "event": "your_event_name"
+}' <ph_client_api_host>/i/v0/e/
+```
+
+</MultiLanguage>
+
+

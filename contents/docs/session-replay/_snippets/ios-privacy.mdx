@@ -1,0 +1,67 @@
+import SensitiveThirdPartyScreens from "./sensitive-third-party-screens.mdx"
+
+### Masking views
+
+To replace any type of `UIView` with a redacted version in the replay, set the [accessibilityIdentifier](https://developer.apple.com/documentation/uikit/uiaccessibilityidentification/1623132-accessibilityidentifier) to `ph-no-capture`:
+
+```swift
+let imvProfilePhoto = UIImageView(frame: CGRect(x: 50, y: 50, width: 100, height: 100))
+imvProfilePhoto.accessibilityIdentifier = "ph-no-capture"
+```
+
+> **Note:** For SwiftUI please refer to the [Masking in SwiftUI](#masking-in-swiftui) section below
+
+### Unmasking views
+
+To explicitly prevent a `UIView` and all its subviews from being masked, even when `maskAllTextInputs` or `maskAllImages` is enabled, set the [accessibilityIdentifier](https://developer.apple.com/documentation/uikit/uiaccessibilityidentification/1623132-accessibilityidentifier) or [accessibilityLabel](https://developer.apple.com/documentation/objectivec/nsobject-swift.class/accessibilitylabel) to `ph-no-mask`:
+
+```swift
+let lblPublicTitle = UILabel(frame: CGRect(x: 50, y: 50, width: 200, height: 40))
+lblPublicTitle.accessibilityIdentifier = "ph-no-mask"
+```
+
+The match is a case-insensitive substring, so `ph-no-mask` can be combined with an identifier you already use:
+
+```swift
+lblPublicTitle.accessibilityIdentifier = "screen-title ph-no-mask"
+```
+
+<CalloutBox title="Requires version 3.71.0" type="info" icon="IconInfo">
+
+Support for the `ph-no-mask` identifier is added in iOS SDK version 3.71.0.
+
+</CalloutBox>
+
+### Masking in SwiftUI
+
+- When using the [SwiftUI TextField](https://developer.apple.com/documentation/swiftui/textfield) with [UITextInputTraits](https://developer.apple.com/documentation/uikit/uitextinputtraits), setting traits such as `TextField("Email", text: ...).keyboardType(.emailAddress)` will always be automatically masked since it's for private text.
+- The [SwiftUI SecureField](https://developer.apple.com/documentation/swiftui/securefield) view is always automatically masked.
+- You can manually mark a SwiftUI View for masking using the `postHogMask()` view modifier:
+
+  ```swift
+  // This view (and children) will *always* be masked in session replay recordings
+  MyCoolView()
+    .postHogMask()
+  ```
+- The `postHogNoMask()` view modifier can be used to prevent a view from being masked in session recordings, regardless of any default masking behavior:
+
+  ```swift
+  // This view (and children) will *never* be masked in session replay recordings
+  MyCoolView()
+    .postHogNoMask()
+  ```
+
+
+<CalloutBox title="SwiftUI and Xcode 26" type="caution" icon="IconInfo">
+
+Apps built with Xcode 26 use a new SwiftUI rendering model that changes how SwiftUI views map to UIKit. This can cause `postHogMask()` and `postHogNoMask()` to behave inconsistently on primitive views like `Text`, `Image`, and `Button`.
+
+**If you're building with Xcode 26**, update to [version 3.36.2](https://github.com/PostHog/posthog-ios/releases/tag/3.36.2) or later to ensure these modifiers work correctly.
+
+</CalloutBox>
+
+### Precedence and propagation
+
+`ph-no-mask` applies to the view it is set on and all of its subviews, and it takes precedence over both `ph-no-capture` and PostHog's default masking heuristics. A view marked with `ph-no-capture` that sits inside a `ph-no-mask` subtree is **not** masked, and neither are sensitive views such as text fields that PostHog would otherwise mask automatically. Only set `ph-no-mask` on a subtree you know contains no sensitive data.
+
+<SensitiveThirdPartyScreens />

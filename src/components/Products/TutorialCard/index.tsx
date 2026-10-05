@@ -1,0 +1,26 @@
+import React from 'react'
+import { CallToAction } from '../../CallToAction'
+import { layoutLogic } from 'logic/layoutLogic'
+import { useValues } from 'kea'
+
+interface TutorialCardProps {
+    title: string
+    description: string
+    url: string
+}
+
+export const TutorialCard = ({ title, description, url }: TutorialCardProps): JSX.Element => {
+    const { websiteTheme } = useValues(layoutLogic)
+    const darkMode = websiteTheme === 'dark'
+
+    return (
+        <li className="bg-accent p-6 rounded flex flex-col items-start">
+            <p className="text-lg font-bold m-0 leading-tight mb-1">{title}</p>
+            {/* nosemgrep: typescript.react.security.audit.react-dangerouslysetinnerhtml.react-dangerouslysetinnerhtml - CMS content, not user input */}
+            <p className="text-sm flex-1" dangerouslySetInnerHTML={{ __html: description }} />
+            <CallToAction to={url} type="secondary" size="sm">
+                Read more
+            </CallToAction>
+        </li>
+    )
+}
