@@ -5,7 +5,7 @@ import { getQuirqApps } from './src/lib/quirqApps'
 
 const root = __dirname
 const defaultAppTemplate = path.resolve(root, 'src/templates/quirq-app.tsx')
-const sourcePages = new Set(['/', '/display-options', '/404', '/404.html'])
+const sourcePages = new Set(['/', '/display-options', '/projects', '/404', '/404.html'])
 const normalizePath = (value: string) => value.replace(/\/$/, '') || '/'
 
 function getAppTemplate(app: ReturnType<typeof getQuirqApps>[number]): string {
@@ -54,6 +54,7 @@ export const preprocessSource: GatsbyNode['preprocessSource'] = ({ filename }) =
     const active = new Set([
         'pages/index.tsx',
         'pages/display-options.tsx',
+        'pages/projects.tsx',
         'pages/404.js',
         'pages/404.tsx',
         'components/seo.tsx',

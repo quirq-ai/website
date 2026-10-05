@@ -20,16 +20,21 @@ This repository is quirq's Gatsby 4 / React website, adapted from the PostHog de
 | Explicit GitHub refresh command | `scripts/sync-quirq-apps.mjs` |
 | Shared browser and build catalog | `src/lib/quirqApps.ts` |
 | Generated routes and legacy-page exclusion | `gatsby-node.ts`, `gatsby-config.js` |
+| Project groups, descriptions and phase overrides | `quirq.projects.json`, phase rules in `scripts/lib/quirq-phases.mjs` |
+| Generated project phase snapshot (`pnpm projects:sync`) | `src/data/quirq-projects.json` |
+| Projects view and quirq infra v0 app | `src/components/QuirqProjects/`, `src/components/QuirqInfraV0/` |
 | Home launcher | `src/components/HomeBase/` |
 | Default app views | `src/components/QuirqApp/`, `src/templates/quirq-app.tsx` |
 | Desktop, menus, and local search | `src/components/Desktop/`, `src/components/TaskBarMenu/`, `src/components/QuirqSearch/` |
 | Window state and controls | `src/context/App.tsx`, `src/components/AppWindow/` |
 
-`src/pages/index.tsx`, `src/pages/display-options.tsx`, and `src/pages/404.js` are the active filesystem pages. App routes come from the catalog. Inherited PostHog pages, components, and build helpers remain in `src/` and `scripts/` for reference and asset reuse, but are excluded from this site's active page generation. `static/` holds only files the active site loads: the quirq brand art, `scripts/theme-init.js`, and three inherited PostHog images (`images/search.svg` and the two `questlog-*-sprite.png` files). Gatsby publishes everything in `static/`, so add only files a page uses. PostHog's `contents/` docs, its published brand files and its other unused `static/` art were removed (they remain in git history). Do not re-enable the old CMS, customer, analytics, billing, or notification integrations as a side effect of a change.
+`src/pages/index.tsx`, `src/pages/display-options.tsx`, `src/pages/projects.tsx`, and `src/pages/404.js` are the active filesystem pages. App routes come from the catalog. Inherited PostHog pages, components, and build helpers remain in `src/` and `scripts/` for reference and asset reuse, but are excluded from this site's active page generation. `static/` holds only files the active site loads: the quirq brand art, `scripts/theme-init.js`, and three inherited PostHog images (`images/search.svg` and the two `questlog-*-sprite.png` files). Gatsby publishes everything in `static/`, so add only files a page uses. PostHog's `contents/` docs, its published brand files and its other unused `static/` art were removed (they remain in git history). Do not re-enable the old CMS, customer, analytics, billing, or notification integrations as a side effect of a change.
 
 ## Catalog changes
 
 - Keep app mapping in `quirq.apps.json`; avoid separate hard-coded app lists in menus, search, or the homepage.
+- Keep project groups and phase overrides in `quirq.projects.json`; refresh phases with `pnpm projects:sync`. A hand-set `phase` needs a `phaseReason`.
+- Live state on `/v0` and `/projects` is read in the browser from public files on raw.githubusercontent.com. Do not add a token or backend for it.
 - Refresh the generated snapshot with `pnpm apps:sync`. Do not hand-edit repository data or invent a deployment URL.
 - After hiding a repository, run `pnpm apps:sync` (or the offline `pnpm apps:prune`) so its README text leaves the bundled snapshot; `pnpm apps:check` fails until then.
 - Only public repositories belong in the snapshot. Never commit tokens or private repository metadata.
@@ -51,6 +56,7 @@ The development site is at `http://localhost:8001`. Before handing off a relevan
 
 ```sh
 pnpm apps:check
+pnpm projects:check
 pnpm test
 pnpm build
 ```

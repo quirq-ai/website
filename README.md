@@ -54,7 +54,7 @@ quirq-ai public GitHub repositories
 
 Public, non-archived repositories are included by default, including forks. `.github` is excluded. Repositories do not need an explicit mapping entry to appear after a sync. Use `hidden` or `defaults.excludeRepositories` to remove infrastructure or other entries that should not appear as apps. Private repositories are never included.
 
-Only Home base (`/`), Appearance (`/display-options`), the 404 page, and catalog app routes are active. The original PostHog marketing, billing, community, and CMS services are not part of this build.
+Only Home base (`/`), Projects (`/projects`), Appearance (`/display-options`), the 404 page, and catalog app routes are active. The `infra-config` repository maps to the quirq infra v0 app at `/v0`, a guide to v0 with its live state. The original PostHog marketing, billing, community, and CMS services are not part of this build.
 
 ## Refresh the catalog
 
@@ -109,6 +109,20 @@ Launch destinations open externally by default. An iframe only works when the de
 
 For all supported values, validation rules, organization changes, and embedding details, read the [app mapping guide](docs/quirq-app-mapping.md).
 
+## Projects and phases
+
+`/projects` shows every repository the swarm is building, grouped as in [`quirq.projects.json`](quirq.projects.json), with a phase read from the repository's shape:
+
+| Phase | Rule |
+| --- | --- |
+| Thought | Notes or a README only, no code |
+| Prototype | Real code, but no CI |
+| Built | Code with CI on GitHub |
+| Shipping | Built, and onboarded to qq (`infra/repo.toml`), deployed, or in the daily canary |
+| Project | Has code and users: at least 10 GitHub stars or at least 5 people committing (`projectRule`) |
+
+`pnpm projects:sync` reads each repository's default-branch file list and its commit authors with anonymous git clones that skip file contents, and star counts from one anonymous GitHub API request (falling back to the apps snapshot's counts). It needs no token and saves only counts, never names or emails, to `src/data/quirq-projects.json`. Commit that snapshot. People committing leaves out bots and the agent and automation emails listed under `automation`, and counts one person's several names and emails once. A `phase` with a `phaseReason` in `quirq.projects.json` overrides the computed phase. Repositories in the daily canary also show their live tree status and canary commit, fetched in the browser from public state branches.
+
 ## Commands
 
 | Command | Purpose |
@@ -116,6 +130,8 @@ For all supported values, validation rules, organization changes, and embedding 
 | `pnpm start` | Run the development server at `http://localhost:8001` |
 | `pnpm apps:sync` | Fetch public GitHub metadata and READMEs into the snapshot |
 | `pnpm apps:check` | Validate the mapping and snapshot without network access; fails if a hidden repository still carries README text |
+| `pnpm projects:sync` | Read every project's files, committers and stars without a token and save the phase snapshot |
+| `pnpm projects:check` | Validate `quirq.projects.json` against the saved phase snapshot without network access |
 | `pnpm apps:prune` | Offline: clear README text for repositories that are no longer visible apps, without refetching |
 | `pnpm test` | Run catalog and app route regression tests |
 | `pnpm apps:test` | Run catalog tests only |
@@ -132,7 +148,7 @@ pnpm build
 pnpm serve -H 127.0.0.1 -p 9000
 ```
 
-GitHub Actions runs the quirq infra presubmit (`website-presubmit`: a frozen pnpm install, `pnpm build`, whose prebuild runs `pnpm apps:check`, and `pnpm test`) on pull requests and in the merge queue, and the same steps as `website-postsubmit` on every push to `main`, using Node 24.
+GitHub Actions runs the quirq infra presubmit (`website-presubmit`: a frozen pnpm install, `pnpm build`, whose prebuild runs `pnpm apps:check` and `pnpm projects:check`, and `pnpm test`) on pull requests and in the merge queue, and the same steps as `website-postsubmit` on every push to `main`, using Node 24.
 
 Check Home base, an app route, search, Appearance, and narrow and wide layouts in both themes when changing the UI. The catalog and routing tests do not replace browser checks. Other scripts retained in `package.json` serve upstream functionality and are not required for this app's normal workflow.
 
@@ -157,6 +173,9 @@ This repository is onboarded to [quirq infra](https://github.com/quirq-ai/infra-
 | [`gatsby-node.ts`](gatsby-node.ts) | Generates mapped routes and excludes inactive upstream pages and queries |
 | [`src/templates/quirq-app.tsx`](src/templates/quirq-app.tsx) | Default generated app page and SEO |
 | [`src/components/HomeBase`](src/components/HomeBase) | Featured apps, filtering, and grid/list catalog views |
+| [`quirq.projects.json`](quirq.projects.json), [`scripts/lib/quirq-phases.mjs`](scripts/lib/quirq-phases.mjs) | Project groups, descriptions, phase overrides, and the phase rules |
+| [`src/components/QuirqProjects`](src/components/QuirqProjects) | The projects-by-phase view at `/projects` |
+| [`src/components/QuirqInfraV0`](src/components/QuirqInfraV0) | The quirq infra v0 guide and live view at `/v0` |
 | [`src/components/QuirqApp`](src/components/QuirqApp) | Repository overview, reader, gallery, README rendering, and optional embed |
 | [`src/components/QuirqAppIcon`](src/components/QuirqAppIcon) | Mapped icons in the existing glass icon style |
 | [`src/components/QuirqSearch`](src/components/QuirqSearch) | Local catalog search and keyboard navigation |

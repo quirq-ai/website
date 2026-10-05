@@ -1796,6 +1796,7 @@ export const Provider = ({ children, element, location }: AppProviderProps) => {
     const menu = useMemo<Menu>(
         () => [
             { name: 'Home base', url: '/' },
+            { name: 'Projects', url: '/projects' },
             { name: 'Apps', children: getQuirqApps().map((app) => ({ name: app.name, url: app.path })) },
             { name: 'Display options', url: '/display-options' },
         ],
@@ -2063,6 +2064,8 @@ export const Provider = ({ children, element, location }: AppProviderProps) => {
                         ? 'Home base'
                         : element.props.location.pathname === '/display-options'
                         ? 'Display options'
+                        : element.props.location.pathname === '/projects'
+                        ? 'Projects'
                         : 'Page not found'),
             },
             zIndex: windows.length + 1,

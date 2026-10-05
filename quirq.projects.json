@@ -1,0 +1,147 @@
+{
+    "organization": "quirq-ai",
+    "source": "Groups and one-line descriptions follow the repo catalogue in the quirq-ai/monitoring README (2026-10-05).",
+    "projectRule": {
+        "minStars": 10,
+        "minPeople": 5
+    },
+    "automation": [
+        "noreply@anthropic.com",
+        "gates@quirq.ai",
+        "cursoragent@cursor.com",
+        "+copilot@users.noreply.github.com"
+    ],
+    "groups": [
+        {
+            "name": "Products",
+            "description": "What people use.",
+            "repos": ["xo-space", "innernet", "website"]
+        },
+        {
+            "name": "qq infra",
+            "description": "quirq's CI/CD system, modeled on Chromium's.",
+            "repos": [
+                "depot",
+                "sync",
+                "recipes",
+                "toolchains",
+                "remote-build",
+                "infra-config",
+                "gate",
+                "test-pipelines",
+                "gardener",
+                "rollers",
+                "perf",
+                "release",
+                "installer"
+            ]
+        },
+        {
+            "name": "Apps in progress",
+            "description": "Apps and prototypes on their way to users.",
+            "repos": ["euler", "galileo", "instants", "quitter"]
+        },
+        {
+            "name": "Knowledge",
+            "description": "Research, docs and maps of the work.",
+            "repos": ["research", "wiki", "docs", "marketing"]
+        },
+        {
+            "name": "Other",
+            "description": "Plans, older repos and placeholders.",
+            "repos": ["monitoring", "xo-cowork-api", "environment", "quirq_ai", "quirqy"]
+        }
+    ],
+    "repositories": {
+        ".github": {
+            "hidden": true
+        },
+        "xo-space": {
+            "description": "The FastAPI app and Space UI that brokers coding agents, installed on users' machines."
+        },
+        "innernet": {
+            "description": "Next.js folder search."
+        },
+        "website": {
+            "description": "This site: the quirq Home base, deployed by Vercel on every push to main."
+        },
+        "depot": {
+            "description": "The qq command."
+        },
+        "sync": {
+            "description": "The repo manifest, infra/repo.toml, and its only parser."
+        },
+        "recipes": {
+            "description": "Build and test adapters for each kind of repo."
+        },
+        "toolchains": {
+            "description": "Pinned Python, Node and pnpm."
+        },
+        "remote-build": {
+            "description": "Build action executor and cache."
+        },
+        "infra-config": {
+            "description": "Policy as code for every repo, builder and channel."
+        },
+        "gate": {
+            "description": "Required checks and rulesets."
+        },
+        "test-pipelines": {
+            "description": "Test results store, verdicts and scorecard."
+        },
+        "gardener": {
+            "description": "Keeps main green: tree status, culprits and reverts."
+        },
+        "rollers": {
+            "description": "Moves pins and dependencies forward."
+        },
+        "perf": {
+            "description": "Benchmarks and build size per commit."
+        },
+        "release": {
+            "description": "lkgr, channels and the daily canary."
+        },
+        "installer": {
+            "description": "Follows release channels for installs."
+        },
+        "euler": {
+            "description": "A local workspace that runs Innernet, Quitter and Instants together."
+        },
+        "galileo": {
+            "description": "The inspector of a space."
+        },
+        "instants": {
+            "description": "A team collaboration prototype."
+        },
+        "quitter": {
+            "description": "An agent and thread activity prototype."
+        },
+        "research": {
+            "description": "Research topics, including the interactive infra map."
+        },
+        "wiki": {
+            "description": "A bot-generated map of every public repo, regenerated daily."
+        },
+        "docs": {
+            "description": "Space product docs."
+        },
+        "marketing": {
+            "description": "Campaign copy and brand assets."
+        },
+        "monitoring": {
+            "description": "The plan for an org-wide monitoring dashboard."
+        },
+        "xo-cowork-api": {
+            "description": "The local control plane for AI coding agents."
+        },
+        "environment": {
+            "description": "A placeholder with a README only."
+        },
+        "quirq_ai": {
+            "description": "The earlier quirq site, work at light speed."
+        },
+        "quirqy": {
+            "description": "An empty placeholder."
+        }
+    }
+}

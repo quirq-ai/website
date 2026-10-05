@@ -19,6 +19,15 @@ const entries = [
         color: 'teal',
         keywords: 'home organization apps repositories',
     },
+    {
+        id: 'projects',
+        name: 'Projects',
+        description: 'Everything the swarm is building, by phase.',
+        path: '/projects',
+        icon: 'rocket',
+        color: 'green',
+        keywords: 'projects phases status swarm thought prototype built shipping',
+    },
     ...getQuirqApps().map((app) => ({
         ...app,
         keywords: [app.repo, app.category, app.language, ...app.topics].join(' '),

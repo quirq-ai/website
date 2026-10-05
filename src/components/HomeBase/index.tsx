@@ -47,6 +47,14 @@ export default function HomeBase() {
                     <p className="text-secondary max-w-xl text-base leading-relaxed m-0">
                         Everything quirq builds, in one place. Open an app to read about it or launch it.
                     </p>
+                    <div className="flex flex-wrap gap-2 mt-5">
+                        <OSButton asLink to="/projects" variant="primary" size="sm">
+                            See every project by phase
+                        </OSButton>
+                        <OSButton asLink to="/v0" size="sm">
+                            How quirq infra v0 works
+                        </OSButton>
+                    </div>
                 </header>
 
                 <section aria-label="App collection">

@@ -24,6 +24,7 @@ const asDesktopApp = (app: (typeof catalog)[number]): AppItem => ({
 
 const primaryApps: AppItem[] = [
     { label: 'Home base', Icon: <QuirqAppIcon icon="home" color="teal" />, url: '/', source: 'desktop' },
+    { label: 'Projects', Icon: <QuirqAppIcon icon="rocket" color="green" />, url: '/projects', source: 'desktop' },
     ...featuredApps.map(asDesktopApp),
 ]
 

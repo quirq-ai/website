@@ -107,7 +107,7 @@ test('native page creator ignores archived source files before evaluating collec
     }
     visit(plugin.options.path)
     assert.equal(queries, 0)
-    assert.deepEqual(created.map((page) => page.path).sort(), ['/', '/404', '/display-options'])
+    assert.deepEqual(created.map((page) => page.path).sort(), ['/', '/404', '/display-options', '/projects'])
     assert.equal(ignorePath('docs/index.tsx', plugin.options.ignore), true)
     assert.equal(ignorePath('future/{NewCollection.slug}.tsx', plugin.options.ignore), true)
 })
