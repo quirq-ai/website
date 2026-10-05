@@ -56,7 +56,7 @@ pnpm build
 
 Format only the files you changed with `pnpm exec prettier --write <files>`. Avoid a repository-wide formatting pass over inherited content. For UI changes, check the affected routes in light and dark themes, wide and narrow windows, and verify the console. Capture screenshots when they help review the change. For window behavior, check opening a second app, expansion, restoration, and closing.
 
-The GitHub validation workflow runs the catalog check, tests, and production build. It needs no project secrets, does not refresh GitHub data, and does not deploy or write to the repository.
+The quirq infra workflows (`.github/workflows/qq-website-*.yml`, generated in quirq-ai/infra-config; never edit them here) run the catalog check, tests, and production build. It needs no project secrets, does not refresh GitHub data, and does not deploy or write to the repository.
 
 ## Scope and collaboration
 

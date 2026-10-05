@@ -131,13 +131,13 @@ pnpm build
 pnpm serve -H 127.0.0.1 -p 9000
 ```
 
-GitHub Actions runs `pnpm apps:check`, `pnpm test`, and `pnpm build` on pushes to `main` and pull requests, using Node 24 and a frozen pnpm install.
+GitHub Actions runs the quirq infra presubmit (`website-presubmit`: a frozen pnpm install, `pnpm build`, whose prebuild runs `pnpm apps:check`, and `pnpm test`) on pull requests and in the merge queue, and the same steps as `website-postsubmit` on every push to `main`, using Node 24.
 
 Check Home base, an app route, search, Appearance, and narrow and wide layouts in both themes when changing the UI. The catalog and routing tests do not replace browser checks. Other scripts retained in `package.json` serve upstream functionality and are not required for this app's normal workflow.
 
 ## quirq infra (qq)
 
-This repository is being onboarded to [quirq infra](https://github.com/quirq-ai/infra-config), the build, test and land system shared by the quirq repositories:
+This repository is onboarded to [quirq infra](https://github.com/quirq-ai/infra-config), the build, test and land system shared by the quirq repositories:
 
 - [`infra/repo.toml`](infra/repo.toml) is the qq manifest: one `site` target of kind `gatsby-site` and the Node toolchain pin. Read or change it only with `qqsync` from [quirq-ai/sync](https://github.com/quirq-ai/sync).
 - The presubmit and post-submit workflows (`.github/workflows/qq-*.yml`) are generated in [quirq-ai/infra-config](https://github.com/quirq-ai/infra-config) and copied here. Change them there, never by hand.
