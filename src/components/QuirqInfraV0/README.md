@@ -17,7 +17,7 @@ The "quirq infra" app at `/v0`: a guide to quirq infra (qq) v0 and a live view o
   counterparts are adapted from the infra map in
   [quirq-ai/research](https://github.com/quirq-ai/research/tree/main/infra/output/app/infra-map) (MIT); the status
   lines come from that repo's v0 status report. Update them together when v0 moves.
-- `live.ts` fetches in the visitor's browser from `raw.githubusercontent.com`: gardener's `tree-status` branch
+- `live.ts` fetches in the visitor's browser from `raw.githubusercontent.com`, by `refs/heads/` so a tag can never stand in: gardener's `tree-status` branch
   (`status/<repo>.json`) and release's `release-state` branch (`pointers/<repo>/lkgr.json`,
   `pointers/<repo>/channels/canary.json` and `canary/<repo>/runs/<date>.json`). Those files are public, so the page
   needs no token or backend, and the build never touches the network. A missing file reads as "none"; a failed fetch

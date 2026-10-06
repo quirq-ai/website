@@ -2,7 +2,8 @@ import React from 'react'
 import * as TabsPrimitive from '@radix-ui/react-tabs'
 import { cn } from '../../utils'
 
-// shadcn/ui Tabs on Radix, restyled with the site's tokens.
+// shadcn/ui Tabs on Radix, restyled with the site's tokens. The selected tab carries a bottom bar in the primary
+// text color, so it stands out at more than 3:1, not only by its background.
 
 export const Tabs = TabsPrimitive.Root
 
@@ -28,7 +29,7 @@ export const TabsTrigger = React.forwardRef<
     <TabsPrimitive.Trigger
         ref={ref}
         className={cn(
-            'rounded px-3 py-1.5 text-sm font-medium text-secondary transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgb(var(--text-primary))] data-[state=active]:bg-primary data-[state=active]:text-primary data-[state=active]:shadow-sm',
+            'rounded border-b-2 border-transparent px-3 py-1.5 text-sm font-medium text-secondary transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgb(var(--text-primary))] data-[state=active]:border-[rgb(var(--text-primary))] data-[state=active]:bg-primary data-[state=active]:font-semibold data-[state=active]:text-primary data-[state=active]:shadow-sm',
             className
         )}
         {...props}

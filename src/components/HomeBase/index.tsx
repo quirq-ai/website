@@ -2,6 +2,7 @@ import React, { useMemo, useState } from 'react'
 import Explorer from 'components/Explorer'
 import Link from 'components/Link'
 import OSButton from 'components/OSButton'
+import { ButtonLink } from 'components/ui/button'
 import QuirqAppIcon from 'components/QuirqAppIcon'
 import { QuirqWordmark } from 'components/QuirqBrand'
 import { getQuirqApps, quirqConfig } from 'lib/quirqApps'
@@ -48,12 +49,12 @@ export default function HomeBase() {
                         Everything quirq builds, in one place. Open an app to read about it or launch it.
                     </p>
                     <div className="flex flex-wrap gap-2 mt-5">
-                        <OSButton asLink to="/projects" variant="primary" size="sm">
+                        <ButtonLink to="/projects" size="sm">
                             See every project by phase
-                        </OSButton>
-                        <OSButton asLink to="/v0" size="sm">
+                        </ButtonLink>
+                        <ButtonLink to="/v0" variant="outline" size="sm">
                             How quirq infra v0 works
-                        </OSButton>
+                        </ButtonLink>
                     </div>
                 </header>
 

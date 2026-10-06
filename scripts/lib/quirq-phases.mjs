@@ -25,7 +25,7 @@ export const PHASES = [
     {
         id: 'project',
         name: 'Project',
-        rule: 'Has users: enough GitHub stars or enough people committing to it.',
+        rule: 'Has users: at least 10 GitHub stars or at least 5 people committing to it.',
     },
 ]
 
@@ -33,6 +33,21 @@ const PHASE_IDS = new Set(PHASES.map((phase) => phase.id))
 
 /** Defaults for the Project rule; quirq.projects.json can change them under `projectRule`. */
 export const DEFAULT_PROJECT_RULE = { minStars: 10, minPeople: 5 }
+
+/** The Project rule in words, from the configured thresholds. */
+export function projectRuleText(rule = DEFAULT_PROJECT_RULE) {
+    return `Has users: at least ${plural(rule.minStars, 'GitHub star')} or at least ${plural(
+        rule.minPeople,
+        'person',
+        'people'
+    )} committing to it.`
+}
+
+/** Public repos in a catalog snapshot that quirq.projects.json neither groups nor hides. */
+export function ungroupedRepositories(names, config) {
+    const grouped = new Set(config.groups.flatMap((group) => group.repos))
+    return names.filter((name) => !grouped.has(name) && !config.repositories?.[name]?.hidden)
+}
 
 /** Commit identities that are agents or automation, not people. Matched against the lowercased email. */
 export const DEFAULT_AUTOMATION = [
@@ -114,17 +129,17 @@ export function computePhase(signals, override = {}, rule = DEFAULT_PROJECT_RULE
             throw new Error(`A phase set by hand needs a phaseReason`)
         return { phase: override.phase, reason: override.phaseReason.trim(), overridden: true }
     }
-    if (!signals || signals.files === 0)
-        return { phase: 'thought', reason: 'The repo has no files yet.', overridden: false }
-    if (signals.codeFiles === 0) return { phase: 'thought', reason: 'Notes only, no code yet.', overridden: false }
-    const stars = signals.stars || 0
-    const people = signals.people || 0
+    const stars = signals?.stars || 0
+    const people = signals?.people || 0
     if (stars >= rule.minStars || people >= rule.minPeople)
         return {
             phase: 'project',
             reason: `${plural(stars, 'GitHub star')} and ${plural(people, 'person', 'people')} committing.`,
             overridden: false,
         }
+    if (!signals || signals.files === 0)
+        return { phase: 'thought', reason: 'The repo has no files yet.', overridden: false }
+    if (signals.codeFiles === 0) return { phase: 'thought', reason: 'Notes only, no code yet.', overridden: false }
     if (signals.workflows === 0)
         return {
             phase: 'prototype',

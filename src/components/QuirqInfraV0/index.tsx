@@ -1,14 +1,14 @@
 import React, { useState } from 'react'
 import { Link } from 'gatsby'
 import Explorer from 'components/Explorer'
-import OSButton from 'components/OSButton'
+import { ButtonLink } from 'components/ui/button'
 import QuirqAppIcon from 'components/QuirqAppIcon'
 import { Badge, type BadgeVariant } from 'components/ui/badge'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from 'components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from 'components/ui/tabs'
 import type { QuirqApp } from 'lib/quirqApps'
 import { AS_OF, EXIT_TEST, FLOW, GUIDE, LANES, LIMITS, ORG, PRODUCTS, REPOS, SOURCES, type Product } from './data'
-import { FIRST_CANARY, useLiveState, type CanaryRun, type Pointer, type RepoLive } from './live'
+import { FIRST_CANARY, useLiveState, type CanaryRun, type CanaryStage, type Pointer, type RepoLive } from './live'
 
 type Tab = 'overview' | 'live' | 'repos' | 'guide'
 
@@ -24,6 +24,7 @@ function External({ href, children }: { href: string; children: React.ReactNode 
 
 function Commit({ repo, commit }: { repo: string; commit?: string }) {
     if (!commit) return <span className="text-secondary">none yet</span>
+    if (!/^[0-9a-f]{7,40}$/.test(commit)) return <span className="font-mono">{commit.slice(0, 12)}</span>
     return (
         <a
             href={`${ORG}/${repo}/commit/${commit}`}
@@ -67,10 +68,16 @@ function Overview() {
                 <SectionTitle>What v0 is</SectionTitle>
                 <p className="m-0 max-w-3xl text-[15px] leading-relaxed">
                     quirq infra, or qq, is how code lands and ships at quirq. It is modeled on Chromium’s infrastructure
-                    and rebuilt for small GitHub repos as 13 public repos. In v0, every one of those repos does a first,
-                    thin version of its job, and two product repos use the whole chain: xo-space (Python) and innernet
-                    (Next.js). A change is built from its repo’s manifest, gated on the exact merge result, watched
-                    after it lands, and shipped to the canary channel once a day.
+                    and rebuilt for small GitHub repos as 13 public repos. v0’s goal: every one of those repos does a
+                    first, thin version of its job, and two product repos, xo-space (Python) and innernet (Next.js), use
+                    the whole chain. A change is built from its repo’s manifest, gated on the exact merge result,
+                    watched after it lands, and shipped to the canary channel once a day.
+                </p>
+                <p className="m-0 mt-3 max-w-3xl text-[15px] leading-relaxed">
+                    <strong>Where it stands ({AS_OF}):</strong> both product repos are gated by generated workflows, and
+                    lkgr moves on its own. The CI builders still run interim commands instead of recipes, qq does not
+                    call remote-build yet, and the first canary was started by hand. Reverts and the product repos’
+                    canary refs wait on two GitHub Apps that do not exist yet.
                 </p>
             </section>
             <section>
@@ -133,7 +140,16 @@ function Overview() {
 }
 
 const outcomeBadge = (outcome?: string): BadgeVariant =>
-    outcome === 'shipped' ? 'good' : outcome === 'held' ? 'bad' : outcome ? 'warn' : 'muted'
+    outcome === 'shipped' ? 'good' : outcome === 'held' ? 'bad' : outcome === 'noop' || !outcome ? 'muted' : 'warn'
+
+const GITHUB_URL = /^https:\/\/github\.com\//
+
+/** A link only for values that point at github.com; anything else from remote JSON stays plain text. */
+function SafeLink({ href, children }: { href?: string; children: React.ReactNode }) {
+    return href && GITHUB_URL.test(href) ? <External href={href}>{children}</External> : <>{children}</>
+}
+
+const stageSkipped = (stage: CanaryStage) => stage.ran === false || /\bskipped\b/i.test(stage.detail)
 
 function PointerRow({ label, repo, pointer }: { label: string; repo: string; pointer?: Pointer }) {
     return (
@@ -148,7 +164,10 @@ function PointerRow({ label, repo, pointer }: { label: string; repo: string; poi
 }
 
 function CanaryDays({ repo, live, days }: { repo: Product; live: RepoLive; days: string[] }) {
-    const latest = days.map((day) => live.runs[day]).find((run): run is CanaryRun => Boolean(run))
+    const runs = days.map((day) => live.runs[day]).filter((run): run is CanaryRun => Boolean(run))
+    const latest = runs[0]
+    // A no-op day has no stages, so show the stages of the newest run that has them.
+    const staged = runs.find((run) => run.stages?.length)
     return (
         <div className="flex flex-col gap-3">
             <ol
@@ -194,23 +213,50 @@ function CanaryDays({ repo, live, days }: { repo: Product; live: RepoLive; days:
                     <p className="m-0 mb-2 text-sm">
                         Latest run {latest.date}: <strong>{latest.outcome}</strong>{' '}
                         <Commit repo={repo} commit={latest.commit} />
-                        {latest.run_url && (
+                        {latest.run_url && GITHUB_URL.test(latest.run_url) && (
                             <>
                                 {' · '}
                                 <External href={latest.run_url}>workflow run</External>
                             </>
                         )}
                     </p>
-                    <ol className="m-0 flex list-none flex-col gap-1.5 p-0">
-                        {latest.stages.map((stage) => (
-                            <li key={stage.name} className="flex items-start gap-2 text-sm">
-                                <Badge variant={stage.ok ? 'good' : 'bad'} className="w-24 shrink-0 justify-start">
-                                    {stage.name}
-                                </Badge>
-                                <span className="min-w-0 break-words text-secondary">{stage.detail}</span>
-                            </li>
-                        ))}
-                    </ol>
+                    {latest.reason && latest.outcome !== 'shipped' && (
+                        <p className="m-0 mb-2 text-sm text-secondary">{latest.reason}</p>
+                    )}
+                    {staged && (
+                        <>
+                            {staged !== latest && (
+                                <p className="m-0 mb-2 text-sm">Stages of the last canary that ran, {staged.date}:</p>
+                            )}
+                            <ol className="m-0 flex list-none flex-col gap-1.5 p-0">
+                                {staged.stages.map((stage) => {
+                                    const skipped = stageSkipped(stage)
+                                    return (
+                                        <li key={stage.name} className="flex items-start gap-2 text-sm">
+                                            <Badge
+                                                variant={skipped ? 'muted' : stage.ok ? 'good' : 'bad'}
+                                                className="w-24 shrink-0 justify-start"
+                                            >
+                                                {stage.name}
+                                            </Badge>
+                                            <span className="min-w-0 break-words text-secondary">
+                                                {skipped ? (
+                                                    <>
+                                                        <strong className="text-primary">Skipped.</strong>{' '}
+                                                        {/release executor/i.test(stage.detail)
+                                                            ? 'The canary pointer in release-state moved, but the channels/canary git ref waits on the release executor App.'
+                                                            : stage.detail.replace(/\s*;?\s*TODO\([^)]*\)/g, '')}
+                                                    </>
+                                                ) : (
+                                                    stage.detail
+                                                )}
+                                            </span>
+                                        </li>
+                                    )
+                                })}
+                            </ol>
+                        </>
+                    )}
                 </div>
             ) : (
                 <p className="m-0 text-sm text-secondary">No canary run in the last {days.length} days.</p>
@@ -241,7 +287,7 @@ function RepoLiveCard({ repo, live, days }: { repo: Product; live: RepoLive; day
                         pointer={tree ? ({ commit: tree.head } as Pointer) : undefined}
                     />
                     <PointerRow label="lkgr (last known good)" repo={repo} pointer={live.lkgr} />
-                    <PointerRow label="canary channel" repo={repo} pointer={live.canary} />
+                    <PointerRow label="canary pointer" repo={repo} pointer={live.canary} />
                 </div>
                 {tree && Object.keys(tree.builders).length > 0 && (
                     <div>
@@ -250,7 +296,7 @@ function RepoLiveCard({ repo, live, days }: { repo: Product; live: RepoLive; day
                             {Object.entries(tree.builders).map(([name, builder]) => (
                                 <li key={name} className="flex flex-wrap items-center gap-2 text-sm">
                                     <Badge variant={builder.state === 'green' ? 'good' : 'bad'}>{builder.state}</Badge>
-                                    {builder.url ? <External href={builder.url}>{name}</External> : name}
+                                    <SafeLink href={builder.url}>{name}</SafeLink>
                                     <span className="text-secondary">
                                         at <Commit repo={repo} commit={builder.commit} />
                                     </span>
@@ -361,7 +407,7 @@ function Guide() {
                             <li key={step.text} className="text-[15px] leading-relaxed">
                                 <p className="m-0">{step.text}</p>
                                 {step.code && (
-                                    <pre className="m-0 mt-2 overflow-x-auto rounded-md border border-primary bg-accent p-3 font-mono text-[13px] leading-snug">
+                                    <pre className="m-0 mt-2 whitespace-pre-wrap break-all rounded-md border border-primary bg-accent p-3 font-mono text-[13px] leading-snug [&>code]:border-0 [&>code]:bg-transparent [&>code]:p-0">
                                         <code>{step.code}</code>
                                     </pre>
                                 )}
@@ -397,12 +443,12 @@ export default function QuirqInfraV0({ app }: { app: QuirqApp }): JSX.Element {
             headerBarOptions={['showBack', 'showForward']}
             rightActionButtons={
                 <>
-                    <OSButton asLink to="/" size="sm">
+                    <ButtonLink to="/" variant="ghost" size="sm" className="h-7">
                         Home base
-                    </OSButton>
-                    <OSButton asLink external to={SOURCES.plan} variant="primary" size="sm">
+                    </ButtonLink>
+                    <ButtonLink to={SOURCES.plan} size="sm" className="h-7">
                         Read the v0 plan
-                    </OSButton>
+                    </ButtonLink>
                 </>
             }
         >

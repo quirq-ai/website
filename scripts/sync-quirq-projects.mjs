@@ -14,12 +14,13 @@ import {
     countPeople,
     DEFAULT_AUTOMATION,
     readSignals,
+    ungroupedRepositories,
     validateProjectsConfig,
 } from './lib/quirq-phases.mjs'
 
 const run = promisify(execFile)
 const projectRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..')
-const CHANNELS_URL = 'https://raw.githubusercontent.com/quirq-ai/release/release-state/channels.json'
+const CHANNELS_URL = 'https://raw.githubusercontent.com/quirq-ai/release/refs/heads/release-state/channels.json'
 
 async function git(args, cwd) {
     const { stdout } = await run('git', args, {
@@ -80,7 +81,22 @@ async function canaryRepos(fetchImpl) {
     )
 }
 
-/** Star counts from one anonymous GitHub API request, or from the apps snapshot when the API is unavailable. */
+const publicNames = (repos) => repos.filter((repo) => !repo.private && !repo.archived).map((repo) => repo.name)
+
+function assertAllGrouped(names, config, source) {
+    const ungrouped = ungroupedRepositories(names, config)
+    if (ungrouped.length)
+        throw new Error(
+            `${ungrouped.join(', ')} ${
+                ungrouped.length === 1 ? 'is' : 'are'
+            } public in ${source} but in no group of quirq.projects.json. Add to a group, or set "hidden": true.`
+        )
+}
+
+/**
+ * Star counts and the org's public repo names from one anonymous GitHub API request, or from the apps snapshot when
+ * the API is unavailable.
+ */
 async function starCounts(organization, fetchImpl, appsSnapshotPath) {
     try {
         const response = await fetchImpl(`https://api.github.com/orgs/${organization}/repos?per_page=100&type=public`, {
@@ -88,12 +104,17 @@ async function starCounts(organization, fetchImpl, appsSnapshotPath) {
         })
         if (!response.ok) throw new Error(`GitHub API returned ${response.status}`)
         const repos = await response.json()
-        return { source: 'github-api', stars: new Map(repos.map((repo) => [repo.name, repo.stargazers_count || 0])) }
+        return {
+            source: 'github-api',
+            names: publicNames(repos),
+            stars: new Map(repos.map((repo) => [repo.name, repo.stargazers_count || 0])),
+        }
     } catch (error) {
         const snapshot = JSON.parse(await readFile(appsSnapshotPath, 'utf8'))
         console.warn(`Star counts from the apps snapshot of ${snapshot.fetchedAt}: ${error.message}`)
         return {
             source: `apps-snapshot ${snapshot.fetchedAt}`,
+            names: publicNames(snapshot.repositories),
             stars: new Map(snapshot.repositories.map((repo) => [repo.name, repo.stargazers_count || 0])),
         }
     }
@@ -109,6 +130,8 @@ export async function syncQuirqProjects({
 } = {}) {
     const config = validateProjectsConfig(JSON.parse(await readFile(configPath, 'utf8')))
     if (check) {
+        const apps = JSON.parse(await readFile(appsSnapshotPath, 'utf8'))
+        assertAllGrouped(publicNames(apps.repositories), config, 'the apps snapshot')
         const snapshot = JSON.parse(await readFile(outputPath, 'utf8'))
         const groups = buildQuirqProjects(snapshot, config)
         const missing = groups.flatMap((group) =>
@@ -119,7 +142,12 @@ export async function syncQuirqProjects({
     }
     const names = config.groups.flatMap((group) => group.repos)
     const canary = await canaryRepos(fetchImpl)
-    const { source: starsSource, stars } = await starCounts(config.organization, fetchImpl, appsSnapshotPath)
+    const {
+        source: starsSource,
+        names: orgNames,
+        stars,
+    } = await starCounts(config.organization, fetchImpl, appsSnapshotPath)
+    assertAllGrouped(orgNames, config, starsSource === 'github-api' ? 'the GitHub org' : 'the apps snapshot')
     const automation = config.automation || DEFAULT_AUTOMATION
     const workdir = await mkdtemp(join(tmpdir(), 'quirq-projects-'))
     try {

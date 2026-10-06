@@ -6,8 +6,8 @@ import { PRODUCTS, type Product } from './data'
 // raw.githubusercontent.com allows cross-origin reads and caches each file for up to 5 minutes.
 
 const RAW = 'https://raw.githubusercontent.com/quirq-ai'
-export const TREE_STATUS_URL = `${RAW}/gardener/tree-status/status`
-export const RELEASE_STATE_URL = `${RAW}/release/release-state`
+export const TREE_STATUS_URL = `${RAW}/gardener/refs/heads/tree-status/status`
+export const RELEASE_STATE_URL = `${RAW}/release/refs/heads/release-state`
 export const DAYS = 7
 // The first daily canary ran on this date; earlier days are not fetched.
 export const FIRST_CANARY = '2026-10-05'

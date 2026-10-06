@@ -8,7 +8,9 @@ import {
     computePhase,
     countPeople,
     isNoteFile,
+    projectRuleText,
     readSignals,
+    ungroupedRepositories,
     validateProjectsConfig,
 } from './lib/quirq-phases.mjs'
 import { syncQuirqProjects } from './sync-quirq-projects.mjs'
@@ -37,7 +39,7 @@ test('phases climb with the repo shape', () => {
     assert.equal(phaseOf(['src/main.py', 'vercel.json']), 'prototype')
 })
 
-test('stars or people committing make a project with code a Project', () => {
+test('stars or people committing make a Project', () => {
     const code = readSignals(['src/main.py'])
     assert.equal(computePhase({ ...code, stars: 10 }).phase, 'project')
     assert.equal(computePhase({ ...code, people: 5 }).phase, 'project')
@@ -47,8 +49,9 @@ test('stars or people committing make a project with code a Project', () => {
         computePhase({ ...code, stars: 1, people: 1 }, {}, { minStars: 1, minPeople: 9 }).reason,
         '1 GitHub star and 1 person committing.'
     )
-    // Stars alone do not lift a notes-only repo.
-    assert.equal(computePhase({ ...readSignals(['README.md']), stars: 50 }).phase, 'thought')
+    // suraj's rule has no code condition: users alone make a Project.
+    assert.equal(computePhase({ ...readSignals(['README.md']), stars: 50 }).phase, 'project')
+    assert.equal(computePhase({ ...readSignals([]), people: 5 }).phase, 'project')
 })
 
 test('people are counted once across names and emails, without bots or agents', () => {
@@ -70,6 +73,29 @@ test('people are counted once across names and emails, without bots or agents', 
     assert.equal(countPeople(lines), 3)
     assert.equal(countPeople(['A|a@example.com'], []), 1)
     assert.equal(countPeople(['Claude|noreply@anthropic.com'], []), 1)
+})
+
+test('the Project rule reads its thresholds', () => {
+    assert.equal(
+        projectRuleText({ minStars: 10, minPeople: 5 }),
+        'Has users: at least 10 GitHub stars or at least 5 people committing to it.'
+    )
+    assert.equal(
+        projectRuleText({ minStars: 1, minPeople: 1 }),
+        'Has users: at least 1 GitHub star or at least 1 person committing to it.'
+    )
+})
+
+test('ungrouped public repos are found, hidden ones are not', () => {
+    const config = { groups: [{ name: 'A', repos: ['one'] }], repositories: { '.github': { hidden: true } } }
+    assert.deepEqual(ungroupedRepositories(['one', '.github', 'new'], config), ['new'])
+})
+
+test("the committed snapshot keeps suraj's examples: xo-space is a Project, marketing is a Thought", async () => {
+    const { groups } = await syncQuirqProjects({ check: true })
+    const phase = Object.fromEntries(groups.flatMap((group) => group.projects).map((p) => [p.name, p.phase]))
+    assert.equal(phase['xo-space'], 'project')
+    assert.equal(phase.marketing, 'thought')
 })
 
 test('only workflow files directly under .github/workflows count as CI', () => {
@@ -153,6 +179,11 @@ test('sync writes the snapshot with canary membership, and check reads it offlin
     try {
         const configPath = join(directory, 'quirq.projects.json')
         const outputPath = join(directory, 'quirq-projects.json')
+        const appsSnapshotPath = join(directory, 'apps.json')
+        await writeFile(
+            appsSnapshotPath,
+            JSON.stringify({ fetchedAt: 'then', repositories: [{ name: 'one', stargazers_count: 4 }] })
+        )
         await writeFile(
             configPath,
             JSON.stringify({ organization: 'quirq-ai', groups: [{ name: 'A', repos: ['one', 'two'] }] })
@@ -173,21 +204,17 @@ test('sync writes the snapshot with canary membership, and check reads it offlin
             groups[0].projects.map((project) => [project.name, project.phase]),
             [
                 ['one', 'shipping'],
-                ['two', 'thought'],
+                // A README only, but 12 stars: users make it a Project.
+                ['two', 'project'],
             ]
         )
         assert.equal(groups[0].projects[1].signals.stars, 12)
         const saved = JSON.parse(await readFile(outputPath, 'utf8'))
         assert.equal(saved.repositories.find((repo) => repo.name === 'one').inCanary, true)
-        const checked = await syncQuirqProjects({ configPath, outputPath, check: true })
+        const checked = await syncQuirqProjects({ configPath, outputPath, appsSnapshotPath, check: true })
         assert.equal(checked.written, false)
 
         // When the API is unavailable, stars come from the apps snapshot.
-        const appsSnapshotPath = join(directory, 'apps.json')
-        await writeFile(
-            appsSnapshotPath,
-            JSON.stringify({ fetchedAt: 'then', repositories: [{ name: 'one', stargazers_count: 4 }] })
-        )
         const offline = async (url) =>
             url.endsWith('channels.json') ? fetchImpl(url) : { ok: false, status: 403, json: async () => ({}) }
         const fallback = await syncQuirqProjects({
@@ -204,7 +231,29 @@ test('sync writes the snapshot with canary membership, and check reads it offlin
             configPath,
             JSON.stringify({ organization: 'quirq-ai', groups: [{ name: 'A', repos: ['one', 'three'] }] })
         )
-        await assert.rejects(syncQuirqProjects({ configPath, outputPath, check: true }), /three.*projects:sync/)
+        await assert.rejects(
+            syncQuirqProjects({ configPath, outputPath, appsSnapshotPath, check: true }),
+            /three.*projects:sync/
+        )
+
+        // A public repo that no group lists fails both the offline check and the sync.
+        await writeFile(
+            appsSnapshotPath,
+            JSON.stringify({
+                fetchedAt: 'then',
+                repositories: [{ name: 'one' }, { name: 'four' }, { name: 'old', archived: true }],
+            })
+        )
+        await assert.rejects(
+            syncQuirqProjects({ configPath, outputPath, appsSnapshotPath, check: true }),
+            /four is public in the apps snapshot but in no group/
+        )
+        const listing = async (url) =>
+            url.endsWith('channels.json') ? fetchImpl(url) : { ok: true, json: async () => [{ name: 'five' }] }
+        await assert.rejects(
+            syncQuirqProjects({ configPath, outputPath, appsSnapshotPath, probe, fetchImpl: listing }),
+            /five is public in the GitHub org but in no group/
+        )
     } finally {
         await rm(directory, { recursive: true, force: true })
     }

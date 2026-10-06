@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { Link } from 'gatsby'
 import Explorer from 'components/Explorer'
-import OSButton from 'components/OSButton'
+import { ButtonLink } from 'components/ui/button'
 import QuirqAppIcon from 'components/QuirqAppIcon'
 import { Badge, type BadgeVariant } from 'components/ui/badge'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from 'components/ui/card'
@@ -18,6 +18,7 @@ import {
     getQuirqProjectGroups,
     projectsFetchedAt,
     quirqPhases,
+    starsSource,
     type PhaseId,
     type QuirqProject,
 } from 'lib/quirqProjects'
@@ -30,12 +31,14 @@ const phaseIndex = Object.fromEntries(quirqPhases.map((phase, index) => [phase.i
 const appPaths = new Map(getQuirqApps().map((app) => [app.repo, app.path]))
 const reached = (project: QuirqProject, phase: PhaseId) => phaseIndex[project.phase] >= phaseIndex[phase]
 
-const snapshotDate = new Date(projectsFetchedAt).toLocaleDateString('en-GB', {
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
-    timeZone: 'UTC',
-})
+const formatDateLong = (iso: string) =>
+    new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' })
+
+const starsNote = starsSource.startsWith('apps-snapshot ')
+    ? ` Star counts are from the app catalog of ${formatDateLong(starsSource.slice('apps-snapshot '.length))}.`
+    : ''
+
+const snapshotDate = formatDateLong(projectsFetchedAt)
 
 function External({ href, children }: { href: string; children: React.ReactNode }) {
     return (
@@ -45,14 +48,13 @@ function External({ href, children }: { href: string; children: React.ReactNode 
     )
 }
 
-function ago(iso: string | null): string {
-    if (!iso) return ''
-    const days = Math.floor((Date.now() - new Date(iso).getTime()) / 86400000)
-    if (Number.isNaN(days)) return ''
-    if (days <= 0) return 'today'
-    if (days === 1) return 'yesterday'
-    return `${days} days ago`
-}
+const formatDate = (iso: string) =>
+    new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' })
+
+// An absolute date renders the same at build time and in the browser, so hydration never mismatches.
+const commitDate = (iso: string | null) => (iso && !Number.isNaN(Date.parse(iso)) ? formatDate(iso) : '')
+
+const slug = (value: string) => value.toLowerCase().replace(/[^a-z0-9]+/g, '-')
 
 /** How far up the ladder a project is: one filled step per phase reached. */
 function PhaseMeter({ phase }: { phase: PhaseId }) {
@@ -157,8 +159,11 @@ function ProjectCard({ project, live }: { project: QuirqProject; live?: Live | '
                 </p>
                 {reached(project, 'prototype') && signals && project.committedAt && project.sha && (
                     <p className="m-0">
-                        Last commit{' '}
-                        <External href={`${project.url}/commit/${project.sha}`}>{ago(project.committedAt)}</External>.
+                        Last commit on{' '}
+                        <External href={`${project.url}/commit/${project.sha}`}>
+                            {commitDate(project.committedAt)}
+                        </External>
+                        .
                         {reached(project, 'built') && signals.workflows > 0 && (
                             <>
                                 {' '}
@@ -244,8 +249,8 @@ function Listing({ filter, live }: { filter: Filter; live: Record<string, Live |
     return (
         <div className="flex flex-col gap-8">
             {visible.map((group) => (
-                <section key={group.name} aria-labelledby={`group-${group.name}`}>
-                    <h2 id={`group-${group.name}`} className="m-0 mb-1 text-lg font-bold tracking-tight">
+                <section key={group.name} aria-labelledby={`group-${slug(group.name)}`}>
+                    <h2 id={`group-${slug(group.name)}`} className="m-0 mb-1 text-lg font-bold tracking-tight">
                         {group.name}
                     </h2>
                     {group.description && <p className="m-0 mb-3 text-sm text-secondary">{group.description}</p>}
@@ -291,12 +296,12 @@ export default function QuirqProjects(): JSX.Element {
             headerBarOptions={['showBack', 'showForward']}
             rightActionButtons={
                 <>
-                    <OSButton asLink to="/" size="sm">
+                    <ButtonLink to="/" variant="ghost" size="sm" className="h-7">
                         Home base
-                    </OSButton>
-                    <OSButton asLink to="/v0" variant="primary" size="sm">
+                    </ButtonLink>
+                    <ButtonLink to="/v0" size="sm" className="h-7">
                         quirq infra v0
-                    </OSButton>
+                    </ButtonLink>
                 </>
             }
         >
@@ -322,7 +327,7 @@ export default function QuirqProjects(): JSX.Element {
                         <Ladder counts={counts} />
                         <p className="m-0 mt-3 text-sm text-secondary">
                             Read from each repo’s history on {snapshotDate}. People committing leaves out agents and
-                            bots. The thresholds, groups and descriptions are set in{' '}
+                            bots.{starsNote} The thresholds, groups and descriptions are set in{' '}
                             <External href="https://github.com/quirq-ai/website/blob/main/quirq.projects.json">
                                 quirq.projects.json
                             </External>

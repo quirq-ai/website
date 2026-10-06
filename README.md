@@ -119,9 +119,9 @@ For all supported values, validation rules, organization changes, and embedding 
 | Prototype | Real code, but no CI |
 | Built | Code with CI on GitHub |
 | Shipping | Built, and onboarded to qq (`infra/repo.toml`), deployed, or in the daily canary |
-| Project | Has code and users: at least 10 GitHub stars or at least 5 people committing (`projectRule`) |
+| Project | Has users: at least 10 GitHub stars or at least 5 people committing (`projectRule`), checked first |
 
-`pnpm projects:sync` reads each repository's default-branch file list and its commit authors with anonymous git clones that skip file contents, and star counts from one anonymous GitHub API request (falling back to the apps snapshot's counts). It needs no token and saves only counts, never names or emails, to `src/data/quirq-projects.json`. Commit that snapshot. People committing leaves out bots and the agent and automation emails listed under `automation`, and counts one person's several names and emails once. A `phase` with a `phaseReason` in `quirq.projects.json` overrides the computed phase. Repositories in the daily canary also show their live tree status and canary commit, fetched in the browser from public state branches.
+`pnpm projects:sync` reads each repository's default-branch file list and its commit authors with anonymous git clones that skip file contents, and star counts from one anonymous GitHub API request (falling back to the apps snapshot's counts). It needs no token and saves only counts, never names or emails, to `src/data/quirq-projects.json`. Commit that snapshot. People committing leaves out bots and the agent and automation emails listed under `automation`, and counts one person's several names and emails once. A `phase` with a `phaseReason` in `quirq.projects.json` overrides the computed phase. `projects:sync` and `projects:check` fail when a public repository is in no group and not marked `hidden`, so add new repositories to a group. Repositories in the daily canary also show their live tree status and canary commit, fetched in the browser from public state branches.
 
 ## Commands
 

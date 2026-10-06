@@ -33,7 +33,7 @@ export const REPOS: InfraRepo[] = [
         name: 'depot',
         lane: 0,
         sub: 'the qq command',
-        role: 'The qq command line you run: fetch, sync, build, test, upload, try, land, status. Every repo pins the qq version it uses.',
+        role: 'The qq command line you run: fetch, sync, build, test, upload, try, land, status. Each onboarded product repo pins the qq version it uses.',
         counterpart: 'depot_tools',
         open: 'No versioned qq release can be cut until the release executor exists.',
     },
@@ -97,7 +97,7 @@ export const REPOS: InfraRepo[] = [
         name: 'gardener',
         lane: 2,
         sub: 'keeps main green',
-        role: 'Watches every main commit, publishes tree status, groups failures, bisects to the culprit and proposes reverts, at most 10 in any 24 hours.',
+        role: 'Watches every main commit, publishes tree status, groups failures, bisects to the culprit. Once its App exists it will propose reverts, at most 10 in any 24 hours.',
         counterpart: 'Sheriff-o-Matic and LUCI Bisection',
         open: 'Opening revert PRs needs its own GitHub App, which does not exist yet.',
     },
@@ -145,8 +145,8 @@ export const FLOW: FlowStep[] = [
     },
     {
         title: 'You build and test',
-        text: 'qq build and qq test hand the manifest to recipes, which plans and runs each build and test action.',
-        repos: ['depot', 'recipes', 'remote-build'],
+        text: 'qq build and qq test hand the manifest to recipes, which plans and runs each build and test action. remote-build, the shared action cache, is built but qq does not call it yet.',
+        repos: ['depot', 'recipes'],
     },
     {
         title: 'You open a PR',
@@ -180,7 +180,7 @@ export const FLOW: FlowStep[] = [
     },
     {
         title: 'Shipping',
-        text: 'release moves lkgr to the newest all-green commit. Once a day it builds that commit, runs the full tests, starts it and probes it; only then does the canary channel move. installer follows the channels.',
+        text: 'release moves lkgr to the newest all-green commit. Once a day it builds that commit, runs the full tests, starts it and probes it; only then does the canary pointer move. installer can resolve a channel; canary test machines are not set up yet.',
         repos: ['release', 'installer'],
     },
 ]
@@ -201,7 +201,7 @@ export const EXIT_TEST: ExitCheck[] = [
     {
         title: 'A daily canary runs 7 days in a row with no human touch, and a bad canary is held and rolled back',
         state: 'progress',
-        status: 'The first canary shipped both repos on 5 October, started by hand. The unattended streak has not started. The live tab shows the last 7 days.',
+        status: 'The first canary shipped both repos on 5 October, started by hand. The unattended streak has not started. No held canary or rollback drill yet. The live tab shows the last 7 days.',
     },
     {
         title: 'A build-breaking commit is reverted automatically, with a record linking culprit and fix',
@@ -265,10 +265,10 @@ export const GUIDE: GuideSection[] = [
                 text: 'lkgr is the newest main commit whose post-submit builders are all green. release moves it on a schedule.',
             },
             {
-                text: 'Once a day the canary takes lkgr through build, verify, fuzz smoke, deploy and probe. Only if every stage passes does channels/canary move.',
+                text: 'Once a day the canary takes lkgr through build, verify, fuzz smoke, deploy and probe. Only if every stage passes does the canary pointer in release-state move.',
             },
             {
-                text: 'A canary that fails a stage is held and gets a failure record. Rolling the channel back to the previous canary is a release operation, drilled to under 10 minutes.',
+                text: 'A canary that fails a stage is held and gets a failure record. release can roll the channel back to the previous canary (qq channel rollback). A presubmit drill does it against fixtures in under 10 minutes; the live drill is still to come.',
             },
             {
                 text: 'Test installs follow a channel rather than main.',
@@ -283,5 +283,7 @@ export const LIMITS = [
     'One failing test fails the required check; retry-then-compare is not on yet.',
     'Auto-land is off: a person merges every roll and revert.',
     'Reverts wait on gardener’s GitHub App.',
+    'release records each canary in release-state, but the product repos’ channels/canary git refs wait on the release executor App, so the promote stage reports “skipped”.',
+    'The CI builders still run interim commands instead of recipes and the promoted toolchain pins.',
     'GitHub can skip or delay scheduled runs on quiet repos, so a daily backstop starts the canary if it was missed.',
 ]
