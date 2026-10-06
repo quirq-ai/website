@@ -5,9 +5,9 @@ live from the [`@posthog/brand`](https://github.com/PostHog/brand) library — t
 of truth for the mark. The page previews and downloads do not depend on `static/brand`, so they
 can't drift from the library.
 
-Stable public `/brand/*` URLs are maintained separately for external consumers. The
-`scripts/generate-brand-assets.mjs` script materializes those compatibility files from the same
-package and runs automatically before the standard Gatsby build commands.
+This is an inherited PostHog component that the quirq site does not render. The PostHog
+`/brand/*` files and the `generate-brand-assets` script that produced them were removed on
+2026-10-05; `static/brand/` holds only quirq's own art.
 
 ## Usage
 

@@ -301,3 +301,41 @@ test('a README failure retains the app and --check validates without network acc
         assert.equal(checked.apps.length, 1)
     })
 })
+
+test('--prune drops README text of hidden repositories offline and keeps visible ones', async () => {
+    await withFiles(async ({ configPath, outputPath }) => {
+        const readme = { readmeMarkdown: '# Notes', readmePath: 'README.md' }
+        await writeFile(configPath, JSON.stringify({ ...config, repositories: { internal: { hidden: true } } }))
+        await writeFile(outputPath, JSON.stringify(snapshot([repo('app', readme), repo('internal', readme)])))
+        const offline = async () => {
+            throw new Error('Network must not be used')
+        }
+        const pruned = await syncQuirqApps({ configPath, outputPath, prune: true, fetchImpl: offline })
+        assert.equal(pruned.written, true)
+        const saved = JSON.parse(await readFile(outputPath, 'utf8'))
+        assert.deepEqual(
+            saved.repositories.map((r) => [r.name, r.readmeMarkdown, r.readmePath]),
+            [
+                ['app', '# Notes', 'README.md'],
+                ['internal', null, null],
+            ]
+        )
+        assert.equal(saved.fetchedAt, '2026-10-05T00:00:00Z')
+        const again = await syncQuirqApps({ configPath, outputPath, prune: true, fetchImpl: offline })
+        assert.equal(again.written, false)
+        const checked = await syncQuirqApps({ configPath, outputPath, check: true, fetchImpl: offline })
+        assert.equal(checked.written, false)
+    })
+})
+
+test('--check fails while a hidden repository still carries README text, without rewriting it', async () => {
+    await withFiles(async ({ configPath, outputPath }) => {
+        const readme = { readmeMarkdown: '# Notes', readmePath: 'README.md' }
+        await writeFile(configPath, JSON.stringify({ ...config, repositories: { internal: { hidden: true } } }))
+        await writeFile(outputPath, JSON.stringify(snapshot([repo('app'), repo('internal', readme)])))
+        const before = await readFile(outputPath, 'utf8')
+        await assert.rejects(syncQuirqApps({ configPath, outputPath, check: true }), /apps:prune/)
+        await assert.rejects(syncQuirqApps({ configPath, outputPath, check: true, prune: true }), /either/)
+        assert.equal(await readFile(outputPath, 'utf8'), before)
+    })
+})

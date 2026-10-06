@@ -34,7 +34,7 @@ module.exports = {
                 path: path.join(__dirname, 'src/pages'),
                 // Filter before Gatsby evaluates collection-route GraphQL queries.
                 // A negated whole-path glob permits only these three root files.
-                ignore: '!{index.tsx,display-options.tsx,404.js}',
+                ignore: '!{index.tsx,display-options.tsx,projects.tsx,404.js}',
             },
         },
     ],

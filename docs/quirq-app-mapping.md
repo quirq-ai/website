@@ -66,7 +66,7 @@ An embedded site's own security policy can prevent it from appearing in an ifram
 
 ## What is included
 
-Public, non-archived repositories are included by default. Forks remain included because quirq's Docs and XO Space are forks. `.github` is organization configuration and is excluded. Use `hidden` or `defaults.excludeRepositories` to hide infrastructure repositories you do not want presented as apps; relevance is an explicit mapping choice, not guessed from a repository's name.
+Public, non-archived repositories are included by default. Forks remain included because quirq's Docs and XO Space are forks. `.github` is organization configuration and is excluded. Use `hidden` or `defaults.excludeRepositories` to hide infrastructure repositories you do not want presented as apps; relevance is an explicit mapping choice, not guessed from a repository's name. After hiding a repository, run `pnpm apps:sync`, or `pnpm apps:prune` when GitHub is unreachable, so its README text leaves the snapshot that every page bundles. `pnpm apps:check` fails until you do.
 
 Names, descriptions, homepage URLs, language, topics, star counts, update times, default branches, and README text come from GitHub. Missing descriptions stay empty unless you provide an override. The featured apps have short editorial descriptions based on their synced READMEs; these remain in the mapping when you refresh GitHub data. No deployments or product claims are invented. README fetch failures leave the repository link available. API, ownership, pagination, or mapping failures leave the previous snapshot untouched.
 

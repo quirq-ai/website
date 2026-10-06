@@ -10,6 +10,10 @@ The new `quirq-ai/website` repository was initialized with the Apache License 2.
 That original [LICENSE](LICENSE) is retained for quirq's original additions.
 It does not replace the terms attached to inherited material.
 
+The quirq name, the quirq marks and the quirq brand art (`static/quirq-icon.svg`,
+`static/brand/quirq/` and `src/components/QuirqBrand/`) are not licensed under
+the Apache License 2.0 or any other license. All rights are reserved.
+
 ## Inherited PostHog material
 
 The original upstream license is preserved verbatim in

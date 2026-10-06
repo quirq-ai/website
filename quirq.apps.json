@@ -12,7 +12,6 @@
             "depot",
             "gardener",
             "gate",
-            "infra-config",
             "installer",
             "perf",
             "recipes",
@@ -31,6 +30,16 @@
         ]
     },
     "repositories": {
+        "infra-config": {
+            "name": "quirq infra v0",
+            "description": "How a change gets from a pull request to the daily canary across 13 public repos, and its live state.",
+            "path": "/v0",
+            "icon": "code",
+            "color": "purple",
+            "category": "Infra",
+            "component": "src/templates/QuirqInfraV0.tsx",
+            "featured": true
+        },
         "xo-space": {
             "name": "XO Space",
             "description": "Build, observe, and measure work across your local coding agents.",

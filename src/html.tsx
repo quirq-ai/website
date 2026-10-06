@@ -17,20 +17,6 @@ export default function HTML(props: HTMLProps): JSX.Element {
                 <meta charSet="utf-8" />
                 <meta httpEquiv="x-ua-compatible" content="ie=edge" />
                 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
-                <link
-                    rel="preload"
-                    as="font"
-                    type="font/woff2"
-                    href="/fonts/squeak-bold-webfont.woff2"
-                    crossOrigin="anonymous"
-                />
-                <link
-                    rel="preload"
-                    as="font"
-                    type="font/woff"
-                    href="/fonts/squeak-bold-webfont.woff"
-                    crossOrigin="anonymous"
-                />
                 {props.headComponents}
             </head>
             <body {...props.bodyAttributes} className="light" data-wallpaper="mobius" data-reduce-transparency="false">

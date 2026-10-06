@@ -24,6 +24,12 @@ export function useMenuData(): MenuType[] {
         link: '/',
         icon: <IconHome className="size-4 text-purple" />,
     }
+    const projects: MenuItemType = {
+        type: 'item',
+        label: 'Projects',
+        link: '/projects',
+        icon: <QuirqAppIcon icon="rocket" color="green" className="!size-5" />,
+    }
     const appearance: MenuItemType[] = [
         {
             type: 'item',
@@ -58,12 +64,20 @@ export function useMenuData(): MenuType[] {
             link: isMobile ? undefined : '/',
             hideChevron: true,
             items: isMobile
-                ? [home, { type: 'submenu', label: 'Apps', items: apps }, { type: 'separator' }, ...appearance, github]
+                ? [
+                      home,
+                      projects,
+                      { type: 'submenu', label: 'Apps', items: apps },
+                      { type: 'separator' },
+                      ...appearance,
+                      github,
+                  ]
                 : [],
         },
         ...(!isMobile
             ? [
                   { trigger: 'Home base', link: '/', items: [] },
+                  { trigger: 'Projects', link: '/projects', items: [] },
                   { trigger: 'Apps', items: apps },
                   { trigger: 'Appearance', link: '/display-options', items: [] },
                   { trigger: 'Organization', items: [github] },
@@ -85,6 +99,7 @@ export const SparksJoyItems: Record<'games' | 'notGames', SparksJoyItem[]> = { g
 export function useMenuSelectOptions() {
     return [
         { label: 'Home base', items: [{ value: '', label: 'Home base' }] },
+        { label: 'Projects', items: [{ value: 'projects', label: 'Projects' }] },
         {
             label: 'Apps',
             items: catalog.map((app) => ({ value: app.path.replace(/^\//, ''), label: app.name })),
