@@ -35,7 +35,7 @@ export const REPOS: InfraRepo[] = [
         sub: 'the qq command',
         role: 'The qq command line you run: fetch, sync, build, test, upload, try, land, status. Each onboarded product repo pins the qq version it uses.',
         counterpart: 'depot_tools',
-        open: 'No versioned qq release can be cut until the release executor App, which exists, is wired into release.',
+        open: "No versioned qq release can be cut until the release executor App, which exists, is wired into release and allowed to write depot's tags.",
     },
     {
         name: 'sync',
