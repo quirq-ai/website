@@ -122,6 +122,10 @@ function LiveRow({ repo, live }: { repo: string; live?: Live | 'error' }) {
                     <External href={`https://github.com/quirq-ai/${repo}/commit/${live.canary.commit}`}>
                         <span className="font-mono">{live.canary.commit.slice(0, 7)}</span>
                     </External>
+                ) : live.canary?.commit ? (
+                    <span className="break-all font-mono text-secondary">
+                        {String(live.canary.commit).slice(0, 40)}
+                    </span>
                 ) : (
                     <span className="text-secondary">none yet</span>
                 )}
