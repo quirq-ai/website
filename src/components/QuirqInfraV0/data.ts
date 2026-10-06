@@ -35,7 +35,7 @@ export const REPOS: InfraRepo[] = [
         sub: 'the qq command',
         role: 'The qq command line you run: fetch, sync, build, test, upload, try, land, status. Each onboarded product repo pins the qq version it uses.',
         counterpart: 'depot_tools',
-        open: 'No versioned qq release can be cut until the release executor exists.',
+        open: 'No versioned qq release can be cut until the release executor App, which exists, is wired into release.',
     },
     {
         name: 'sync',
@@ -123,7 +123,7 @@ export const REPOS: InfraRepo[] = [
         sub: 'lkgr and channels',
         role: 'Tracks lkgr, the newest all-green main commit, and the channel pointers with rollback. Canary is the only channel v0 promotes, once a day.',
         counterpart: 'lkgr and release channels',
-        open: 'The unattended 7-day canary streak, and a release executor identity.',
+        open: 'The unattended 7-day canary streak, and wiring in the release executor App, which exists.',
     },
     {
         name: 'installer',
@@ -271,7 +271,7 @@ export const GUIDE: GuideSection[] = [
                 text: 'A canary that fails a stage is held and gets a failure record. release can roll the channel back to the previous canary (qq channel rollback). A presubmit drill does it against fixtures in under 10 minutes; the live drill is still to come.',
             },
             {
-                text: 'Test installs follow a channel rather than main.',
+                text: 'Test installs follow a channel rather than main. There are no canary test machines yet.',
                 code: 'qqinstall resolve --repo xo-space --channel canary',
             },
         ],
@@ -283,7 +283,8 @@ export const LIMITS = [
     'One failing test fails the required check; retry-then-compare is not on yet.',
     'Auto-land is off: a person merges every roll and revert.',
     'Reverts wait on gardener’s GitHub App.',
-    'release records each canary in release-state, but the product repos’ channels/canary git refs wait on the release executor App, so the promote stage reports “skipped”.',
+    'release records each canary in release-state, but the product repos’ channels/canary git refs wait until the release executor App, which exists, is wired into release, so the promote stage reports “skipped”.',
+    'There are no canary test machines yet; installer can resolve a channel, but nothing installs from it daily.',
     'The CI builders still run interim commands instead of recipes and the promoted toolchain pins.',
     'GitHub can skip or delay scheduled runs on quiet repos, so a daily backstop starts the canary if it was missed.',
 ]

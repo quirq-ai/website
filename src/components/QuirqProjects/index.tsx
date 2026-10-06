@@ -118,7 +118,7 @@ function LiveRow({ repo, live }: { repo: string; live?: Live | 'error' }) {
             )}
             <span>
                 Canary{' '}
-                {live.canary ? (
+                {live.canary && /^[0-9a-f]{7,40}$/.test(live.canary.commit) ? (
                     <External href={`https://github.com/quirq-ai/${repo}/commit/${live.canary.commit}`}>
                         <span className="font-mono">{live.canary.commit.slice(0, 7)}</span>
                     </External>

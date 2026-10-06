@@ -76,8 +76,9 @@ function Overview() {
                 <p className="m-0 mt-3 max-w-3xl text-[15px] leading-relaxed">
                     <strong>Where it stands ({AS_OF}):</strong> both product repos are gated by generated workflows, and
                     lkgr moves on its own. The CI builders still run interim commands instead of recipes, qq does not
-                    call remote-build yet, and the first canary was started by hand. Reverts and the product repos’
-                    canary refs wait on two GitHub Apps that do not exist yet.
+                    call remote-build yet, and the first canary was started by hand. Reverts wait on gardener’s GitHub
+                    App, which does not exist yet. The release executor App exists but is not wired into release yet, so
+                    the product repos’ canary refs do not move.
                 </p>
             </section>
             <section>
@@ -244,7 +245,7 @@ function CanaryDays({ repo, live, days }: { repo: Product; live: RepoLive; days:
                                                     <>
                                                         <strong className="text-primary">Skipped.</strong>{' '}
                                                         {/release executor/i.test(stage.detail)
-                                                            ? 'The canary pointer in release-state moved, but the channels/canary git ref waits on the release executor App.'
+                                                            ? 'The canary pointer in release-state moved, but the channels/canary git ref waits until the release executor App is wired into release.'
                                                             : stage.detail.replace(/\s*;?\s*TODO\([^)]*\)/g, '')}
                                                     </>
                                                 ) : (
