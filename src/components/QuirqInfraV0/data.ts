@@ -84,7 +84,7 @@ export const REPOS: InfraRepo[] = [
         sub: 'what must pass',
         role: 'Works out the required checks from infra-config and the manifest, guards that no core repo names a language, and applies repo settings.',
         counterpart: 'LUCI CV',
-        open: 'The owner-review rule waits on owners being named.',
+        open: 'The owner-review rule waits on owners being named. gate #27 (the release-state ruleset) and #29 (one approval on product PRs) are open PRs, not merged.',
     },
     {
         name: 'test-pipelines',
@@ -141,7 +141,7 @@ export type FlowStep = { title: string; text: string; repos: string[] }
 export const FLOW: FlowStep[] = [
     {
         title: 'You sync',
-        text: 'qq sync reads the repo’s infra/repo.toml and downloads each pinned toolchain, checked against its digest. Toolchains are Linux x86_64 only so far: on a Mac qq sync stops with “no pin for platform macos-arm64”.',
+        text: 'qq sync reads the repo’s infra/repo.toml and downloads each pinned toolchain, checked against its digest. Toolchains are Linux x86_64 only so far: on a Mac qq sync stops with “no pin for platform”.',
         repos: ['depot', 'sync', 'toolchains'],
     },
     {
@@ -181,7 +181,7 @@ export const FLOW: FlowStep[] = [
     },
     {
         title: 'Shipping',
-        text: 'release moves lkgr to the newest all-green commit. Once a day it builds that commit, runs the full tests, starts it and probes it; only then does the canary pointer move. installer can resolve a channel; canary test machines are not set up yet.',
+        text: 'release moves lkgr to the newest all-green commit. Once a day it builds that commit, runs the full tests, starts it and probes it; only then does the canary pointer in release-state move. The matching git refs wait on the release executor identity, so release records those writes as skipped. installer can resolve a channel; canary test machines are not set up yet.',
         repos: ['release', 'installer'],
     },
 ]
@@ -192,7 +192,7 @@ export const EXIT_TEST: ExitCheck[] = [
     {
         title: 'All 13 repos are public, each with CODEOWNERS, a generated presubmit and a merge queue',
         state: 'progress',
-        status: 'The repos are public and their rulesets are applied. The infra repos’ presubmits are still hand-written, not generated. Some owners are still to be named.',
+        status: 'The repos are public. The gate apply at 6610664 set the rulesets of these 13 repos and of xo-space and innernet; website’s wait on the next apply. The infra repos’ presubmits are still hand-written, not generated. Some owners are still to be named.',
     },
     {
         title: 'xo-space and innernet are gated from their manifests through shared adapters, and a red PR is refused',
@@ -225,15 +225,14 @@ export const GUIDE: GuideSection[] = [
             {
                 text: 'Put depot’s bin on your PATH once. Inside a product repo, qq runs the version that repo pins.',
                 code: 'git clone https://github.com/quirq-ai/depot\nexport PATH="$PWD/depot/bin:$PATH"',
-                note: 'The qq guide at docs.quirq.dev/docs/qq has the full install, including qqsync.',
             },
             {
                 text: 'Fetch the pinned toolchains, checked against their digests.',
                 code: 'qq sync',
-                note: 'Linux x86_64 only for now. On a Mac, qq sync stops with “no pin for platform macos-arm64”, and qq build and qq test need the pinned toolchains installed by hand (--toolchain python=ROOT).',
+                note: 'Linux x86_64 only for now. On a Mac, qq sync stops with “no pin for platform”, and qq build and qq test need the pinned toolchains installed by hand (--toolchain python=ROOT).',
             },
             {
-                text: 'Build and test locally. CI still runs interim commands, so a local pass does not yet guarantee a presubmit pass.',
+                text: 'Build and test locally in xo-space or innernet. website has no recipes adapter yet, so use its pnpm commands there. CI still runs interim commands, so a local pass does not yet guarantee a presubmit pass.',
                 code: 'qq build\nqq test',
             },
             {
