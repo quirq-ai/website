@@ -1,10 +1,11 @@
-// What quirq infra (qq) v0 is, as of 2026-10-05. The repo roles, the walk-through of one change and the
+// What quirq infra (qq) v0 is, as of 2026-10-07. The repo roles, the walk-through of one change and the
 // Chromium counterparts are adapted from the infra-map app in quirq-ai/research (MIT,
 // infra/output/app/infra-map/src/repos.ts). Status lines come from the v0 status report in the same repo
-// (infra/output/report/2026-10-05-qq-v0-status.md). The live tab reads current state instead.
+// (infra/output/report/2026-10-05-qq-v0-status.md), rechecked against "Where qq stands" in the qq guide
+// (https://docs.quirq.dev/docs/qq) on 2026-10-07. The live tab reads current state instead.
 
 export const ORG = 'https://github.com/quirq-ai'
-export const AS_OF = '5 October 2026'
+export const AS_OF = '7 October 2026'
 
 export const SOURCES = {
     plan: `${ORG}/infra-config/blob/main/docs/v0.md`,
@@ -115,7 +116,7 @@ export const REPOS: InfraRepo[] = [
         sub: 'benchmarks and size',
         role: 'Records one benchmark per product repo, plus innernet’s build size, for each commit that lands on main.',
         counterpart: 'the perf dashboard',
-        open: 'Nothing for v0.',
+        open: 'No record since 5 October: GitHub has been skipping its scheduled runs.',
     },
     {
         name: 'release',
@@ -140,12 +141,12 @@ export type FlowStep = { title: string; text: string; repos: string[] }
 export const FLOW: FlowStep[] = [
     {
         title: 'You sync',
-        text: 'qq sync reads the repo’s infra/repo.toml and downloads each pinned toolchain, checked against its digest. Toolchains are Linux x86_64 only so far; on a Mac you bring your own.',
+        text: 'qq sync reads the repo’s infra/repo.toml and downloads each pinned toolchain, checked against its digest. Toolchains are Linux x86_64 only so far: on a Mac qq sync stops with “no pin for platform macos-arm64”.',
         repos: ['depot', 'sync', 'toolchains'],
     },
     {
         title: 'You build and test',
-        text: 'qq build and qq test hand the manifest to recipes, which plans and runs each build and test action. remote-build, the shared action cache, is built but qq does not call it yet.',
+        text: 'qq build and qq test hand the manifest to recipes, which plans and runs each build and test action. On a Mac they need the pinned toolchains installed by hand. remote-build, the shared action cache, is built but qq does not call it yet.',
         repos: ['depot', 'recipes'],
     },
     {
@@ -191,7 +192,7 @@ export const EXIT_TEST: ExitCheck[] = [
     {
         title: 'All 13 repos are public, each with CODEOWNERS, a generated presubmit and a merge queue',
         state: 'progress',
-        status: 'The repos are public and their rulesets are applied. Some owners are still to be named.',
+        status: 'The repos are public and their rulesets are applied. The infra repos’ presubmits are still hand-written, not generated. Some owners are still to be named.',
     },
     {
         title: 'xo-space and innernet are gated from their manifests through shared adapters, and a red PR is refused',
@@ -224,13 +225,17 @@ export const GUIDE: GuideSection[] = [
             {
                 text: 'Put depot’s bin on your PATH once. Inside a product repo, qq runs the version that repo pins.',
                 code: 'git clone https://github.com/quirq-ai/depot\nexport PATH="$PWD/depot/bin:$PATH"',
+                note: 'The qq guide at docs.quirq.dev/docs/qq has the full install, including qqsync.',
             },
             {
                 text: 'Fetch the pinned toolchains, checked against their digests.',
                 code: 'qq sync',
-                note: 'Linux x86_64 only for now. On a Mac, qq sync stops at the toolchain step and you use your own.',
+                note: 'Linux x86_64 only for now. On a Mac, qq sync stops with “no pin for platform macos-arm64”, and qq build and qq test need the pinned toolchains installed by hand (--toolchain python=ROOT).',
             },
-            { text: 'Build and test the way CI does.', code: 'qq build\nqq test' },
+            {
+                text: 'Build and test locally. CI still runs interim commands, so a local pass does not yet guarantee a presubmit pass.',
+                code: 'qq build\nqq test',
+            },
             {
                 text: 'Open a PR and get a run ID back at once. The verdict arrives later.',
                 code: 'qq try',

@@ -158,7 +158,7 @@ This repository is onboarded to [quirq infra](https://github.com/quirq-ai/infra-
 
 - [`infra/repo.toml`](infra/repo.toml) is the qq manifest: one `site` target of kind `gatsby-site` and the Node toolchain pin. Read or change it only with `qqsync` from [quirq-ai/sync](https://github.com/quirq-ai/sync).
 - The presubmit and post-submit workflows (`.github/workflows/qq-*.yml`) are generated in [quirq-ai/infra-config](https://github.com/quirq-ai/infra-config) and copied here. Change them there, never by hand.
-- The landing rules on `main` (merge queue, squash merges, required checks) come from [quirq-ai/gate](https://github.com/quirq-ai/gate) `settings/github.toml`.
+- The landing rules for `main` (merge queue, squash merges, required checks) are declared in [quirq-ai/gate](https://github.com/quirq-ai/gate) `settings/github.toml`. The gate apply that onboards this repository has not been run yet, so they are not in force here.
 
 ## Architecture
 
