@@ -1,10 +1,11 @@
-// What quirq infra (qq) v0 is, as of 2026-10-05. The repo roles, the walk-through of one change and the
+// What quirq infra (qq) v0 is, as of 2026-10-07. The repo roles, the walk-through of one change and the
 // Chromium counterparts are adapted from the infra-map app in quirq-ai/research (MIT,
 // infra/output/app/infra-map/src/repos.ts). Status lines come from the v0 status report in the same repo
-// (infra/output/report/2026-10-05-qq-v0-status.md). The live tab reads current state instead.
+// (infra/output/report/2026-10-05-qq-v0-status.md), rechecked against "Where qq stands" in the qq guide
+// (https://docs.quirq.dev/docs/qq) on 2026-10-07. The live tab reads current state instead.
 
 export const ORG = 'https://github.com/quirq-ai'
-export const AS_OF = '5 October 2026'
+export const AS_OF = '7 October 2026'
 
 export const SOURCES = {
     plan: `${ORG}/infra-config/blob/main/docs/v0.md`,
@@ -83,7 +84,7 @@ export const REPOS: InfraRepo[] = [
         sub: 'what must pass',
         role: 'Works out the required checks from infra-config and the manifest, guards that no core repo names a language, and applies repo settings.',
         counterpart: 'LUCI CV',
-        open: 'The owner-review rule waits on owners being named.',
+        open: 'The owner-review rule waits on owners being named. gate #27 (the release-state ruleset) and #29 (one approval on product PRs) are open PRs, not merged.',
     },
     {
         name: 'test-pipelines',
@@ -115,7 +116,7 @@ export const REPOS: InfraRepo[] = [
         sub: 'benchmarks and size',
         role: 'Records one benchmark per product repo, plus innernet’s build size, for each commit that lands on main.',
         counterpart: 'the perf dashboard',
-        open: 'Nothing for v0.',
+        open: 'No record since 5 October: GitHub has been skipping its scheduled runs.',
     },
     {
         name: 'release',
@@ -140,12 +141,12 @@ export type FlowStep = { title: string; text: string; repos: string[] }
 export const FLOW: FlowStep[] = [
     {
         title: 'You sync',
-        text: 'qq sync reads the repo’s infra/repo.toml and downloads each pinned toolchain, checked against its digest. Toolchains are Linux x86_64 only so far; on a Mac you bring your own.',
+        text: 'qq sync reads the repo’s infra/repo.toml and downloads each pinned toolchain, checked against its digest. Toolchains are Linux x86_64 only so far: on a Mac qq sync stops with “no pin for platform”.',
         repos: ['depot', 'sync', 'toolchains'],
     },
     {
         title: 'You build and test',
-        text: 'qq build and qq test hand the manifest to recipes, which plans and runs each build and test action. remote-build, the shared action cache, is built but qq does not call it yet.',
+        text: 'qq build and qq test hand the manifest to recipes, which plans and runs each build and test action. On a Mac they need the pinned toolchains installed by hand. remote-build, the shared action cache, is built but qq does not call it yet.',
         repos: ['depot', 'recipes'],
     },
     {
@@ -170,7 +171,7 @@ export const FLOW: FlowStep[] = [
     },
     {
         title: 'main stays green',
-        text: 'Post-submit runs on every main commit. gardener watches those runs and publishes tree status; once its App exists it proposes a revert for a break. perf records benchmarks.',
+        text: 'Post-submit runs on every main commit. gardener watches those runs and publishes tree status; once its App exists it proposes a revert for a break. perf is set up to record benchmarks, but has recorded nothing since 5 October.',
         repos: ['gardener', 'test-pipelines', 'perf'],
     },
     {
@@ -180,7 +181,7 @@ export const FLOW: FlowStep[] = [
     },
     {
         title: 'Shipping',
-        text: 'release moves lkgr to the newest all-green commit. Once a day it builds that commit, runs the full tests, starts it and probes it; only then does the canary pointer move. installer can resolve a channel; canary test machines are not set up yet.',
+        text: 'release moves lkgr to the newest all-green commit. Once a day it builds that commit, runs the full tests, starts it and probes it; only then does the canary pointer in release-state move. The matching git refs wait on the release executor identity, so release records those writes as skipped. installer can resolve a channel; canary test machines are not set up yet.',
         repos: ['release', 'installer'],
     },
 ]
@@ -191,7 +192,7 @@ export const EXIT_TEST: ExitCheck[] = [
     {
         title: 'All 13 repos are public, each with CODEOWNERS, a generated presubmit and a merge queue',
         state: 'progress',
-        status: 'The repos are public and their rulesets are applied. Some owners are still to be named.',
+        status: 'The repos are public. The gate apply at 6610664 set the rulesets of these 13 repos and of xo-space and innernet. gate #23 to #26 and #28 (website’s onboarding among them) are merged but wait on the next apply. The infra repos’ presubmits are still hand-written, not generated. Some owners are still to be named.',
     },
     {
         title: 'xo-space and innernet are gated from their manifests through shared adapters, and a red PR is refused',
@@ -228,9 +229,12 @@ export const GUIDE: GuideSection[] = [
             {
                 text: 'Fetch the pinned toolchains, checked against their digests.',
                 code: 'qq sync',
-                note: 'Linux x86_64 only for now. On a Mac, qq sync stops at the toolchain step and you use your own.',
+                note: 'Linux x86_64 only for now. On a Mac, qq sync stops with “no pin for platform”, and qq build and qq test need the pinned toolchains installed by hand (--toolchain python=ROOT).',
             },
-            { text: 'Build and test the way CI does.', code: 'qq build\nqq test' },
+            {
+                text: 'Build and test locally in xo-space or innernet. website has no recipes adapter yet, so use its pnpm commands there. CI still runs interim commands, so a local pass does not yet guarantee a presubmit pass.',
+                code: 'qq build\nqq test',
+            },
             {
                 text: 'Open a PR and get a run ID back at once. The verdict arrives later.',
                 code: 'qq try',
@@ -286,5 +290,5 @@ export const LIMITS = [
     'release records each canary in release-state, but the product repos’ channels/canary git refs wait until the release executor App, which exists, is wired into release, so the promote stage reports “skipped”.',
     'There are no canary test machines yet; installer can resolve a channel, but nothing installs from it daily.',
     'The CI builders still run interim commands instead of recipes and the promoted toolchain pins.',
-    'GitHub can skip or delay scheduled runs on quiet repos, so a daily backstop starts the canary if it was missed.',
+    'GitHub can delay or skip scheduled runs, so a daily backstop starts the canary if it was missed.',
 ]

@@ -148,17 +148,17 @@ pnpm build
 pnpm serve -H 127.0.0.1 -p 9000
 ```
 
-GitHub Actions runs the quirq infra presubmit (`website-presubmit`: a frozen pnpm install, `pnpm build`, whose prebuild runs `pnpm apps:check` and `pnpm projects:check`, and `pnpm test`) on pull requests and in the merge queue, and the same steps as `website-postsubmit` on every push to `main`, using Node 24.
+GitHub Actions runs the quirq infra presubmit (`website-presubmit`: a frozen pnpm install, `pnpm build`, whose prebuild runs `pnpm apps:check` and `pnpm projects:check`, and `pnpm test`) on pull requests, and will run it in the merge queue once the gate apply onboards this repository (see below). It runs the same steps as `website-postsubmit` on every push to `main`, using Node 24.
 
 Check Home base, an app route, search, Appearance, and narrow and wide layouts in both themes when changing the UI. The catalog and routing tests do not replace browser checks. Other scripts retained in `package.json` serve upstream functionality and are not required for this app's normal workflow.
 
 ## quirq infra (qq)
 
-This repository is onboarded to [quirq infra](https://github.com/quirq-ai/infra-config), the build, test and land system shared by the quirq repositories:
+This repository has a qq manifest and generated workflows from [quirq infra](https://github.com/quirq-ai/infra-config), the build, test and land system shared by the quirq repositories:
 
-- [`infra/repo.toml`](infra/repo.toml) is the qq manifest: one `site` target of kind `gatsby-site` and the Node toolchain pin. Read or change it only with `qqsync` from [quirq-ai/sync](https://github.com/quirq-ai/sync).
+- [`infra/repo.toml`](infra/repo.toml) is the qq manifest: one `site` target of kind `gatsby-site` and the Node toolchain pin. Read or change it only with `qqsync` from [quirq-ai/sync](https://github.com/quirq-ai/sync). quirq-ai/recipes has no `gatsby-site` adapter yet, so `qq build` and `qq test` do not work here; use the pnpm commands above.
 - The presubmit and post-submit workflows (`.github/workflows/qq-*.yml`) are generated in [quirq-ai/infra-config](https://github.com/quirq-ai/infra-config) and copied here. Change them there, never by hand.
-- The landing rules on `main` (merge queue, squash merges, required checks) come from [quirq-ai/gate](https://github.com/quirq-ai/gate) `settings/github.toml`.
+- The landing rules for `main` (merge queue, squash merges, required checks) are declared in [quirq-ai/gate](https://github.com/quirq-ai/gate) `settings/github.toml`. They include a merge queue on `main`, but the gate apply that onboards this repository has not been run yet, so none of them is in force here.
 
 ## Architecture
 
