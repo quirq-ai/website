@@ -171,7 +171,7 @@ export const FLOW: FlowStep[] = [
     },
     {
         title: 'main stays green',
-        text: 'Post-submit runs on every main commit. gardener watches those runs and publishes tree status; once its App exists it proposes a revert for a break. perf records benchmarks.',
+        text: 'Post-submit runs on every main commit. gardener watches those runs and publishes tree status; once its App exists it proposes a revert for a break. perf is set up to record benchmarks, but has recorded nothing since 5 October.',
         repos: ['gardener', 'test-pipelines', 'perf'],
     },
     {
@@ -192,7 +192,7 @@ export const EXIT_TEST: ExitCheck[] = [
     {
         title: 'All 13 repos are public, each with CODEOWNERS, a generated presubmit and a merge queue',
         state: 'progress',
-        status: 'The repos are public. The gate apply at 6610664 set the rulesets of these 13 repos and of xo-space and innernet; website’s wait on the next apply. The infra repos’ presubmits are still hand-written, not generated. Some owners are still to be named.',
+        status: 'The repos are public. The gate apply at 6610664 set the rulesets of these 13 repos and of xo-space and innernet. gate #23 to #26 and #28 (website’s onboarding among them) are merged but wait on the next apply. The infra repos’ presubmits are still hand-written, not generated. Some owners are still to be named.',
     },
     {
         title: 'xo-space and innernet are gated from their manifests through shared adapters, and a red PR is refused',
@@ -290,5 +290,5 @@ export const LIMITS = [
     'release records each canary in release-state, but the product repos’ channels/canary git refs wait until the release executor App, which exists, is wired into release, so the promote stage reports “skipped”.',
     'There are no canary test machines yet; installer can resolve a channel, but nothing installs from it daily.',
     'The CI builders still run interim commands instead of recipes and the promoted toolchain pins.',
-    'GitHub can skip or delay scheduled runs on quiet repos, so a daily backstop starts the canary if it was missed.',
+    'GitHub can delay or skip scheduled runs, so a daily backstop starts the canary if it was missed.',
 ]
