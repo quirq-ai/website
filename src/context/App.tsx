@@ -1726,8 +1726,9 @@ export const Provider = ({ children, element, location }: AppProviderProps) => {
         windowsRef.current = windows
     }, [windows])
     const focusedWindow = useMemo(() => {
+        // A minimized window is hidden, so it can't hold focus.
         return windows.reduce<AppWindow | undefined>(
-            (highest, current) => (current.zIndex > (highest?.zIndex ?? -1) ? current : highest),
+            (highest, current) => (!current.minimized && current.zIndex > (highest?.zIndex ?? -1) ? current : highest),
             undefined
         )
     }, [windows])
@@ -1851,9 +1852,10 @@ export const Provider = ({ children, element, location }: AppProviderProps) => {
 
     const replaceFocusedWindow = useCallback(
         (newWindow: AppWindow) => {
-            // Find the highest zIndex window
+            // Find the highest zIndex window that's showing; a minimized one keeps its page.
             const windowToReplace = windows.reduce<AppWindow | undefined>(
-                (highest, current) => (current.zIndex > (highest?.zIndex ?? -1) ? current : highest),
+                (highest, current) =>
+                    !current.minimized && current.zIndex > (highest?.zIndex ?? -1) ? current : highest,
                 undefined
             )
 
