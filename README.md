@@ -2,7 +2,7 @@
 
 A customizable desktop for the apps, experiments, and open source projects in the [quirq GitHub organization](https://github.com/quirq-ai).
 
-Repositories become app entries with their own URLs. Home base, desktop shortcuts, the Apps menu, and search all use the same catalog. The interface keeps the playful desktop experience: glass icons, wallpapers, light and dark themes, screensavers, appearance settings, and multiple app windows with expand, restore, and close controls.
+Repositories become app entries with their own URLs. The desktop icons, the Home window, and search all use the same catalog. A floating dock, after [Euler](https://github.com/quirq-ai/euler)'s, is the navigation bar: Home, Projects, search, and the list of open windows. The Home window follows Euler's Home: a greeting, the catalog at a glance, a card for every app, and a [Blobatar](https://blobatar.dev/) avatar you can make your own. The interface keeps the playful desktop experience: glass icons, wallpapers, light and dark themes, screensavers, appearance settings, and multiple app windows with expand, restore, and close controls.
 
 Each app can have its own identity. Use a document view for Docs, a colorful showcase for an experiment, or a completely custom React page for a product. A shared data source does not require every app to look the same.
 
@@ -44,7 +44,7 @@ quirq-ai public GitHub repositories
                 |
       Gatsby creates one route per app
                 |
- Home base + desktop + menus + search + app windows
+ Home window + desktop + dock + search + app windows
 ```
 
 1. **Sync:** the script fetches the organization's public repositories and the READMEs for visible entries.
@@ -94,7 +94,7 @@ Edit [`quirq.apps.json`](quirq.apps.json). Keys under `repositories` must match 
 | --- | --- |
 | Give an app its own URL | `path`, such as `/xo-space`; otherwise `/apps/<repository>` |
 | Change its identity | `name`, `description`, `icon`, `color`, and `category` |
-| Highlight it on Home base and the desktop | `featured: true` |
+| Put it in the desktop's first column and first in the Home window | `featured: true` |
 | Hide an entry everywhere | `hidden: true` |
 | Choose a page layout | `presentation: "overview"`, `"reader"`, or `"gallery"` |
 | Build a bespoke app page | `component: "src/templates/MyApp.tsx"` |
@@ -172,14 +172,15 @@ This repository is onboarded to [quirq infra](https://github.com/quirq-ai/infra-
 | [`gatsby-config.js`](gatsby-config.js) | Active plugins, allowed source pages, and site metadata |
 | [`gatsby-node.ts`](gatsby-node.ts) | Generates mapped routes and excludes inactive upstream pages and queries |
 | [`src/templates/quirq-app.tsx`](src/templates/quirq-app.tsx) | Default generated app page and SEO |
-| [`src/components/HomeBase`](src/components/HomeBase) | Featured apps, filtering, and grid/list catalog views |
+| [`src/components/HomeBase`](src/components/HomeBase) | The Euler-style Home window: greeting, catalog summary, app cards, filters, and the avatar panel |
+| [`src/components/Dock`](src/components/Dock) and [`src/components/QuirqAvatar`](src/components/QuirqAvatar) | The dock navigation bar (Home, Projects, search, open windows) and the Blobatar avatar and its editor |
 | [`quirq.projects.json`](quirq.projects.json), [`scripts/lib/quirq-phases.mjs`](scripts/lib/quirq-phases.mjs) | Project groups, descriptions, phase overrides, and the phase rules |
 | [`src/components/QuirqProjects`](src/components/QuirqProjects) | The projects-by-phase view at `/projects` |
 | [`src/components/QuirqInfraV0`](src/components/QuirqInfraV0) | The quirq infra v0 guide and live view at `/v0` |
 | [`src/components/QuirqApp`](src/components/QuirqApp) | Repository overview, reader, gallery, README rendering, and optional embed |
 | [`src/components/QuirqAppIcon`](src/components/QuirqAppIcon) | Mapped icons in the existing glass icon style |
 | [`src/components/QuirqSearch`](src/components/QuirqSearch) | Local catalog search and keyboard navigation |
-| [`src/components/Desktop`](src/components/Desktop) and [`src/components/TaskBarMenu`](src/components/TaskBarMenu) | Desktop shortcuts, wallpaper, app menus, and taskbar |
+| [`src/components/Desktop`](src/components/Desktop) | Desktop icons and wallpaper. The inherited top bar in [`src/components/TaskBarMenu`](src/components/TaskBarMenu) is no longer mounted; the dock replaced it |
 | [`src/context/App.tsx`](src/context/App.tsx) and [`src/components/AppWindow`](src/components/AppWindow) | Shared app state, window lifecycle, layout, and controls |
 | [`src/pages/display-options.tsx`](src/pages/display-options.tsx) | Appearance and personalization settings |
 | [`vercel.json`](vercel.json) | Gatsby build and output configuration for Vercel |

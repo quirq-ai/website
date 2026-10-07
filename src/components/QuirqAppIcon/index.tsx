@@ -66,3 +66,24 @@ export default function QuirqAppIcon({
         </GlassIcon>
     )
 }
+
+/** An app icon on a frosted, rounded tile, the way Euler's home screen and dock present apps. */
+export function QuirqAppTile({
+    icon,
+    color,
+    className = 'size-[58px] rounded-[17px]',
+    iconClassName = '!size-10',
+}: {
+    icon?: string
+    color?: string
+    className?: string
+    iconClassName?: string
+}) {
+    return (
+        <span
+            className={`grid place-items-center shrink-0 border border-white/90 dark:border-white/10 bg-gradient-to-br from-white to-white/60 dark:from-white/15 dark:to-white/5 shadow-[0_10px_19px_-13px_rgba(48,75,100,0.44),0_2px_4px_rgba(48,75,100,0.03)] ${className}`}
+        >
+            <QuirqAppIcon icon={icon} color={color} className={iconClassName} />
+        </span>
+    )
+}

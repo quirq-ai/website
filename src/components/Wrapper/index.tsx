@@ -1,7 +1,7 @@
 import React from 'react'
 import { useAppActions, useAppSettings, useAppWindows } from '../../context/App'
 import Desktop from 'components/Desktop'
-import TaskBarMenu from 'components/TaskBarMenu'
+import Dock from 'components/Dock'
 import AppWindow from 'components/AppWindow'
 import { SearchOverlay } from 'components/QuirqSearch'
 import AppContainer from 'components/AppContainer'
@@ -15,7 +15,11 @@ const WindowList = React.memo(function WindowList() {
     return (
         <div data-app="WindowList" className="flex size-full justify-center items-center">
             {windows.map((item) => (
-                <AppWindow item={item} key={item.key} />
+                // `contents` leaves the flex layout untouched. A minimized window stays mounted,
+                // hidden, so it keeps its state until it's restored.
+                <div key={item.key} className={item.minimized ? 'hidden' : 'contents'}>
+                    <AppWindow item={item} />
+                </div>
             ))}
         </div>
     )
@@ -27,14 +31,12 @@ export default function Wrapper() {
 
     return (
         <AppContainer className="h-dvh flex flex-col p-2">
-            {!compact && <TaskBarMenu />}
             <div data-app="DesktopViewport" ref={constraintsRef} className={`flex-grow relative min-h-0 overflow-clip`}>
                 <Desktop />
                 <WindowList />
             </div>
-            {/*             
+            {/* The dock is the navigation bar: Home, Projects, search and open windows. */}
             {!compact && <Dock />}
-            */}
             <SearchOverlay />
         </AppContainer>
     )

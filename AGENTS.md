@@ -23,9 +23,10 @@ This repository is quirq's Gatsby 4 / React website, adapted from the PostHog de
 | Project groups, descriptions and phase overrides | `quirq.projects.json`, phase rules in `scripts/lib/quirq-phases.mjs` |
 | Generated project phase snapshot (`pnpm projects:sync`) | `src/data/quirq-projects.json` |
 | Projects view and quirq infra v0 app | `src/components/QuirqProjects/`, `src/components/QuirqInfraV0/` |
-| Home launcher | `src/components/HomeBase/` |
+| Home window (`/`) | `src/components/HomeBase/` |
+| Dock navigation bar (Home, Projects, search, open windows) and the Blobatar avatar | `src/components/Dock/`, `src/components/QuirqAvatar/`, `src/lib/quirqAvatar.ts`, `src/vendor/blobatar/` |
 | Default app views | `src/components/QuirqApp/`, `src/templates/quirq-app.tsx` |
-| Desktop, menus, and local search | `src/components/Desktop/`, `src/components/TaskBarMenu/`, `src/components/QuirqSearch/` |
+| Desktop icons and local search (the dock replaced the top bar in `src/components/TaskBarMenu/`, which is no longer mounted) | `src/components/Desktop/`, `src/components/QuirqSearch/` |
 | Window state and controls | `src/context/App.tsx`, `src/components/AppWindow/` |
 
 `src/pages/index.tsx`, `src/pages/display-options.tsx`, `src/pages/projects.tsx`, and `src/pages/404.js` are the active filesystem pages. App routes come from the catalog. Inherited PostHog pages, components, and build helpers remain in `src/` and `scripts/` for reference and asset reuse, but are excluded from this site's active page generation. `static/` holds only files the active site loads: the quirq brand art, `scripts/theme-init.js`, and three inherited PostHog images (`images/search.svg` and the two `questlog-*-sprite.png` files). Gatsby publishes everything in `static/`, so add only files a page uses. PostHog's `contents/` docs, its published brand files and its other unused `static/` art were removed (they remain in git history). Do not re-enable the old CMS, customer, analytics, billing, or notification integrations as a side effect of a change.

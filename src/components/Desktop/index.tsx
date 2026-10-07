@@ -43,11 +43,11 @@ export const apps: AppItem[] = [
     },
 ]
 
-// Fixed offset for icon layout — avoids CLS from context taskbarHeight (59 → measured) on SSR hydrate.
-// #taskbar is 42px inside AppContainer's p-2 (8px) top padding.
-const APP_CONTAINER_TOP_PADDING = 8
-const TASKBAR_HEIGHT = 42
-const DESKTOP_TOP_OFFSET = APP_CONTAINER_TOP_PADDING + TASKBAR_HEIGHT
+// Fixed offsets for icon layout, so nothing shifts after hydration. There is no top bar: the icons
+// start inside AppContainer's p-2 (8px) padding and stop above the dock, which is up to 100px tall
+// plus that 8px padding.
+const DESKTOP_TOP_OFFSET = 8
+const DOCK_CLEARANCE = 108
 
 function Desktop() {
     const productLinks = useProductLinks()
@@ -149,10 +149,10 @@ function Desktop() {
     // so the primary column stays pinned to the screen edge.
     const mobileIconListClassName = 'list-none m-0 p-0 flex flex-row flex-wrap pointer-events-auto w-full sm:hidden'
     const desktopIconListClassName = 'list-none m-0 p-0 flex flex-col content-start pointer-events-auto'
-    // Top padding is DESKTOP_TOP_OFFSET + 16; leave a matching bottom cushion so icons don't kiss the edge.
+    // Top padding is DESKTOP_TOP_OFFSET + 16; leave a matching cushion above the dock.
     const desktopIconListStyle = {
-        height: `calc(100dvh - ${DESKTOP_TOP_OFFSET + 32}px)`,
-        maxHeight: `calc(100dvh - ${DESKTOP_TOP_OFFSET + 32}px)`,
+        height: `calc(100dvh - ${DESKTOP_TOP_OFFSET + 32 + DOCK_CLEARANCE}px)`,
+        maxHeight: `calc(100dvh - ${DESKTOP_TOP_OFFSET + 32 + DOCK_CLEARANCE}px)`,
     } as const
 
     const handleScreensaverDismiss = () => {
