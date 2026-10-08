@@ -21,11 +21,6 @@ const asDesktopApp = (app: QuirqApp): AppItem => ({
     source: 'desktop',
 })
 
-const homeApps: AppItem[] = [
-    { label: 'Home base', Icon: <QuirqAppIcon icon="home" color="teal" />, url: '/', source: 'desktop' },
-    { label: 'Projects', Icon: <QuirqAppIcon icon="rocket" color="green" />, url: '/projects', source: 'desktop' },
-]
-
 const editApp: AppItem = {
     label: 'Edit',
     Icon: <QuirqAppIcon icon="palette" color="orange" />,
@@ -34,15 +29,16 @@ const editApp: AppItem = {
 }
 
 /**
- * Every repository in the organization, kept live, split evenly between the two icon columns:
- * Home base, Projects and the featured apps lead the left; Edit stays in the top-right corner.
+ * Every repository in the organization, kept live, split evenly between the two icon columns: the
+ * featured apps lead the left; Edit stays in the top-right corner. Home base and Projects are on the
+ * dock, not here.
  */
 function useDesktopApps() {
     const catalog = useQuirqApps()
     return useMemo(() => {
         const featured = catalog.filter((app) => app.featured).slice(0, 6)
         const rest = catalog.filter((app) => !featured.includes(app)).map(asDesktopApp)
-        const leading = [...homeApps, ...featured.map(asDesktopApp)]
+        const leading = featured.map(asDesktopApp)
         const leftCount = Math.max(leading.length, Math.ceil((leading.length + rest.length + 1) / 2))
         const leftRest = rest.slice(0, leftCount - leading.length)
         const rightRest = rest.slice(leftRest.length)

@@ -6,6 +6,8 @@ import { happy, idle, sleepy, smug, surprised, thinking, wink } from 'vendor/blo
 // Euler's euler-avatar.js. Avatars render locally from a name (the seed); nothing calls a service.
 
 export const AVATAR_STORAGE_KEY = 'quirq.avatar.v1'
+/** The quirqy window (the avatar's appearance, opened from the dock) has no route; this is its key. */
+export const QUIRQY_WINDOW = 'quirqy'
 const AVATAR_CHANGE_EVENT = 'quirq:avatar-change'
 
 type Option<T extends string> = { value: T; label: string }
@@ -54,11 +56,13 @@ export type AvatarConfig = {
     expression: AvatarExpression
 }
 
+// No background of its own by default: the avatar sits on the same frosted tile as the app icons
+// (QuirqAvatarTile). Choosing an icon background draws the avatar's own shape instead.
 export const defaultAvatarConfig: AvatarConfig = Object.freeze({
     name: 'quirq',
     hue: 210,
     tone: 0.45,
-    background: 'squircle',
+    background: 'transparent',
     shape: 'round',
     expression: 'idle',
 })

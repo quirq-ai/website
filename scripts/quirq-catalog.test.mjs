@@ -5,6 +5,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { Buffer } from 'node:buffer'
 import {
+    QUIRQ_ICONS,
     buildQuirqApps,
     isFramableUrl,
     mergeLiveRepositories,
@@ -189,10 +190,10 @@ test('launch URLs only accept web protocols and embedding is explicitly enabled 
     for (const url of ['javascript:alert(1)', 'file:///secret', 'https://user:password@example.com', '//example.com'])
         assert.throws(() => safeWebUrl(url))
     assert.equal(safeWebUrl('quirq.ai', { allowBareHost: true }), 'https://quirq.ai/')
-    const source = snapshot([repo('app', { homepage: 'https://example.com' })])
+    const source = snapshot([repo('app', { homepage: 'https://app.quirq.dev' })])
     assert.equal(buildQuirqApps(source, config)[0].launchMode, 'external')
     // Opening each app's website in its own window may be the catalog-wide default; a repo can opt out.
-    const windowed = { ...config, frameOrigins: ['https://example.com'], defaults: { launchMode: 'window' } }
+    const windowed = { ...config, frameOrigins: ['https://app.quirq.dev'], defaults: { launchMode: 'window' } }
     assert.equal(buildQuirqApps(source, windowed)[0].launchMode, 'window')
     assert.equal(
         buildQuirqApps(source, { ...windowed, repositories: { app: { launchMode: 'external' } } })[0].launchMode,
@@ -202,14 +203,14 @@ test('launch URLs only accept web protocols and embedding is explicitly enabled 
     assert.throws(() => buildQuirqApps(source, { ...config, defaults: { launchMode: 'embed' } }), /explicitly enabled/)
     const [app] = buildQuirqApps(source, {
         ...config,
-        frameOrigins: ['https://example.com'],
-        repositories: { app: { launchMode: 'embed', launchUrl: 'https://example.com/embed' } },
+        frameOrigins: ['https://app.quirq.dev'],
+        repositories: { app: { launchMode: 'embed', launchUrl: 'https://app.quirq.dev/embed' } },
     })
     assert.equal(app.launchMode, 'embed')
-    assert.equal(app.launchUrl, 'https://example.com/embed')
+    assert.equal(app.launchUrl, 'https://app.quirq.dev/embed')
     const [disabled] = buildQuirqApps(source, { ...config, repositories: { app: { launchUrl: null } } })
     assert.equal(disabled.launchUrl, null)
-    assert.equal(disabled.homepage, 'https://example.com/')
+    assert.equal(disabled.homepage, 'https://app.quirq.dev/')
     assert.throws(
         () => buildQuirqApps(snapshot([repo('app', { homepage: 'javascript:alert(1)' })]), config),
         /Unsafe app URL/
@@ -220,6 +221,7 @@ test('only a launch URL on an exact allowed origin is framed; any other opens in
     const origins = ['https://docs.quirq.dev']
     assert.equal(isFramableUrl('https://docs.quirq.dev/docs/start', origins), true)
     for (const url of [
+        'https://user@docs.quirq.dev/',
         'https://docs.quirq.dev./docs/start',
         'http://docs.quirq.dev/',
         'https://docs.quirq.dev:8443/',
@@ -256,6 +258,11 @@ test('only a launch URL on an exact allowed origin is framed; any other opens in
         'http://docs.quirq.dev',
         'https://DOCS.quirq.dev',
         'https://app.vercel.app',
+        'https://app.netlify.app',
+        'https://quirq-ai.github.io',
+        'https://www.quirq.dev',
+        'https://quirq.dev',
+        'https://quirq.dev.evil.example',
         'docs.quirq.dev',
     ])
         assert.throws(
@@ -497,4 +504,13 @@ test('--check fails while a hidden repository still carries README text, without
         await assert.rejects(syncQuirqApps({ configPath, outputPath, check: true, prune: true }), /either/)
         assert.equal(await readFile(outputPath, 'utf8'), before)
     })
+})
+
+test('every icon name the mapping accepts has a glyph, and every glyph a name', async () => {
+    const source = await readFile(new URL('../src/components/QuirqAppIcon/glyphs.ts', import.meta.url), 'utf8')
+    const glyphs = source.slice(source.indexOf('export const QUIRQ_GLYPHS = {'), source.indexOf('\n}\n'))
+    const names = [...glyphs.matchAll(/^ {4}'?([a-z][a-z-]*)'?:/gm)].map((match) => match[1])
+    assert.deepEqual([...names].sort(), [...QUIRQ_ICONS].sort())
+    // A repository without a chosen icon shows a folder.
+    assert.equal(buildQuirqApps(snapshot([repo('new-repo')]), config)[0].icon, 'folder')
 })

@@ -1,0 +1,405 @@
+{
+  "note": "Unmodified files from the npm archives below; each archive matched its registry integrity value.",
+  "packages": [
+    {
+      "name": "@pierre/trees",
+      "version": "1.0.0-beta.6",
+      "license": "Apache-2.0",
+      "repository": "https://github.com/pierrecomputer/pierre",
+      "tarball": "https://registry.npmjs.org/@pierre/trees/-/trees-1.0.0-beta.6.tgz",
+      "integrity": "sha512-zxeuSFM9TveM7b5XofweJALCtm/tGYV9HZzdbf7Uf+kBxIlUyz24/EHaGRjB0dsmmfDQl2ETz7AWwJ15lhSnpw==",
+      "path": "node_modules/@pierre/trees",
+      "files": {
+        "node_modules/@pierre/trees/LICENSE.md": {
+          "packagePath": "LICENSE.md",
+          "sha256": "13d92be18d5ceac526f33cc96b6902a14d168f3e1d4b16be738f0fa70da7fe98"
+        },
+        "node_modules/@pierre/trees/NOTICE.md": {
+          "packagePath": "NOTICE.md",
+          "sha256": "a3504441e109da15ac873123ac4436250936b8261055c998360748ce35485963"
+        },
+        "node_modules/@pierre/trees/package.json": {
+          "packagePath": "package.json",
+          "sha256": "d1899e2d7fe1ad3e97ccff57dd93bf81e6dd7904e3872862d812645b4171e1f7"
+        },
+        "node_modules/@pierre/trees/dist/builtInIcons.js": {
+          "packagePath": "dist/builtInIcons.js",
+          "sha256": "690a5e838c7cf9cfddf8c99c556994f33f0e449f974554154db09803a4ee45d0"
+        },
+        "node_modules/@pierre/trees/dist/components/Icon.js": {
+          "packagePath": "dist/components/Icon.js",
+          "sha256": "fc2a4d40289974cce68df20f0b1a3b8230415708de02e59b3256a74a43da18fc"
+        },
+        "node_modules/@pierre/trees/dist/components/OverflowText.js": {
+          "packagePath": "dist/components/OverflowText.js",
+          "sha256": "9ccf9b01bb53d3d67bc22de51879db40ef03eb107a4d3280479ef54233062126"
+        },
+        "node_modules/@pierre/trees/dist/components/web-components.js": {
+          "packagePath": "dist/components/web-components.js",
+          "sha256": "7d79b42e2234e34d9d6a410c92f83732ad0b0e3b8a2c99d96418718bc2642fd9"
+        },
+        "node_modules/@pierre/trees/dist/constants.js": {
+          "packagePath": "dist/constants.js",
+          "sha256": "ce44a48ac4f26a40b34e0bec22e0f35d89f2d8243117fbce6bbfa0793c848f8d"
+        },
+        "node_modules/@pierre/trees/dist/iconConfig.js": {
+          "packagePath": "dist/iconConfig.js",
+          "sha256": "41461538112dbe3298136ebd25a643118ea812fa5f14dcc7e066deb6be9e400b"
+        },
+        "node_modules/@pierre/trees/dist/index.js": {
+          "packagePath": "dist/index.js",
+          "sha256": "3c916fa6dbed1a7f1ffecbe574fca89fa900463c7dd6d077b2dd740fabce2d8f"
+        },
+        "node_modules/@pierre/trees/dist/model/density.js": {
+          "packagePath": "dist/model/density.js",
+          "sha256": "0cea25f61abf279fc16a5511a66b0b8433c04585e8e0459e842ddeba675ef1d5"
+        },
+        "node_modules/@pierre/trees/dist/model/dragAndDrop.js": {
+          "packagePath": "dist/model/dragAndDrop.js",
+          "sha256": "2f1750774225bb8dbae4dc354b85875b7eaa572a81d28b258daebc7d7216a33e"
+        },
+        "node_modules/@pierre/trees/dist/model/FileTreeController.js": {
+          "packagePath": "dist/model/FileTreeController.js",
+          "sha256": "3378c7c35a0329ea1cc6105e589293a3929ca1666e1f062a1e58d1873d00c8d6"
+        },
+        "node_modules/@pierre/trees/dist/model/gitStatus.js": {
+          "packagePath": "dist/model/gitStatus.js",
+          "sha256": "87cdb4c84961576630aeb6b1df0796e76d5ea425b7e8e5146b04dec30e37b7ef"
+        },
+        "node_modules/@pierre/trees/dist/model/inputResolution.js": {
+          "packagePath": "dist/model/inputResolution.js",
+          "sha256": "be85ca2889d619a5edb839dfcd604076e281053f48559268664d1176a2e0d75e"
+        },
+        "node_modules/@pierre/trees/dist/model/internalTypes.js": {
+          "packagePath": "dist/model/internalTypes.js",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "node_modules/@pierre/trees/dist/model/layout.js": {
+          "packagePath": "dist/model/layout.js",
+          "sha256": "c666997221574b7dd7e04582df296cab4049112a258e0a5de8f27c6987dad804"
+        },
+        "node_modules/@pierre/trees/dist/model/mutationEvents.js": {
+          "packagePath": "dist/model/mutationEvents.js",
+          "sha256": "ea71b7a8bc1e81dfc0669044c6c21b28b6c8bda9e839f113f9d6fb763e866c79"
+        },
+        "node_modules/@pierre/trees/dist/model/pathHelpers.js": {
+          "packagePath": "dist/model/pathHelpers.js",
+          "sha256": "8b017a0f9ede72232835962528644a04e286cc76b85a5e34df0788ae73ecb8fa"
+        },
+        "node_modules/@pierre/trees/dist/model/publicTypes.js": {
+          "packagePath": "dist/model/publicTypes.js",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "node_modules/@pierre/trees/dist/model/renameHelpers.js": {
+          "packagePath": "dist/model/renameHelpers.js",
+          "sha256": "52bc947cb2f407454caf85dfff65eb98effe09abbc7ca70b37e0c4c411b46399"
+        },
+        "node_modules/@pierre/trees/dist/model/searchHelpers.js": {
+          "packagePath": "dist/model/searchHelpers.js",
+          "sha256": "6f86ecc7434c75b2e4fc417ed3926b473b58c56505d5621f9ac6b527c6dbffda"
+        },
+        "node_modules/@pierre/trees/dist/model/virtualization.js": {
+          "packagePath": "dist/model/virtualization.js",
+          "sha256": "72173b861671731572e23680f3f7216d40ea3326101373a72fce36edbd6b7072"
+        },
+        "node_modules/@pierre/trees/dist/path-store/src/builder.js": {
+          "packagePath": "dist/path-store/src/builder.js",
+          "sha256": "3b2d806976b887914a7335c901dd41a348d64c8c7ab63854c2d7b9a4ba1bdbc5"
+        },
+        "node_modules/@pierre/trees/dist/path-store/src/canonical.js": {
+          "packagePath": "dist/path-store/src/canonical.js",
+          "sha256": "185b5846cae1baaf86b3101bb20aa2230780e520430e4e4c63e36ca6d2b2c1d5"
+        },
+        "node_modules/@pierre/trees/dist/path-store/src/child-index.js": {
+          "packagePath": "dist/path-store/src/child-index.js",
+          "sha256": "c15819b6c2c34a04bf07ff71479a511ca6342c430080a43544590fd5663f79ed"
+        },
+        "node_modules/@pierre/trees/dist/path-store/src/cleanup.js": {
+          "packagePath": "dist/path-store/src/cleanup.js",
+          "sha256": "1948c829bbc578c12fd381db8739c2d445905a8504ef75162a25fd8bccd1c771"
+        },
+        "node_modules/@pierre/trees/dist/path-store/src/events.js": {
+          "packagePath": "dist/path-store/src/events.js",
+          "sha256": "481d168f06a00af748bd35df16c199f202b7dde83c441a8360246cdcd09d1fec"
+        },
+        "node_modules/@pierre/trees/dist/path-store/src/flatten.js": {
+          "packagePath": "dist/path-store/src/flatten.js",
+          "sha256": "d390cbfb5ee0dedf266d4527dae5f2e414b356c7b6ff14c50140e6798e827eea"
+        },
+        "node_modules/@pierre/trees/dist/path-store/src/index.js": {
+          "packagePath": "dist/path-store/src/index.js",
+          "sha256": "aad33f84f3c22e17ecd2795cdeefc3480399accbb20e5554124f42cc854e6634"
+        },
+        "node_modules/@pierre/trees/dist/path-store/src/internal/benchmarkInstrumentation.js": {
+          "packagePath": "dist/path-store/src/internal/benchmarkInstrumentation.js",
+          "sha256": "922c0359385aa98d5b05363b2acc237d4c480aeb565d094ef367cf54da935601"
+        },
+        "node_modules/@pierre/trees/dist/path-store/src/internal-types.js": {
+          "packagePath": "dist/path-store/src/internal-types.js",
+          "sha256": "318335259e0677c94413050de8317cf23cc29a20b7970231f86615268e6af42f"
+        },
+        "node_modules/@pierre/trees/dist/path-store/src/options.js": {
+          "packagePath": "dist/path-store/src/options.js",
+          "sha256": "b40883b660fc28704ca529cde9386645ccd9724da78deb87e414c411808735d8"
+        },
+        "node_modules/@pierre/trees/dist/path-store/src/path.js": {
+          "packagePath": "dist/path-store/src/path.js",
+          "sha256": "47c34975c843f59090d72307a539611e7ab352e0ad51a9bcb460e6cf3735071c"
+        },
+        "node_modules/@pierre/trees/dist/path-store/src/projection.js": {
+          "packagePath": "dist/path-store/src/projection.js",
+          "sha256": "0f24f22eef77adaca37281ad9a9cb6a3119ca841325d4d518593f604ff71ba04"
+        },
+        "node_modules/@pierre/trees/dist/path-store/src/scheduler.js": {
+          "packagePath": "dist/path-store/src/scheduler.js",
+          "sha256": "63046887a1e4ec62bc94e6e8cf35afb6e57c66763f878cf8893484cd75a46e7d"
+        },
+        "node_modules/@pierre/trees/dist/path-store/src/segments.js": {
+          "packagePath": "dist/path-store/src/segments.js",
+          "sha256": "1a818e9b48ccfb6f0cafafcd0b0df4150ed03525cb27e3d00b43fd4a7031127c"
+        },
+        "node_modules/@pierre/trees/dist/path-store/src/soa-node-store.js": {
+          "packagePath": "dist/path-store/src/soa-node-store.js",
+          "sha256": "1d32d70de483db345e0a9d60f2e050e67847e4d9e7f5139d04c7e4ffb4d37747"
+        },
+        "node_modules/@pierre/trees/dist/path-store/src/sort.js": {
+          "packagePath": "dist/path-store/src/sort.js",
+          "sha256": "e8c2f1219217dfe04187047ede56e89c326b318575c73399c7a970316af535ab"
+        },
+        "node_modules/@pierre/trees/dist/path-store/src/state.js": {
+          "packagePath": "dist/path-store/src/state.js",
+          "sha256": "e2e4be6f43bb89abb4ef6670e90851ac7fa0c54b746af3e4a6c9442be453fc52"
+        },
+        "node_modules/@pierre/trees/dist/path-store/src/static-store.js": {
+          "packagePath": "dist/path-store/src/static-store.js",
+          "sha256": "b7b5c7cf83d6c940e3ce3f92c02d31cd124506b34d123cb2bbe1380762064974"
+        },
+        "node_modules/@pierre/trees/dist/path-store/src/store.js": {
+          "packagePath": "dist/path-store/src/store.js",
+          "sha256": "c6b3dfa09077062770c43229368a6db17ccc56c710f8e9ccd1cd1e20e744703b"
+        },
+        "node_modules/@pierre/trees/dist/preparedInput.js": {
+          "packagePath": "dist/preparedInput.js",
+          "sha256": "97bde02d0e3042fa0e0ff8b2d5102330ba03d6e11b9a73ef955de7defa95aaea"
+        },
+        "node_modules/@pierre/trees/dist/publicTypes.js": {
+          "packagePath": "dist/publicTypes.js",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "node_modules/@pierre/trees/dist/react/FileTree.js": {
+          "packagePath": "dist/react/FileTree.js",
+          "sha256": "d0dd803d70b4d26d1d3a5c57dedb591b0dbbba02f244bf518a045cb96901424c"
+        },
+        "node_modules/@pierre/trees/dist/react/index.js": {
+          "packagePath": "dist/react/index.js",
+          "sha256": "9a5051d64cb3fd855c1ea4d854dcdbd3c3a84feab0202fa63b5e530bc1b60491"
+        },
+        "node_modules/@pierre/trees/dist/react/useFileTree.js": {
+          "packagePath": "dist/react/useFileTree.js",
+          "sha256": "5b7073a21146ca456a26c89a83475fac6a7dec22d61747115624e1f9954154d2"
+        },
+        "node_modules/@pierre/trees/dist/react/useFileTreeSearch.js": {
+          "packagePath": "dist/react/useFileTreeSearch.js",
+          "sha256": "3802ed563b6103e2122873be2fa32f9b3cbaa8cc19c48dd26ee22b308ea499f3"
+        },
+        "node_modules/@pierre/trees/dist/react/useFileTreeSelection.js": {
+          "packagePath": "dist/react/useFileTreeSelection.js",
+          "sha256": "0d39f0424d4c06f5bf1f0c80047c96aa21b6d69d2c90df467a170125bcccf00c"
+        },
+        "node_modules/@pierre/trees/dist/react/useFileTreeSelector.js": {
+          "packagePath": "dist/react/useFileTreeSelector.js",
+          "sha256": "cf2c50ac4eed1263c1f963ad94e72a875c5f218e1ef69fca5338c21eea09c0f7"
+        },
+        "node_modules/@pierre/trees/dist/render/controllerSnapshotSubscription.js": {
+          "packagePath": "dist/render/controllerSnapshotSubscription.js",
+          "sha256": "e2106d96c9f87d6c3d9387614fcfa41a4ff25150c2289217c1f5511ed4a2b0a0"
+        },
+        "node_modules/@pierre/trees/dist/render/FileTree.js": {
+          "packagePath": "dist/render/FileTree.js",
+          "sha256": "c4ded8ae5bac765f018ed72743689e7bad174b2a1397e6adc2c061d2a4051ada"
+        },
+        "node_modules/@pierre/trees/dist/render/FileTreeView.js": {
+          "packagePath": "dist/render/FileTreeView.js",
+          "sha256": "302cffe31cbf6a42af36fc8d433c77150a87290cd93388b8cd75796a871035be"
+        },
+        "node_modules/@pierre/trees/dist/render/focusHelpers.js": {
+          "packagePath": "dist/render/focusHelpers.js",
+          "sha256": "cdf9f51d157d1991a9553586cdaf66d3fc570c5f81af79c31c71b685a91ef3ed"
+        },
+        "node_modules/@pierre/trees/dist/render/iconResolver.js": {
+          "packagePath": "dist/render/iconResolver.js",
+          "sha256": "4010ac693253a82048ceffe8b30e546173fbf7ad2b57d3e72bfc3fc2d2a6dadd"
+        },
+        "node_modules/@pierre/trees/dist/render/renameHandoff.js": {
+          "packagePath": "dist/render/renameHandoff.js",
+          "sha256": "d00202663c3dc632739136d9b6c10eafe71e6a44fc3db1ee79861419f37aac79"
+        },
+        "node_modules/@pierre/trees/dist/render/RenameInput.js": {
+          "packagePath": "dist/render/RenameInput.js",
+          "sha256": "5ca05130df9aee72e9ca341a55fcebaf3e335a73a0bb353b10e8b7f0f9bdac7c"
+        },
+        "node_modules/@pierre/trees/dist/render/rowAttributes.js": {
+          "packagePath": "dist/render/rowAttributes.js",
+          "sha256": "a59eebad399aa2aef97069b872e781d3028ca39509f9e786fdc567ec81411291"
+        },
+        "node_modules/@pierre/trees/dist/render/rowClickPlan.js": {
+          "packagePath": "dist/render/rowClickPlan.js",
+          "sha256": "8f2b98312fbb24122319e7a0286053794516e42e341236334ef1fcc2472f4bad"
+        },
+        "node_modules/@pierre/trees/dist/render/runtime.js": {
+          "packagePath": "dist/render/runtime.js",
+          "sha256": "6b18f4865a3c034aa781ec3615bca4e4f17a2d7b6e6c7260d0be41799f5b446a"
+        },
+        "node_modules/@pierre/trees/dist/render/scrollTarget.js": {
+          "packagePath": "dist/render/scrollTarget.js",
+          "sha256": "e0a3eab74017433a09b62868020417ed6bc6a5c94619074974613fad2b7f8cb0"
+        },
+        "node_modules/@pierre/trees/dist/render/slotHost.js": {
+          "packagePath": "dist/render/slotHost.js",
+          "sha256": "d14ca1cb1a04e8cb2c4f587094bae6744128e3fcfc72b85756e56ba4a4312fb6"
+        },
+        "node_modules/@pierre/trees/dist/sprite.js": {
+          "packagePath": "dist/sprite.js",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "node_modules/@pierre/trees/dist/ssr/index.js": {
+          "packagePath": "dist/ssr/index.js",
+          "sha256": "346b87f3a479af2b1375497efd8e8a3149a5ee98dfdf6acc3bd1f3a13eabb107"
+        },
+        "node_modules/@pierre/trees/dist/style.js": {
+          "packagePath": "dist/style.js",
+          "sha256": "c11536d1552d052e09647c8d2fd4cdb274cea07df77a5326c4322ab6d1e5cef0"
+        },
+        "node_modules/@pierre/trees/dist/utils/cssWrappers.js": {
+          "packagePath": "dist/utils/cssWrappers.js",
+          "sha256": "9027d975225424276ba270dbc6411d89dcd7aa60526e91425f1266382db37439"
+        },
+        "node_modules/@pierre/trees/dist/utils/getGitStatusSignature.js": {
+          "packagePath": "dist/utils/getGitStatusSignature.js",
+          "sha256": "72d0ec71621500e92b4a1ceabca14b9ddad02be5773d5f547c55a0a36ed5eb5f"
+        },
+        "node_modules/@pierre/trees/dist/utils/getSelectionPath.js": {
+          "packagePath": "dist/utils/getSelectionPath.js",
+          "sha256": "856333e81274b01129f1a0310afc4a476ec1b969681a2e8a8a0faf03cf23ad44"
+        },
+        "node_modules/@pierre/trees/dist/utils/gitStatusPresentation.js": {
+          "packagePath": "dist/utils/gitStatusPresentation.js",
+          "sha256": "0c3bb61fe27703d9a83850eda8658836e3cadd6a8a9a7cd2344f5e3fef79e3a4"
+        },
+        "node_modules/@pierre/trees/dist/utils/normalizeInputPath.js": {
+          "packagePath": "dist/utils/normalizeInputPath.js",
+          "sha256": "62ee8bb3b3d2dc9614840870ed335d1a291de62f8310a2e0aa6477bf71e91293"
+        },
+        "node_modules/@pierre/trees/dist/utils/renameFileTreePaths.js": {
+          "packagePath": "dist/utils/renameFileTreePaths.js",
+          "sha256": "13599c3ccb3ffc0b7b88fdf81b298b49afd2a3b98eff51538cc1267fae4c0258"
+        },
+        "node_modules/@pierre/trees/dist/utils/scrollbarGutter.js": {
+          "packagePath": "dist/utils/scrollbarGutter.js",
+          "sha256": "269323fff6dafecf4b3f78ea7d53b64cde7a548edcfe45443fee9b5cd46ac157"
+        },
+        "node_modules/@pierre/trees/dist/utils/sortChildren.js": {
+          "packagePath": "dist/utils/sortChildren.js",
+          "sha256": "40f739e518ec84d116b22fdb9212f540e95429ee07b69b2272b304372b66f345"
+        },
+        "node_modules/@pierre/trees/dist/utils/themeToTreeStyles.js": {
+          "packagePath": "dist/utils/themeToTreeStyles.js",
+          "sha256": "210eef0e5e3e3b01b8b7eeea029c7e9bd118753a60e38919c71490ec36172d13"
+        },
+        "node_modules/@pierre/trees/dist/web-components.js": {
+          "packagePath": "dist/web-components.js",
+          "sha256": "1f6274dcc30ca00d3081305e8f7b4ddeb9aed5965a636720c89c47c31119d9ff"
+        }
+      }
+    },
+    {
+      "name": "preact",
+      "version": "11.0.0-beta.0",
+      "license": "MIT",
+      "repository": "https://github.com/preactjs/preact",
+      "tarball": "https://registry.npmjs.org/preact/-/preact-11.0.0-beta.0.tgz",
+      "integrity": "sha512-IcODoASASYwJ9kxz7+MJeiJhvLriwSb4y4mHIyxdgaRZp6kPUud7xytrk/6GZw8U3y6EFJaRb5wi9SrEK+8+lg==",
+      "path": "node_modules/preact",
+      "files": {
+        "node_modules/preact/LICENSE": {
+          "packagePath": "LICENSE",
+          "sha256": "1fe6958409c8c257a70c587a18b6f7f412b179b456630790d30b2ec9a8e4b7d4"
+        },
+        "node_modules/preact/package.json": {
+          "packagePath": "package.json",
+          "sha256": "4c40893ef04ce2529e8be3dc6f38aa72a76844e5ac085e6773cd68f597bd1699"
+        },
+        "node_modules/preact/dist/preact.mjs": {
+          "packagePath": "dist/preact.mjs",
+          "sha256": "d16f0e9a47832564142ede2df2cd2bb2f7afb3b88b2c6d7890a804348a827803"
+        },
+        "node_modules/preact/hooks/dist/hooks.mjs": {
+          "packagePath": "hooks/dist/hooks.mjs",
+          "sha256": "44f37d6ed723f21d0a73e0d605a7ab0c79a3c2f099568f5fa11aaf4d9b41100a"
+        },
+        "node_modules/preact/jsx-runtime/dist/jsxRuntime.mjs": {
+          "packagePath": "jsx-runtime/dist/jsxRuntime.mjs",
+          "sha256": "996949cd4682818a8efa43bc72fc6d04db42ed8e107b00a6ec764d1f79b6e2fe"
+        }
+      }
+    },
+    {
+      "name": "preact-render-to-string",
+      "version": "6.6.5",
+      "license": "MIT",
+      "repository": "https://github.com/preactjs/preact-render-to-string",
+      "tarball": "https://registry.npmjs.org/preact-render-to-string/-/preact-render-to-string-6.6.5.tgz",
+      "integrity": "sha512-O6MHzYNIKYaiSX3bOw0gGZfEbOmlIDtDfWwN1JJdc/T3ihzRT6tGGSEWE088dWrEDGa1u7101q+6fzQnO9XCPA==",
+      "path": "node_modules/preact-render-to-string",
+      "files": {
+        "node_modules/preact-render-to-string/LICENSE": {
+          "packagePath": "LICENSE",
+          "sha256": "f1f6a1f3170072992cfdbbd59b125a04b9e810f6d1e08bb459741f54904a3460"
+        },
+        "node_modules/preact-render-to-string/package.json": {
+          "packagePath": "package.json",
+          "sha256": "925f3421a74601ccd552d91518f9115c7c8663b876b2fb992ce933a55eecee1c"
+        },
+        "node_modules/preact-render-to-string/dist/index.module.js": {
+          "packagePath": "dist/index.module.js",
+          "sha256": "20fff739dc0d7b53b97696c48192b0b9beec2ac2d65b4980a9616ec79b1d562e"
+        },
+        "node_modules/preact-render-to-string/dist/index.mjs": {
+          "packagePath": "dist/index.mjs",
+          "sha256": "20fff739dc0d7b53b97696c48192b0b9beec2ac2d65b4980a9616ec79b1d562e"
+        }
+      }
+    },
+    {
+      "name": "@pierre/theming",
+      "version": "1.0.0",
+      "license": "Apache-2.0",
+      "repository": "https://github.com/pierrecomputer/pierre",
+      "tarball": "https://registry.npmjs.org/@pierre/theming/-/theming-1.0.0.tgz",
+      "integrity": "sha512-WsdrnhKfjeyXGDikZmN9pkpeZ5S/cl6EE72feiSc0tlynT1tMYqXqouhuv/foK+PY9OEnebOAVRQn3+rAstR8g==",
+      "path": "node_modules/@pierre/theming",
+      "files": {
+        "node_modules/@pierre/theming/LICENSE.md": {
+          "packagePath": "LICENSE.md",
+          "sha256": "13d92be18d5ceac526f33cc96b6902a14d168f3e1d4b16be738f0fa70da7fe98"
+        },
+        "node_modules/@pierre/theming/package.json": {
+          "packagePath": "package.json",
+          "sha256": "9c0f96107a0f26e0e84d676666df3c8f5ec4bc1d1f79d10e853f85e499c191cd"
+        },
+        "node_modules/@pierre/theming/dist/color.js": {
+          "packagePath": "dist/color.js",
+          "sha256": "cfa59c5a773e4a1632be6128d08cb3354b37c5d04b0f1ac95cff1cd0c555e68a"
+        },
+        "node_modules/@pierre/theming/dist/modules/color.js": {
+          "packagePath": "dist/modules/color.js",
+          "sha256": "41286cb3e3a60050ffc1ed436b4a19cae026b20667807d9d3ce477f569c6000c"
+        },
+        "node_modules/@pierre/theming/dist/modules/normalizeThemeColors.js": {
+          "packagePath": "dist/modules/normalizeThemeColors.js",
+          "sha256": "201aaf14eac469aff9da7b137c3c261094f753dbb6b4263476fb2971ca97507a"
+        }
+      }
+    }
+  ]
+}

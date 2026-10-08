@@ -138,10 +138,10 @@ export default function ActiveWindowsPanel() {
                         </form>
                         <p className="text-xs text-secondary m-0 mt-2 flex items-center gap-1">
                             <span>Tip: Press</span>
-                            <div className="flex items-center gap-1">
+                            <span className="flex items-center gap-1">
                                 <KeyboardShortcut text="Shift" size="sm" />
                                 <KeyboardShortcut text="C" size="sm" />
-                            </div>
+                            </span>
                             <span>to copy instantly.</span>
                         </p>
                     </div>

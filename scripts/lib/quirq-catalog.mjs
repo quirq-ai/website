@@ -1,10 +1,70 @@
 // Shared by the Gatsby UI and the Node sync command. Keep this module free of Node APIs.
-export const QUIRQ_COLORS = ['blue', 'purple', 'orange', 'green', 'red', 'yellow']
-export const QUIRQ_ICONS = ['code', 'globe', 'book', 'mail', 'chat', 'rocket']
+// The project color tokens QuirqAppIcon tints with.
+export const QUIRQ_COLORS = [
+    'blue',
+    'purple',
+    'lilac',
+    'orange',
+    'yellow',
+    'red',
+    'salmon',
+    'teal',
+    'seagreen',
+    'green',
+    'pink',
+]
+// The glyphs in src/components/QuirqAppIcon/glyphs.ts; a test keeps the two lists equal.
+export const QUIRQ_ICONS = [
+    'apps',
+    'blob',
+    'book',
+    'browser',
+    'brush',
+    'chat',
+    'chef-hat',
+    'clipboard',
+    'cloud',
+    'code',
+    'conveyor',
+    'cube',
+    'document',
+    'download',
+    'flask',
+    'folder',
+    'gauge',
+    'globe',
+    'home',
+    'hub',
+    'mail',
+    'map',
+    'megaphone',
+    'palette',
+    'photos',
+    'planet',
+    'profile',
+    'quirq',
+    'rocket',
+    'server',
+    'shapes',
+    'shield',
+    'slash',
+    'sliders',
+    'sprout',
+    'stopwatch',
+    'sync',
+    'tag',
+    'telescope',
+    'terminal',
+    'toolbox',
+    'wand',
+]
 const presentations = ['overview', 'reader', 'gallery']
 // external: a new browser tab. window: its own window on this site, in an iframe (/launch/<repository>).
 // embed: an App tab inside the repository's page.
 const launchModes = ['external', 'window', 'embed']
+// Frames show only sites on this domain, which quirq owns (never quirq.dev or www.quirq.dev themselves,
+// which are this site).
+const FRAME_DOMAIN = 'quirq.dev'
 const reservedRoots = new Set([
     'display-options',
     '404',
@@ -51,13 +111,16 @@ export function validateQuirqConfig(config) {
         } catch {
             throw new Error(`Invalid frame origin: ${origin}`)
         }
-        // An exact production origin: https, no path, no wildcard. Never a *.vercel.app host, where anyone
-        // can claim a project name.
+        // An exact production origin on a quirq.dev subdomain: https, no path, no wildcard. Never a host
+        // on a shared platform (*.vercel.app, *.netlify.app, *.github.io), where anyone can claim a name.
         assert(
             url.protocol === 'https:' && url.origin === origin && /^[a-z\d-]+(?:\.[a-z\d-]+)+$/.test(url.hostname),
             `Frame origin must be an exact https origin: ${origin}`
         )
-        assert(!url.hostname.endsWith('.vercel.app'), `Frame origin must not be a vercel.app host: ${origin}`)
+        assert(
+            url.hostname.endsWith(`.${FRAME_DOMAIN}`) && url.hostname !== `www.${FRAME_DOMAIN}`,
+            `Frame origin must be a ${FRAME_DOMAIN} subdomain other than www: ${origin}`
+        )
     }
     const mapped = new Set()
     for (const [repo, override] of Object.entries(config.repositories || {})) {
@@ -103,7 +166,8 @@ export function validateQuirqConfig(config) {
  */
 export function isFramableUrl(value, frameOrigins = []) {
     try {
-        return frameOrigins.includes(new URL(value).origin)
+        const url = new URL(value)
+        return !url.username && !url.password && frameOrigins.includes(url.origin)
     } catch {
         return false
     }
@@ -298,7 +362,7 @@ export function buildQuirqApps(snapshot, config) {
                     name: override.name || repo.name,
                     description: override.description ?? repo.description,
                     path,
-                    icon: choice(override.icon || defaults.icon || 'code', QUIRQ_ICONS, 'icon'),
+                    icon: choice(override.icon || defaults.icon || 'folder', QUIRQ_ICONS, 'icon'),
                     color: choice(override.color || defaults.color || colorFor(repo.name), QUIRQ_COLORS, 'color'),
                     category: override.category || defaults.category || 'Apps',
                     featured: override.featured === true,

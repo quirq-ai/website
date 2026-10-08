@@ -15,6 +15,7 @@ import { isSafeInternalPath } from 'lib/utils'
 import type { User } from 'hooks/useUser'
 import { getQuirqApps } from '../lib/quirqApps'
 import { findQuirqApp } from '../lib/quirqLiveApps'
+import { QUIRQY_WINDOW } from '../lib/quirqAvatar'
 import { useToast } from './Toast'
 import { IconDay, IconLaptop, IconNight } from '@posthog/icons'
 import qs from 'qs'
@@ -1656,7 +1657,7 @@ const getInitialSiteSettings = (): SiteSettings => {
         // A malformed or unavailable browser preference should not prevent the desktop loading.
     }
     const siteSettings: SiteSettings = {
-        colorMode: (typeof window !== 'undefined' && (window as any).__theme) || 'light',
+        colorMode: 'system',
         theme: (typeof window !== 'undefined' && (window as any).__theme) || 'light',
         skinMode: 'modern',
         cursor: 'default',
@@ -1666,6 +1667,13 @@ const getInitialSiteSettings = (): SiteSettings => {
         reduceTransparency: false,
         scrollbars: 'system',
         ...savedSettings,
+    }
+
+    // theme-init.js decides the theme before React loads (a visitor who hasn't chosen follows the
+    // operating system); a colorMode saved alongside other settings may be stale, so its choice wins.
+    if (typeof window !== 'undefined' && (window as any).__preferredTheme) {
+        siteSettings.colorMode = (window as any).__preferredTheme
+        siteSettings.theme = (window as any).__theme || siteSettings.theme
     }
 
     // The inherited "James' face" cursor was removed; fall back to the default cursor.
@@ -1689,7 +1697,7 @@ export const Provider = ({ children, element, location }: AppProviderProps) => {
     const taskbarRef = useRef<HTMLDivElement>(null)
     const [isMobile, setIsMobile] = useState(false)
     const [siteSettings, setSiteSettings] = useState<SiteSettings>({
-        colorMode: 'light',
+        colorMode: 'system',
         theme: 'light',
         skinMode: 'modern',
         cursor: 'default',
@@ -2059,6 +2067,8 @@ export const Provider = ({ children, element, location }: AppProviderProps) => {
             element,
             meta: {
                 title:
+                    // The quirqy window shares its key with the quirqy repository; it is the avatar's window.
+                    (element.props.location.pathname === QUIRQY_WINDOW && 'quirqy') ||
                     findQuirqApp(element.props.location.pathname.replace(/^\/launch\//, ''))?.name ||
                     (element.props.location.pathname === '/'
                         ? 'Home base'
@@ -2660,8 +2670,18 @@ export const Provider = ({ children, element, location }: AppProviderProps) => {
             }
         }
 
+        // Merge into the current settings: this handler outlives the first render, and following the
+        // operating system calls it whenever the system theme flips.
         window.__onThemeChange = (theme) => {
-            updateSiteSettings({ ...siteSettings, theme })
+            setSiteSettings((current) => {
+                const next = { ...current, theme: theme as SiteSettings['theme'] }
+                try {
+                    localStorage.setItem('siteSettings', JSON.stringify(next))
+                } catch {
+                    // The theme still applies; it just isn't remembered.
+                }
+                return next
+            })
         }
 
         window.addEventListener('message', onMessage)
