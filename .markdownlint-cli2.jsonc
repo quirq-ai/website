@@ -40,6 +40,8 @@
   },
   "ignores": [
     "**/fixtures/**",
-    ".vale/test/**"
+    ".vale/test/**",
+    // Vendored, unmodified third-party files keep their own formatting.
+    "src/vendor/*/node_modules/**"
   ]
 }

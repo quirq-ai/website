@@ -28,6 +28,7 @@ This repository is quirq's Gatsby 4 / React website, adapted from the PostHog de
 | Home window (`/`) | `src/components/HomeBase/` |
 | Dock navigation bar (Home, Projects, search, open windows) and the Blobatar avatar | `src/components/Dock/`, `src/components/QuirqAvatar/`, `src/lib/quirqAvatar.ts`, `src/vendor/blobatar/` |
 | Default app views | `src/components/QuirqApp/`, `src/templates/quirq-app.tsx` |
+| Docs in app windows: the repository's Markdown files in a file tree, formatted like GitHub | `src/components/QuirqApp/DocsBrowser.tsx`, `DocsTree.tsx`, `MarkdownDoc.tsx`, `src/lib/quirqDocs.ts`, vendored `src/vendor/pierre-trees/` |
 | Desktop icons and local search (the dock replaced the top bar in `src/components/TaskBarMenu/`, which is no longer mounted) | `src/components/Desktop/`, `src/components/QuirqSearch/` |
 | Window state and controls | `src/context/App.tsx`, `src/components/AppWindow/` |
 
@@ -37,7 +38,8 @@ This repository is quirq's Gatsby 4 / React website, adapted from the PostHog de
 
 - Keep app mapping in `quirq.apps.json`; avoid separate hard-coded app lists in menus, search, or the homepage.
 - Keep project groups and phase overrides in `quirq.projects.json`; refresh phases with `pnpm projects:sync`. A hand-set `phase` needs a `phaseReason`.
-- Live state on `/v0` and `/projects`, the organization README on the desktop (`.github/profile/README.md`), and app READMEs are read in the browser from public files on raw.githubusercontent.com. The repository list behind the desktop, Home base, search, and app pages is read in the browser from GitHub's public REST API (anonymous, 60 requests an hour per visitor). Do not add a token or backend for them.
+- Live state on `/v0` and `/projects`, the organization README on the desktop (`.github/profile/README.md`), and app docs (READMEs and other Markdown files) are read in the browser from public files on raw.githubusercontent.com. The repository list behind the desktop, Home base, search, and app pages, and each repository's doc list (one git trees request per repository opened), are read in the browser from GitHub's public REST API (anonymous, 60 requests an hour per visitor). Do not add a token or backend for them.
+- Third-party code that can't be added with `pnpm` (the workspace trust policy stops on existing dependencies) is vendored unmodified under `src/vendor/`, with a README and `provenance.json` of npm integrity and file hashes. Keep it unmodified and excluded from ESLint and Prettier.
 - Lists of apps in the UI use `useQuirqApps()` / `useQuirqCatalog()` from `src/lib/quirqLiveApps.ts`, so they follow the organization live. `getQuirqApps()` is the build's snapshot, for routes and other build-time code.
 - Refresh the generated snapshot with `pnpm apps:sync`. Do not hand-edit repository data or invent a deployment URL.
 - After hiding a repository, run `pnpm apps:sync` (or the offline `pnpm apps:prune`) so its README text leaves the bundled snapshot; `pnpm apps:check` fails until then.

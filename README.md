@@ -181,7 +181,8 @@ This repository has a qq manifest and generated workflows from [quirq infra](htt
 | [`quirq.projects.json`](quirq.projects.json), [`scripts/lib/quirq-phases.mjs`](scripts/lib/quirq-phases.mjs) | Project groups, descriptions, phase overrides, and the phase rules |
 | [`src/components/QuirqProjects`](src/components/QuirqProjects) | The projects-by-phase view at `/projects` |
 | [`src/components/QuirqInfraV0`](src/components/QuirqInfraV0) | The quirq infra v0 guide and live view at `/v0` |
-| [`src/components/QuirqApp`](src/components/QuirqApp) | Repository overview, reader, gallery, README rendering, and optional embed |
+| [`src/components/QuirqApp`](src/components/QuirqApp) | Repository overview, reader, gallery, and optional embed; the docs browser (every Markdown file in a [@pierre/trees](src/vendor/pierre-trees/README.md) file tree) and GitHub-style Markdown formatting |
+| [`src/lib/quirqDocs.ts`](src/lib/quirqDocs.ts) | A repository's doc list (GitHub git trees API) and files (raw.githubusercontent.com), and how links and images in docs resolve |
 | [`src/components/QuirqAppIcon`](src/components/QuirqAppIcon) | Mapped icons in the existing glass icon style |
 | [`src/components/QuirqSearch`](src/components/QuirqSearch) | Local catalog search and keyboard navigation |
 | [`src/components/Desktop`](src/components/Desktop) and [`src/components/QuirqProfile`](src/components/QuirqProfile) | Desktop icons, the plain background, and the organization README written on it. The inherited top bar in [`src/components/TaskBarMenu`](src/components/TaskBarMenu) is no longer mounted; the dock replaced it |

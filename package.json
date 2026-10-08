@@ -30,7 +30,7 @@
         "serve": "gatsby serve",
         "format": "prettier --write \"**/*.{html,js,ts,tsx,json,yml,css,scss}\"",
         "clean": "gatsby clean",
-        "test": "node --test scripts/quirq-catalog.test.mjs scripts/quirq-phases.test.mjs gatsby/quirqRoutes.test.cjs",
+        "test": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --test scripts/quirq-catalog.test.mjs scripts/quirq-phases.test.mjs gatsby/quirqRoutes.test.cjs src/lib/quirqDocs.test.ts",
         "typegen": "kea-typegen write .",
         "update-sprite": "svg-sprite -s --symbol-dest src/components/productFeature/images/icons --symbol-sprite sprited-icons.svg src/components/productFeature/images/icons/*.svg",
         "test-redirects": "jest scripts",
@@ -304,7 +304,7 @@
         "undici": "5.26.3"
     },
     "lint-staged": {
-        "*.{html,js,ts,tsx,json,yml,css,scss}": "prettier --write",
+        "*.{html,js,ts,tsx,json,yml,css,scss}": "prettier --write --no-error-on-unmatched-pattern",
         "*.{js,ts,tsx}": "eslint",
         "*.{md,mdx}": "markdownlint-cli2 --fix"
     },
