@@ -92,9 +92,23 @@ export const onCreateBabelConfig: GatsbyNode['onCreateBabelConfig'] = ({ actions
     })
 }
 
-export const onCreateWebpackConfig: GatsbyNode['onCreateWebpackConfig'] = ({ actions }) => {
+export const onCreateWebpackConfig: GatsbyNode['onCreateWebpackConfig'] = ({ stage, actions }) => {
+    // The browser bundle carries the repository list without README text (see the loader).
+    const browser = stage === 'develop' || stage === 'build-javascript'
     actions.setWebpackConfig({
         cache: process.env.NODE_ENV === 'development' || { compression: 'gzip' },
+        ...(browser
+            ? {
+                  module: {
+                      rules: [
+                          {
+                              test: path.resolve(root, 'src/data/quirq-repositories.json'),
+                              use: [path.resolve(root, 'scripts/lib/strip-readmes-loader.cjs')],
+                          },
+                      ],
+                  },
+              }
+            : {}),
         resolve: {
             extensions: ['.js', '.ts', '.tsx', '.mjs'],
             modules: [path.resolve(root, 'src'), 'node_modules'],

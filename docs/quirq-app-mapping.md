@@ -25,6 +25,7 @@ The key must match an actual repository name in the organization. Unlisted repos
 {
     "organization": "quirq-ai",
     "name": "quirq",
+    "frameOrigins": ["https://docs.quirq.dev"],
     "defaults": {
         "category": "Apps",
         "presentation": "overview",
@@ -61,6 +62,8 @@ The key must match an actual repository name in the organization. Unlisted repos
 | `launchMode` | How Open app and Launch open the launch URL. `window`: its own window on this site, in an iframe at `/launch/<repository>` (quirq-ai's default). `external`: a new tab (the default when `defaults` doesn't set one). `embed`: an App tab inside the repository's page; set it on the individual repository only. |
 | `component` | Optional existing component under `src/templates/`, such as `src/templates/XOSpace.tsx`, for a completely bespoke app page. The Gatsby pipeline validates that the file exists. |
 | `window` | Optional `width` and `height` in pixels for the restored window. Dimensions fit within the desktop, and multiple open windows share its available width. The window can be expanded and restored. |
+
+Only a launch URL whose origin is listed in the top-level `frameOrigins` is ever framed, in a launch window or an App tab. Each entry is an exact `https://` origin with no path or wildcard, and never a `*.vercel.app` host, where anyone can claim a project name. Any other launch URL opens in a new tab, whatever `launchMode` says: homepages come from GitHub live, so a new repository or an edited homepage is never framed until its origin is added here. `vercel.json` sends a CSP `frame-src` listing the same origins (a test keeps the two equal) and `frame-ancestors 'self'`, so the browser refuses any other frame too. Repository mapping keys match GitHub names in any case.
 
 A site's own security policy (`X-Frame-Options`, or CSP `frame-ancestors`) can prevent it from appearing in an iframe, in a launch window or an App tab. Both keep an Open in new tab link; for such a site, set `"launchMode": "external"` on that repository. Only a catalog launch URL is ever framed. GitHub refuses all framing, so repository links open in a new tab. Opening a repository page or a launch window does not install or start its code.
 

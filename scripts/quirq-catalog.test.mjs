@@ -4,7 +4,13 @@ import { mkdtemp, readFile, writeFile, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { Buffer } from 'node:buffer'
-import { buildQuirqApps, mergeLiveRepositories, normalizeAppPath, safeWebUrl } from './lib/quirq-catalog.mjs'
+import {
+    buildQuirqApps,
+    isFramableUrl,
+    mergeLiveRepositories,
+    normalizeAppPath,
+    safeWebUrl,
+} from './lib/quirq-catalog.mjs'
 import { fetchOrganizationRepositories, syncQuirqApps } from './sync-quirq-apps.mjs'
 
 const config = { organization: 'quirq-ai', name: 'Quirq', defaults: {}, repositories: {} }
@@ -186,7 +192,7 @@ test('launch URLs only accept web protocols and embedding is explicitly enabled 
     const source = snapshot([repo('app', { homepage: 'https://example.com' })])
     assert.equal(buildQuirqApps(source, config)[0].launchMode, 'external')
     // Opening each app's website in its own window may be the catalog-wide default; a repo can opt out.
-    const windowed = { ...config, defaults: { launchMode: 'window' } }
+    const windowed = { ...config, frameOrigins: ['https://example.com'], defaults: { launchMode: 'window' } }
     assert.equal(buildQuirqApps(source, windowed)[0].launchMode, 'window')
     assert.equal(
         buildQuirqApps(source, { ...windowed, repositories: { app: { launchMode: 'external' } } })[0].launchMode,
@@ -196,6 +202,7 @@ test('launch URLs only accept web protocols and embedding is explicitly enabled 
     assert.throws(() => buildQuirqApps(source, { ...config, defaults: { launchMode: 'embed' } }), /explicitly enabled/)
     const [app] = buildQuirqApps(source, {
         ...config,
+        frameOrigins: ['https://example.com'],
         repositories: { app: { launchMode: 'embed', launchUrl: 'https://example.com/embed' } },
     })
     assert.equal(app.launchMode, 'embed')
@@ -207,6 +214,107 @@ test('launch URLs only accept web protocols and embedding is explicitly enabled 
         () => buildQuirqApps(snapshot([repo('app', { homepage: 'javascript:alert(1)' })]), config),
         /Unsafe app URL/
     )
+})
+
+test('only a launch URL on an exact allowed origin is framed; any other opens in a new tab', () => {
+    const origins = ['https://docs.quirq.dev']
+    assert.equal(isFramableUrl('https://docs.quirq.dev/docs/start', origins), true)
+    for (const url of [
+        'https://docs.quirq.dev./docs/start',
+        'http://docs.quirq.dev/',
+        'https://docs.quirq.dev:8443/',
+        'https://evil.docs.quirq.dev/',
+        'https://docs.quirq.dev.evil.com/',
+        'https://instants-gamma.vercel.app/',
+        'not a url',
+    ])
+        assert.equal(isFramableUrl(url, origins), false, url)
+    const source = snapshot([
+        repo('docs', { homepage: 'https://docs.quirq.dev/' }),
+        repo('preview', { homepage: 'https://preview-abc.vercel.app/' }),
+        repo('new-app', { homepage: 'https://example.org/' }),
+        repo('embedded', { homepage: 'https://example.org/' }),
+    ])
+    const apps = buildQuirqApps(source, {
+        ...config,
+        frameOrigins: origins,
+        defaults: { launchMode: 'window' },
+        repositories: { embedded: { launchMode: 'embed' } },
+    })
+    assert.deepEqual(Object.fromEntries(apps.map((app) => [app.repo, app.launchMode])), {
+        docs: 'window',
+        preview: 'external',
+        'new-app': 'external',
+        embedded: 'external',
+    })
+    // Without frameOrigins nothing is framed.
+    assert.equal(buildQuirqApps(source, { ...config, defaults: { launchMode: 'window' } })[0].launchMode, 'external')
+    for (const origin of [
+        'https://*.quirq.dev',
+        'https://docs.quirq.dev/',
+        'https://docs.quirq.dev.',
+        'http://docs.quirq.dev',
+        'https://DOCS.quirq.dev',
+        'https://app.vercel.app',
+        'docs.quirq.dev',
+    ])
+        assert.throws(
+            () => buildQuirqApps(source, { ...config, frameOrigins: [origin] }),
+            /Frame origin|frame origin/,
+            origin
+        )
+    assert.throws(() => buildQuirqApps(source, { ...config, frameOrigins: 'https://docs.quirq.dev' }), /frameOrigins/)
+})
+
+test('repository mappings apply whatever case GitHub returns the name in', () => {
+    const source = snapshot([repo('Innernet', { homepage: 'https://docs.quirq.dev/' })])
+    const [app] = buildQuirqApps(source, {
+        ...config,
+        frameOrigins: ['https://docs.quirq.dev'],
+        defaults: { launchMode: 'window' },
+        repositories: { innernet: { launchMode: 'external', name: 'Innernet app' } },
+    })
+    assert.equal(app.launchMode, 'external')
+    assert.equal(app.name, 'Innernet app')
+    assert.throws(
+        () => buildQuirqApps(source, { ...config, repositories: { innernet: {}, InnerNet: {} } }),
+        /Duplicate repository mapping/
+    )
+})
+
+test('the committed mapping frames only its allowed origins, and vercel.json allows exactly those', async () => {
+    const read = async (file) => JSON.parse(await readFile(new URL(`../${file}`, import.meta.url), 'utf8'))
+    const [mapping, repositories, vercel] = await Promise.all([
+        read('quirq.apps.json'),
+        read('src/data/quirq-repositories.json'),
+        read('vercel.json'),
+    ])
+    for (const app of buildQuirqApps(repositories, mapping)) {
+        if (app.launchUrl && app.launchMode !== 'external')
+            assert.ok(isFramableUrl(app.launchUrl, mapping.frameOrigins), app.repo)
+    }
+    const policies = vercel.headers
+        .filter((rule) => rule.source === '/(.*)')
+        .flatMap((rule) => rule.headers)
+        .filter((header) => header.key === 'Content-Security-Policy')
+    assert.equal(policies.length, 1)
+    const directives = Object.fromEntries(
+        policies[0].value.split(';').map((part) => {
+            const [name, ...values] = part.trim().split(/\s+/)
+            return [name, values]
+        })
+    )
+    assert.deepEqual([...directives['frame-src']].sort(), [...mapping.frameOrigins].sort())
+    assert.deepEqual(directives['frame-ancestors'], ["'self'"])
+})
+
+test("the browser bundle's repository list carries no README text", async () => {
+    const { createRequire } = await import('node:module')
+    const strip = createRequire(import.meta.url)('./lib/strip-readmes-loader.cjs')
+    const source = JSON.stringify(snapshot([repo('docs', { readmeMarkdown: '# Docs', readmePath: 'README.md' })]))
+    const [docs] = JSON.parse(strip(source)).repositories
+    assert.equal(docs.readmeMarkdown, null)
+    assert.equal(docs.readmePath, 'README.md')
 })
 
 test('GitHub pagination loads all pages and strips unnecessary response fields', async () => {

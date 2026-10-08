@@ -39,8 +39,31 @@ export function validateQuirqConfig(config) {
         assert(defaults[key] === undefined || typeof defaults[key] === 'boolean', `defaults.${key} must be a boolean`)
     }
     validatePresentation(defaults, 'defaults')
+    assert(
+        config.frameOrigins === undefined || Array.isArray(config.frameOrigins),
+        'frameOrigins must be a list of origins'
+    )
+    for (const origin of config.frameOrigins || []) {
+        assert(typeof origin === 'string', 'frameOrigins must hold strings')
+        let url
+        try {
+            url = new URL(origin)
+        } catch {
+            throw new Error(`Invalid frame origin: ${origin}`)
+        }
+        // An exact production origin: https, no path, no wildcard. Never a *.vercel.app host, where anyone
+        // can claim a project name.
+        assert(
+            url.protocol === 'https:' && url.origin === origin && /^[a-z\d-]+(?:\.[a-z\d-]+)+$/.test(url.hostname),
+            `Frame origin must be an exact https origin: ${origin}`
+        )
+        assert(!url.hostname.endsWith('.vercel.app'), `Frame origin must not be a vercel.app host: ${origin}`)
+    }
+    const mapped = new Set()
     for (const [repo, override] of Object.entries(config.repositories || {})) {
         assert(/^[a-z\d_.-]+$/i.test(repo), `Invalid repository mapping: ${repo}`)
+        assert(!mapped.has(repo.toLowerCase()), `Duplicate repository mapping: ${repo}`)
+        mapped.add(repo.toLowerCase())
         assert(override && typeof override === 'object' && !Array.isArray(override), `Invalid mapping for ${repo}`)
         validatePresentation(override, repo)
         if (override.path !== undefined) normalizeAppPath(override.path)
@@ -71,6 +94,19 @@ export function validateQuirqConfig(config) {
         }
     }
     return config
+}
+
+/**
+ * Whether a launch URL may be shown in a frame on this site: its origin is exactly one of the mapping's
+ * `frameOrigins`. Anything else (another host, a *.vercel.app preview, a trailing-dot host, http) opens in
+ * a new tab instead.
+ */
+export function isFramableUrl(value, frameOrigins = []) {
+    try {
+        return frameOrigins.includes(new URL(value).origin)
+    } catch {
+        return false
+    }
 }
 
 export function normalizeAppPath(value) {
@@ -217,12 +253,16 @@ export function buildQuirqApps(snapshot, config) {
     const excluded = new Set((defaults.excludeRepositories || ['.github']).map((repo) => repo.toLowerCase()))
     const paths = new Set()
     const names = new Set()
+    // GitHub names are case-insensitive, so a mapping applies whatever case the API returns.
+    const overrides = new Map(
+        Object.entries(config.repositories || {}).map(([repo, override]) => [repo.toLowerCase(), override])
+    )
     return snapshot.repositories
         .map((repo) => normalizeRepository(repo, config.organization))
         .flatMap((repo) => {
             assert(!names.has(repo.name.toLowerCase()), `Duplicate repository: ${repo.name}`)
             names.add(repo.name.toLowerCase())
-            const override = config.repositories?.[repo.name] || {}
+            const override = overrides.get(repo.name.toLowerCase()) || {}
             if (
                 override.hidden ||
                 excluded.has(repo.name.toLowerCase()) ||
@@ -233,18 +273,24 @@ export function buildQuirqApps(snapshot, config) {
             const path = normalizeAppPath(override.path || `/apps/${repo.name}`)
             assert(!paths.has(path.toLowerCase()), `Duplicate app path: ${path}`)
             paths.add(path.toLowerCase())
-            const launchMode = choice(
+            const requestedMode = choice(
                 override.launchMode || defaults.launchMode || 'external',
                 launchModes,
                 'launch mode'
             )
             // Embedding is an explicit decision for a repository, never a catalog-wide default.
             assert(
-                launchMode !== 'embed' || override.launchMode === 'embed',
+                requestedMode !== 'embed' || override.launchMode === 'embed',
                 `Embedding must be explicitly enabled for ${repo.name}`
             )
             const launchUrl = Object.hasOwn(override, 'launchUrl') ? safeWebUrl(override.launchUrl) : repo.homepage
-            assert(launchMode !== 'embed' || launchUrl, `Embedding requires a launch URL for ${repo.name}`)
+            assert(requestedMode !== 'embed' || launchUrl, `Embedding requires a launch URL for ${repo.name}`)
+            // Homepages come from GitHub live, unreviewed. Only one on an allowed origin is framed (a
+            // window or an App tab); any other opens in a new tab.
+            const launchMode =
+                requestedMode !== 'external' && launchUrl && !isFramableUrl(launchUrl, config.frameOrigins)
+                    ? 'external'
+                    : requestedMode
             return [
                 {
                     id: repo.full_name,

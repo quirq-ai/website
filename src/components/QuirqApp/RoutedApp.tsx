@@ -40,6 +40,9 @@ export function useRoutedApp(pathname: string, root: string) {
 /** At least 44px tall on phones, compact from a medium-width window up (needs an @container ancestor). */
 export const touchTarget = 'min-h-11 @md:min-h-0'
 
+/** Lets a button label with a long repository name wrap instead of running past the window edge. */
+const wrapLabel = 'max-w-full min-w-0 [overflow-wrap:anywhere]'
+
 /**
  * What a client-only route shows while it looks for its repository, when there is nothing to show, or
  * (`opensInNewTab`) when the app's website opens in a new tab rather than in a window.
@@ -91,7 +94,7 @@ export function MissingApp({
                 showAddressBar={false}
                 headerBarOptions={['showBack', 'showForward']}
                 rightActionButtons={
-                    <OSButton asLink to="/" size="sm">
+                    <OSButton asLink to="/" size="sm" className={touchTarget}>
                         Home base
                     </OSButton>
                 }
@@ -114,7 +117,7 @@ export function MissingApp({
                                             to={launchUrl}
                                             size="sm"
                                             variant="primary"
-                                            className={touchTarget}
+                                            className={`${touchTarget} ${wrapLabel}`}
                                         >
                                             Open {app.name}
                                         </OSButton>
@@ -123,7 +126,7 @@ export function MissingApp({
                                             to={app.path}
                                             state={{ newWindow: true }}
                                             size="sm"
-                                            className={touchTarget}
+                                            className={`${touchTarget} ${wrapLabel}`}
                                         >
                                             About {app.name}
                                         </OSButton>
@@ -137,16 +140,28 @@ export function MissingApp({
                                                 state={{ newWindow: true }}
                                                 size="sm"
                                                 variant="primary"
-                                                className={touchTarget}
+                                                className={`${touchTarget} ${wrapLabel}`}
                                             >
                                                 About {app.name}
                                             </OSButton>
                                         ) : (
-                                            <OSButton asLink to="/" size="sm" variant="primary" className={touchTarget}>
+                                            <OSButton
+                                                asLink
+                                                to="/"
+                                                size="sm"
+                                                variant="primary"
+                                                className={`${touchTarget} ${wrapLabel}`}
+                                            >
                                                 Home base
                                             </OSButton>
                                         )}
-                                        <OSButton asLink external to={repoUrl} size="sm" className={touchTarget}>
+                                        <OSButton
+                                            asLink
+                                            external
+                                            to={repoUrl}
+                                            size="sm"
+                                            className={`${touchTarget} ${wrapLabel}`}
+                                        >
                                             {app || (status === 'offline' && name)
                                                 ? `${app?.name || name} on GitHub`
                                                 : `${quirqConfig.organization} on GitHub`}

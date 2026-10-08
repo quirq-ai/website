@@ -6,6 +6,7 @@ import OSButton from 'components/OSButton'
 import QuirqAppIcon from 'components/QuirqAppIcon'
 import Link from 'components/Link'
 import { getLaunchTarget, type QuirqApp } from 'lib/quirqApps'
+import { touchTarget } from './RoutedApp'
 
 const accents: Record<string, string> = {
     blue: 'bg-blue/10 border-blue/30',
@@ -173,7 +174,7 @@ export default function RepositoryApp({ app }: { app: QuirqApp }) {
             headerBarOptions={['showBack', 'showForward']}
             rightActionButtons={
                 <>
-                    <OSButton asLink to="/" size="sm">
+                    <OSButton asLink to="/" size="sm" className={touchTarget}>
                         Home base
                     </OSButton>
                     {launch ? (
@@ -184,11 +185,12 @@ export default function RepositoryApp({ app }: { app: QuirqApp }) {
                             state={launch.external ? undefined : { newWindow: true }}
                             variant="primary"
                             size="sm"
+                            className={touchTarget}
                         >
                             Open app
                         </OSButton>
                     ) : (
-                        <OSButton asLink external to={app.repoUrl} variant="primary" size="sm">
+                        <OSButton asLink external to={app.repoUrl} variant="primary" size="sm" className={touchTarget}>
                             Open repository
                         </OSButton>
                     )}
