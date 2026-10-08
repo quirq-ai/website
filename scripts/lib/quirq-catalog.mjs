@@ -2,6 +2,9 @@
 export const QUIRQ_COLORS = ['blue', 'purple', 'orange', 'green', 'red', 'yellow']
 export const QUIRQ_ICONS = ['code', 'globe', 'book', 'mail', 'chat', 'rocket']
 const presentations = ['overview', 'reader', 'gallery']
+// external: a new browser tab. window: its own window on this site, in an iframe (/launch/<repository>).
+// embed: an App tab inside the repository's page.
+const launchModes = ['external', 'window', 'embed']
 const reservedRoots = new Set([
     'display-options',
     '404',
@@ -146,6 +149,40 @@ export function normalizeRepository(repo, organization) {
     }
 }
 
+/**
+ * A snapshot built from GitHub's current repository list, read live in the browser. Repositories that
+ * fail validation are dropped instead of failing the whole list. README text is not in GitHub's list,
+ * so each repository keeps the README bundled for it, if any.
+ */
+export function mergeLiveRepositories(snapshot, liveRepositories, fetchedAt) {
+    assert(Array.isArray(liveRepositories), 'GitHub returned an invalid repository list')
+    const readmes = new Map(snapshot.repositories.map((repo) => [repo.name.toLowerCase(), repo]))
+    const names = new Set()
+    const repositories = []
+    for (const raw of liveRepositories) {
+        let repo
+        try {
+            repo = normalizeRepository(raw, snapshot.organization)
+        } catch {
+            continue
+        }
+        const key = repo.name.toLowerCase()
+        if (names.has(key)) continue
+        names.add(key)
+        const bundled = readmes.get(key)
+        repositories.push({
+            ...repo,
+            readmeMarkdown: bundled?.readmeMarkdown ?? null,
+            readmePath: bundled?.readmePath ?? null,
+        })
+    }
+    return {
+        organization: snapshot.organization,
+        fetchedAt,
+        repositories: repositories.sort((a, b) => a.name.localeCompare(b.name)),
+    }
+}
+
 function choice(value, allowed, label) {
     assert(allowed.includes(value), `Invalid ${label}: ${value}`)
     return value
@@ -156,7 +193,7 @@ function validatePresentation(settings, label) {
         icon: QUIRQ_ICONS,
         color: QUIRQ_COLORS,
         presentation: presentations,
-        launchMode: ['external', 'embed'],
+        launchMode: launchModes,
     })) {
         if (settings[key] !== undefined) choice(settings[key], options, `${label}.${key}`)
     }
@@ -198,7 +235,7 @@ export function buildQuirqApps(snapshot, config) {
             paths.add(path.toLowerCase())
             const launchMode = choice(
                 override.launchMode || defaults.launchMode || 'external',
-                ['external', 'embed'],
+                launchModes,
                 'launch mode'
             )
             // Embedding is an explicit decision for a repository, never a catalog-wide default.

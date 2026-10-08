@@ -2,9 +2,12 @@ import React from 'react'
 import SEO from 'components/seo'
 import RepositoryApp from 'components/QuirqApp'
 import type { QuirqApp } from 'lib/quirqApps'
+import { useQuirqApps } from 'lib/quirqLiveApps'
 
 export default function QuirqAppPage({ pageContext }: { pageContext: { app: QuirqApp } }) {
-    const { app } = pageContext
+    // The build's copy, replaced by GitHub's current description, stars and homepage once they load.
+    // A repository deleted since the build keeps its page as built.
+    const app = useQuirqApps().find((entry) => entry.id === pageContext.app.id) || pageContext.app
     return (
         <>
             <SEO title={app.name} description={app.description || `${app.name}, from the quirq app collection.`} />

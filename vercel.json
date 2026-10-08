@@ -3,5 +3,9 @@
     "framework": "gatsby",
     "buildCommand": "pnpm build",
     "outputDirectory": "public",
-    "redirects": [{ "source": "/quirq", "destination": "/", "permanent": false }]
+    "redirects": [{ "source": "/quirq", "destination": "/", "permanent": false }],
+    "rewrites": [
+        { "source": "/apps/:path*", "destination": "/apps/index.html" },
+        { "source": "/launch/:path*", "destination": "/launch/index.html" }
+    ]
 }

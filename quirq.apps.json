@@ -4,30 +4,10 @@
     "defaults": {
         "category": "Apps",
         "presentation": "overview",
-        "launchMode": "external",
+        "launchMode": "window",
         "includeForks": true,
         "includeArchived": false,
-        "excludeRepositories": [
-            ".github",
-            "depot",
-            "gardener",
-            "gate",
-            "installer",
-            "perf",
-            "recipes",
-            "release",
-            "remote-build",
-            "rollers",
-            "sync",
-            "test-pipelines",
-            "toolchains",
-            "environment",
-            "quirqy",
-            "xo-cowork-api",
-            "quirq_ai",
-            "website",
-            "marketing"
-        ]
+        "excludeRepositories": []
     },
     "repositories": {
         "infra-config": {
@@ -64,7 +44,8 @@
             "description": "Search projects and explore the stories behind your folders.",
             "icon": "globe",
             "color": "green",
-            "featured": true
+            "featured": true,
+            "launchMode": "external"
         },
         "instants": {
             "name": "Instants",
@@ -80,6 +61,22 @@
             "icon": "chat",
             "color": "red",
             "featured": true
-        }
+        },
+        "website": {
+            "launchMode": "external"
+        },
+        "depot": { "category": "Infra" },
+        "sync": { "category": "Infra" },
+        "recipes": { "category": "Infra" },
+        "toolchains": { "category": "Infra" },
+        "remote-build": { "category": "Infra" },
+        "gate": { "category": "Infra" },
+        "test-pipelines": { "category": "Infra" },
+        "gardener": { "category": "Infra" },
+        "rollers": { "category": "Infra" },
+        "perf": { "category": "Infra" },
+        "release": { "category": "Infra" },
+        "installer": { "category": "Infra" },
+        "setup": { "category": "Infra" }
     }
 }

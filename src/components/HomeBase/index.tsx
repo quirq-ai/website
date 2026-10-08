@@ -5,20 +5,13 @@ import OSButton from 'components/OSButton'
 import { QuirqAppTile } from 'components/QuirqAppIcon'
 import { QuirqWordmark } from 'components/QuirqBrand'
 import QuirqAvatar, { AvatarEditor } from 'components/QuirqAvatar'
-import { getQuirqApps, quirqConfig, quirqSnapshot } from 'lib/quirqApps'
-import projectsSnapshot from '../../data/quirq-projects.json'
+import { getLaunchTarget, quirqConfig, type QuirqApp } from 'lib/quirqApps'
+import { useQuirqCatalog } from 'lib/quirqLiveApps'
 
-const apps = getQuirqApps()
-const categories = Array.from(new Set(apps.map((app) => app.category))).sort()
-const liveCount = apps.filter((app) => app.launchUrl).length
-const repoCount = projectsSnapshot.repositories.length
 const orgUrl = `https://github.com/${quirqConfig.organization}`
 // UTC keeps the server render and the browser render on the same day.
-const snapshotDate = new Date(quirqSnapshot.fetchedAt).toLocaleDateString('en-US', {
-    month: 'short',
-    day: 'numeric',
-    timeZone: 'UTC',
-})
+const syncedDate = (fetchedAt: string) =>
+    new Date(fetchedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' })
 
 // Euler's frosted glass, with solid fallbacks for dark mode and reduced transparency.
 const glass =
@@ -47,6 +40,32 @@ const icons = {
     settings: 'M4 7h5m6 0h5M4 17h11m4 0h1M12 4v6M17 14v6',
     code: 'm8 8-4 4 4 4m8-8 4 4-4 4',
     chevron: 'm9 6 6 6-6 6',
+}
+
+/** Launch opens the app's own window on this site, or its website in a new tab for an `external` app. */
+const LaunchButton = ({ app }: { app: QuirqApp }) => {
+    const launch = getLaunchTarget(app)
+    if (!launch) return null
+    return launch.external ? (
+        <a
+            href={launch.to}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={secondaryButton}
+            aria-label={`Launch ${app.name} in a new tab`}
+        >
+            Launch <Icon path={icons.external} className="size-3" />
+        </a>
+    ) : (
+        <Link
+            to={launch.to}
+            state={{ newWindow: true }}
+            className={secondaryButton}
+            aria-label={`Launch ${app.name} in its own window`}
+        >
+            Launch
+        </Link>
+    )
 }
 
 const greetingFor = (hour: number) =>
@@ -82,10 +101,14 @@ const Metric = ({ value, label, live }: { value: number; label: string; live?: b
  */
 export default function HomeBase() {
     const now = useNow()
+    const catalog = useQuirqCatalog()
+    const { apps } = catalog
     const [query, setQuery] = useState('')
     const [category, setCategory] = useState('All apps')
     const [appearanceOpen, setAppearanceOpen] = useState(false)
     const appearanceRef = useRef<HTMLDetailsElement>(null)
+    const categories = useMemo(() => Array.from(new Set(apps.map((app) => app.category))).sort(), [apps])
+    const liveCount = apps.filter((app) => app.launchUrl).length
 
     const matches = useMemo(
         () =>
@@ -96,7 +119,7 @@ export default function HomeBase() {
                         .toLowerCase()
                         .includes(query.toLowerCase().trim())
             ),
-        [query, category]
+        [apps, query, category]
     )
 
     const personalize = () => {
@@ -137,9 +160,10 @@ export default function HomeBase() {
                         </time>
                         <span
                             className={`hidden @xl:inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] text-[#527665] dark:text-[#9cc9b2] ${glass}`}
-                            title={`Repository metadata from ${quirqSnapshot.fetchedAt}`}
+                            title={`Repository list read from GitHub at ${catalog.fetchedAt}`}
                         >
-                            <span className="size-[5px] rounded-full bg-[#78a28e]" /> Synced {snapshotDate}
+                            <span className="size-[5px] rounded-full bg-[#78a28e]" />{' '}
+                            {catalog.status === 'live' ? 'Live' : `Synced ${syncedDate(catalog.fetchedAt)}`}
                         </span>
                         <button
                             type="button"
@@ -176,7 +200,7 @@ export default function HomeBase() {
                         >
                             <Metric value={liveCount} label="Live" live />
                             <Metric value={apps.length} label="Apps" />
-                            <Metric value={repoCount} label="Repos" />
+                            <Metric value={catalog.repositoryCount} label="Repos" />
                         </div>
                     </section>
 
@@ -305,17 +329,7 @@ export default function HomeBase() {
                                         >
                                             Open
                                         </Link>
-                                        {app.launchUrl && (
-                                            <a
-                                                href={app.launchUrl}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                className={secondaryButton}
-                                                aria-label={`Launch ${app.name} in a new tab`}
-                                            >
-                                                Launch <Icon path={icons.external} className="size-3" />
-                                            </a>
-                                        )}
+                                        <LaunchButton app={app} />
                                         <a
                                             href={app.repoUrl}
                                             target="_blank"

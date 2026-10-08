@@ -15,7 +15,7 @@ export type QuirqApp = {
     repoUrl: string
     homepage: string | null
     launchUrl: string | null
-    launchMode: 'external' | 'embed'
+    launchMode: 'external' | 'window' | 'embed'
     presentation: 'overview' | 'reader' | 'gallery'
     language: string | null
     topics: string[]
@@ -34,6 +34,17 @@ const apps = buildQuirqApps(snapshot, config) as QuirqApp[]
 
 export function getQuirqApps(): QuirqApp[] {
     return apps
+}
+
+/**
+ * Where an app's Open app and Launch controls go: its own window on this site (`/launch/<repository>`)
+ * when its launch mode is `window`, otherwise its website in a new tab. Null when it has no website.
+ */
+export function getLaunchTarget(app: QuirqApp): { to: string; external: boolean } | null {
+    if (!app.launchUrl) return null
+    return app.launchMode === 'window'
+        ? { to: `/launch/${app.repo}`, external: false }
+        : { to: app.launchUrl, external: true }
 }
 
 export function getQuirqApp(pathOrSlug: string): QuirqApp | undefined {

@@ -1,11 +1,11 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import Explorer from 'components/Explorer'
 import OSButton from 'components/OSButton'
 import QuirqAppIcon from 'components/QuirqAppIcon'
 import Link from 'components/Link'
-import type { QuirqApp } from 'lib/quirqApps'
+import { getLaunchTarget, type QuirqApp } from 'lib/quirqApps'
 
 const accents: Record<string, string> = {
     blue: 'bg-blue/10 border-blue/30',
@@ -39,6 +39,53 @@ function repositoryLink(value: string | undefined, app: QuirqApp, image = false)
     } catch {
         return undefined
     }
+}
+
+type ReadmeFile = Pick<QuirqApp, 'readmeMarkdown' | 'readmePath'>
+
+// The README as GitHub has it now, read in the visitor's browser. A known README path is read from
+// raw.githubusercontent.com (cached up to 5 minutes, outside the API's rate limit). A repository new
+// since the build, or one whose README moved, asks the API where its README is: one anonymous request.
+async function fetchReadme(app: QuirqApp, signal: AbortSignal): Promise<ReadmeFile | null> {
+    if (app.readmePath) {
+        const path = app.readmePath.split('/').map(encodeURIComponent).join('/')
+        const response = await fetch(`https://raw.githubusercontent.com/${app.id}/HEAD/${path}`, { signal })
+        if (response.ok) return { readmeMarkdown: await response.text(), readmePath: app.readmePath }
+        if (response.status !== 404) return null
+    }
+    const response = await fetch(`https://api.github.com/repos/${app.id}/readme`, { signal })
+    if (response.status === 404) return { readmeMarkdown: null, readmePath: null }
+    if (!response.ok) return null
+    const readme = await response.json()
+    if (
+        readme.encoding !== 'base64' ||
+        typeof readme.content !== 'string' ||
+        typeof readme.path !== 'string' ||
+        readme.path.startsWith('/') ||
+        readme.path.split('/').includes('..') ||
+        readme.size > 500000
+    )
+        return null
+    const bytes = Uint8Array.from(window.atob(readme.content.replace(/\s/g, '')), (char) => char.charCodeAt(0))
+    return { readmeMarkdown: new TextDecoder().decode(bytes), readmePath: readme.path }
+}
+
+/** The bundled README first (so server and browser render alike), then GitHub's current one. */
+function useLiveReadme(app: QuirqApp): ReadmeFile {
+    const bundled = { readmeMarkdown: app.readmeMarkdown, readmePath: app.readmePath }
+    const [readme, setReadme] = useState<ReadmeFile>(bundled)
+    useEffect(() => {
+        setReadme(bundled)
+        const controller = new AbortController()
+        fetchReadme(app, controller.signal)
+            .then((current) => current && setReadme(current))
+            .catch(() => {
+                // Keep the bundled README when GitHub can't be reached.
+            })
+        return () => controller.abort()
+        // Re-read only when the repository itself changes, not on every catalog refresh.
+    }, [app.id])
+    return readme
 }
 
 function Readme({ app }: { app: QuirqApp }) {
@@ -81,11 +128,14 @@ function Readme({ app }: { app: QuirqApp }) {
 }
 
 export default function RepositoryApp({ app }: { app: QuirqApp }) {
+    const readme = useLiveReadme(app)
     const [tab, setTab] = useState<'about' | 'app'>(app.launchMode === 'embed' && app.launchUrl ? 'app' : 'about')
     const accent = accents[app.color] || accents.purple
     const reader = app.presentation === 'reader'
     const gallery = app.presentation === 'gallery'
     const launchUrl = app.launchUrl
+    // Open app goes to the app's own window on this site, or to a new tab for an `external` app.
+    const launch = getLaunchTarget(app)
     const sidebar = reader ? (
         <div className="not-prose p-3">
             <QuirqAppIcon icon={app.icon} color={app.color} className="size-14 mb-4" />
@@ -95,11 +145,16 @@ export default function RepositoryApp({ app }: { app: QuirqApp }) {
                 <a href={app.repoUrl} target="_blank" rel="noopener noreferrer">
                     Source code ↗
                 </a>
-                {launchUrl && (
-                    <a href={launchUrl} target="_blank" rel="noopener noreferrer">
-                        Open website ↗
-                    </a>
-                )}
+                {launch &&
+                    (launch.external ? (
+                        <a href={launch.to} target="_blank" rel="noopener noreferrer">
+                            Open website ↗
+                        </a>
+                    ) : (
+                        <Link to={launch.to} state={{ newWindow: true }}>
+                            Open website
+                        </Link>
+                    ))}
                 <Link to="/">All apps</Link>
             </div>
         </div>
@@ -121,9 +176,22 @@ export default function RepositoryApp({ app }: { app: QuirqApp }) {
                     <OSButton asLink to="/" size="sm">
                         Home base
                     </OSButton>
-                    <OSButton asLink external to={launchUrl || app.repoUrl} variant="primary" size="sm">
-                        {launchUrl ? 'Open app' : 'Open repository'}
-                    </OSButton>
+                    {launch ? (
+                        <OSButton
+                            asLink
+                            external={launch.external}
+                            to={launch.to}
+                            state={launch.external ? undefined : { newWindow: true }}
+                            variant="primary"
+                            size="sm"
+                        >
+                            Open app
+                        </OSButton>
+                    ) : (
+                        <OSButton asLink external to={app.repoUrl} variant="primary" size="sm">
+                            Open repository
+                        </OSButton>
+                    )}
                 </>
             }
         >
@@ -204,7 +272,7 @@ export default function RepositoryApp({ app }: { app: QuirqApp }) {
                                 : ''
                         }`}
                     >
-                        <Readme app={app} />
+                        <Readme app={{ ...app, ...readme }} />
                     </article>
                 )}
             </div>
