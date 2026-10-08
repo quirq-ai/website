@@ -3,7 +3,9 @@ import { IconApp, IconSearch } from '@posthog/icons'
 import Link from 'components/Link'
 import ActiveWindowsPanel from 'components/ActiveWindowsPanel'
 import { QuirqAppTile } from 'components/QuirqAppIcon'
-import QuirqAvatar from 'components/QuirqAvatar'
+import { QuirqAvatarTile } from 'components/QuirqAvatar'
+import { useOpenQuirqy } from 'components/Quirqy'
+import { QUIRQY_WINDOW } from 'lib/quirqAvatar'
 import { useAppActions, useAppWindows } from '../../context/App'
 
 type DockState = 'closed' | 'open' | 'active'
@@ -64,6 +66,33 @@ function AppItem({
     )
 }
 
+/** A dock item for a window without a route, which `onClick` opens or brings forward. */
+function WindowItem({
+    label,
+    state,
+    onClick,
+    children,
+}: {
+    label: string
+    state: DockState
+    onClick: () => void
+    children: React.ReactNode
+}) {
+    return (
+        <button
+            type="button"
+            onClick={onClick}
+            aria-label={label}
+            aria-current={state === 'active' ? 'true' : undefined}
+            className={itemClass(state)}
+        >
+            {children}
+            <Indicator state={state} />
+            <Label>{label}</Label>
+        </button>
+    )
+}
+
 function UtilityItem({
     label,
     hint,
@@ -87,12 +116,14 @@ function UtilityItem({
 }
 
 /**
- * Euler's floating dock, used as the site's navigation bar. Home (the Blobatar avatar) and Projects
- * open or bring forward their windows; search and the open-windows list sit after the divider.
+ * Euler's floating dock, used as the site's navigation bar. Home, Projects and quirqy (the Blobatar
+ * avatar, whose window holds its appearance) open or bring forward their windows; search and the
+ * open-windows list sit after the divider.
  */
 export default function Dock() {
     const { windows } = useAppWindows()
     const { openSearch, setIsActiveWindowsPanelOpen } = useAppActions()
+    const openQuirqy = useOpenQuirqy()
     const focused = windows
         .filter((item) => !item.minimized)
         .reduce<(typeof windows)[number] | undefined>(
@@ -112,7 +143,12 @@ export default function Dock() {
             >
                 <div className="relative flex items-center gap-[5px] xs:gap-[9px] px-[9px] xs:px-[13px] pt-[9px] xs:pt-[11px] pb-[12px] xs:pb-[13px] rounded-[24px] xs:rounded-[27px] border border-white/25 bg-[#27303e]/[0.72] backdrop-blur-[28px] backdrop-saturate-150 shadow-[0_20px_58px_-18px_rgba(10,23,43,0.44),0_4px_12px_rgba(10,23,43,0.15),inset_0_1px_0_rgba(255,255,255,0.15)] pointer-events-auto reduce-transparency:bg-[#293344] reduce-transparency:backdrop-blur-none">
                     <AppItem to="/" label="Home" state={stateFor('/')}>
-                        <QuirqAvatar className="size-[46px] xs:size-[54px] rounded-[12px] xs:rounded-[14px]" alt="" />
+                        <QuirqAppTile
+                            icon="home"
+                            color="teal"
+                            className="size-[46px] xs:size-[54px] rounded-[12px] xs:rounded-[14px]"
+                            iconClassName="!size-8 xs:!size-9"
+                        />
                     </AppItem>
                     <AppItem to="/projects" label="Projects" state={stateFor('/projects')}>
                         <QuirqAppTile
@@ -122,6 +158,12 @@ export default function Dock() {
                             iconClassName="!size-8 xs:!size-9"
                         />
                     </AppItem>
+                    <WindowItem label="quirqy" state={stateFor(QUIRQY_WINDOW)} onClick={openQuirqy}>
+                        <QuirqAvatarTile
+                            className="size-[46px] xs:size-[54px] rounded-[12px] xs:rounded-[14px]"
+                            avatarClassName="size-9 xs:size-[42px]"
+                        />
+                    </WindowItem>
                     <span aria-hidden="true" className="w-px h-[29px] xs:h-[34px] mx-px bg-white/15" />
                     <UtilityItem
                         label="Search apps"

@@ -23,6 +23,7 @@ export const QUIRQ_ICONS = [
     'chat',
     'chef-hat',
     'clipboard',
+    'cloud',
     'code',
     'conveyor',
     'cube',

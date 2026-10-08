@@ -62,7 +62,7 @@ The key must match an actual repository name in the organization. Unlisted repos
 | `component` | Optional existing component under `src/templates/`, such as `src/templates/XOSpace.tsx`, for a completely bespoke app page. The Gatsby pipeline validates that the file exists. |
 | `window` | Optional `width` and `height` in pixels for the restored window. Dimensions fit within the desktop, and multiple open windows share its available width. The window can be expanded and restored. |
 
-A site's own security policy (`X-Frame-Options`, or CSP `frame-ancestors`) can prevent it from appearing in an iframe, in a launch window or an App tab. Both keep an Open in new tab link; for such a site, set `"launchMode": "external"` on that repository. Only a catalog launch URL is ever framed. GitHub refuses all framing, so repository links open in a new tab. Opening a repository page or a launch window does not install or start its code.
+A site's own security policy (`X-Frame-Options`, or CSP `frame-ancestors`) can prevent it from appearing in an iframe, in a launch window or an App tab. Both keep an Open in new tab link; for such a site, set `"launchMode": "external"` on that repository. Only a catalog launch URL, or a page the organization's profile README links to (its app icons on the desktop open such a page at `/launch/readme/<address>`), is ever framed; never an address taken from the URL. GitHub refuses all framing, so repository links open in a new tab. Opening a repository page or a launch window does not install or start its code.
 
 ## What is included
 

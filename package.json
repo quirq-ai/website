@@ -30,7 +30,7 @@
         "serve": "gatsby serve",
         "format": "prettier --write \"**/*.{html,js,ts,tsx,json,yml,css,scss}\"",
         "clean": "gatsby clean",
-        "test": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --test scripts/quirq-catalog.test.mjs scripts/quirq-phases.test.mjs gatsby/quirqRoutes.test.cjs src/lib/quirqDocs.test.ts",
+        "test": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --test scripts/quirq-catalog.test.mjs scripts/quirq-phases.test.mjs gatsby/quirqRoutes.test.cjs src/lib/quirqDocs.test.ts src/lib/quirqReadmeLinks.test.ts",
         "typegen": "kea-typegen write .",
         "update-sprite": "svg-sprite -s --symbol-dest src/components/productFeature/images/icons --symbol-sprite sprited-icons.svg src/components/productFeature/images/icons/*.svg",
         "test-redirects": "jest scripts",

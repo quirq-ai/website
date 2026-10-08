@@ -10,7 +10,7 @@ The `icon` and `color` values come from the shared GitHub organization mapping, 
 
 Optional `glowColor` and `glowColorDark` override the hover glow. `className` controls size (`!size-6`, for example) and additional presentation. The icon is decorative; the surrounding link or button supplies its accessible name. This component does not fetch data or handle navigation.
 
-`QuirqAppTile` places the same icon on a frosted rounded tile, as the home screen cards and the dock show apps. `className` sets the tile's size and corner radius (default `size-[58px] rounded-[17px]`); `iconClassName` sets the icon's size (default `!size-10`).
+`QuirqAppTile` places the same icon on a frosted rounded tile, as the home screen cards and the dock show apps. `className` sets the tile's size and corner radius (default `size-[58px] rounded-[17px]`); `iconClassName` sets the icon's size (default `!size-10`). `QuirqTile` is that tile on its own, for anything else that should sit beside the apps, such as the avatar (`QuirqAvatarTile`).
 
 ```tsx
 <QuirqAppTile icon="rocket" color="green" className="size-[54px] rounded-[14px]" iconClassName="!size-9" />
@@ -30,18 +30,19 @@ The glyphs live in [`glyphs.ts`](glyphs.ts), by name. Each one depicts something
 | `chat` | a speech bubble | `quirq` | the quirq "q" |
 | `chef-hat` | a chef's toque | `rocket` | a rocket |
 | `clipboard` | a clipboard with a check | `server` | two server units |
-| `conveyor` | a parcel on a roller conveyor | `shapes` | a triangle, circle and square |
-| `cube` | an isometric cube | `shield` | a shield with a check |
-| `document` | a page with sparkles | `slash` | a square with a slash; `code` is an older name for it |
-| `download` | a cloud with a down arrow | `sliders` | three sliders |
-| `flask` | a lab flask | `sprout` | a seedling |
-| `folder` | a folder (the default) | `stopwatch` | a stopwatch |
-| `gauge` | a dashboard gauge | `sync` | two arrows in a circle |
-| `globe` | a globe | `tag` | a tag |
-| `home` | a house | `telescope` | a telescope on a tripod |
-| `hub` | a ring wired to four nodes | `terminal` | a terminal with a `>_` prompt |
-| `mail` | an envelope | `toolbox` | a toolbox |
-| `map` | a map folded in three | `wand` | a magic wand with sparkles |
+| `cloud` | a cloud | `shapes` | a triangle, circle and square |
+| `conveyor` | a parcel on a roller conveyor | `shield` | a shield with a check |
+| `cube` | an isometric cube | `slash` | a square with a slash; `code` is an older name for it |
+| `document` | a page with sparkles | `sliders` | three sliders |
+| `download` | a cloud with a down arrow | `sprout` | a seedling |
+| `flask` | a lab flask | `stopwatch` | a stopwatch |
+| `folder` | a folder (the default) | `sync` | two arrows in a circle |
+| `gauge` | a dashboard gauge | `tag` | a tag |
+| `globe` | a globe | `telescope` | a telescope on a tripod |
+| `home` | a house | `terminal` | a terminal with a `>_` prompt |
+| `hub` | a ring wired to four nodes | `toolbox` | a toolbox |
+| `mail` | an envelope | `wand` | a magic wand with sparkles |
+| `map` | a map folded in three |  |  |
 
 ### Adding a glyph
 
