@@ -37,7 +37,7 @@ The key must match an actual repository name in the organization. Unlisted repos
         "xo-space": {
             "name": "XO Space",
             "path": "/xo-space",
-            "icon": "rocket",
+            "icon": "planet",
             "color": "purple",
             "featured": true,
             "presentation": "overview",
@@ -52,8 +52,8 @@ The key must match an actual repository name in the organization. Unlisted repos
 | --- | --- |
 | `name`, `description`, `category` | Optional display overrides. GitHub name and description are the default. |
 | `path` | A unique local URL, such as `/xo-space` or `/lab/instants`. Default: `/apps/<repository>`. |
-| `icon` | `code`, `globe`, `book`, `mail`, `chat`, or `rocket`. |
-| `color` | `blue`, `purple`, `orange`, `green`, `red`, or `yellow`. Unset apps get a stable color. |
+| `icon` | A glass glyph by name, such as `terminal`, `telescope`, or `planet`. [`QuirqAppIcon`](../src/components/QuirqAppIcon/README.md) lists them all. Unset apps show a `folder`. |
+| `color` | `blue`, `purple`, `lilac`, `orange`, `yellow`, `red`, `salmon`, `teal`, `seagreen`, `green`, or `pink`. Unset apps get a stable color. |
 | `featured` | Highlights the app in Home Base and desktop shortcuts. All visible repositories remain in the catalog. |
 | `hidden` | Removes this repository from app routes, Home Base, navigation, and search after Gatsby regenerates pages. |
 | `presentation` | `overview`, `reader`, or `gallery`. These are reusable starting points for individual app styles. |
@@ -62,7 +62,7 @@ The key must match an actual repository name in the organization. Unlisted repos
 | `component` | Optional existing component under `src/templates/`, such as `src/templates/XOSpace.tsx`, for a completely bespoke app page. The Gatsby pipeline validates that the file exists. |
 | `window` | Optional `width` and `height` in pixels for the restored window. Dimensions fit within the desktop, and multiple open windows share its available width. The window can be expanded and restored. |
 
-A site's own security policy (`X-Frame-Options`, or CSP `frame-ancestors`) can prevent it from appearing in an iframe, in a launch window or an App tab. Both keep an Open in new tab link; for such a site, set `"launchMode": "external"` on that repository. Only a catalog launch URL is ever framed. GitHub refuses all framing, so repository links open in a new tab. Opening a repository page or a launch window does not install or start its code.
+A site's own security policy (`X-Frame-Options`, or CSP `frame-ancestors`) can prevent it from appearing in an iframe, in a launch window or an App tab. Both keep an Open in new tab link; for such a site, set `"launchMode": "external"` on that repository. Only a catalog launch URL, or a page the organization's profile README links to (its app icons on the desktop open such a page at `/launch/readme/<address>`), is ever framed; never an address taken from the URL. GitHub refuses all framing, so repository links open in a new tab. Opening a repository page or a launch window does not install or start its code.
 
 ## What is included
 

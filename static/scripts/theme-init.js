@@ -1,31 +1,41 @@
 (function () {
     window.__onThemeChange = function () {}
+    var darkQuery = window.matchMedia('(prefers-color-scheme: dark)')
+    function resolve(theme) {
+        return theme === 'system' ? (darkQuery.matches ? 'dark' : 'light') : theme
+    }
+    // Applies a light or dark theme; the preference ('system', 'light' or 'dark') is kept separately.
     function setTheme(newTheme) {
         window.__theme = newTheme
-        preferredTheme = newTheme
         document.body.className = newTheme
         window.__onThemeChange(newTheme)
     }
-    var preferredTheme
-    var darkQuery = window.matchMedia('(prefers-color-scheme: dark)')
-    darkQuery.addListener(function (e) {
-        if (!localStorage.getItem('theme')) {
-            window.__setPreferredTheme('system')
-        }
-    })
+    // A visitor who hasn't chosen follows the operating system. Before 'system' was stored as itself, it
+    // was stored as the light or dark it resolved to, with colorMode 'system' in siteSettings; read that
+    // as 'system' too.
+    var preferredTheme = 'system'
     try {
-        preferredTheme =
-            localStorage.getItem('theme') || 'light'
+        var stored = localStorage.getItem('theme')
+        var colorMode = (JSON.parse(localStorage.getItem('siteSettings') || '{}') || {}).colorMode
+        if ((stored === 'light' || stored === 'dark') && colorMode !== 'system') preferredTheme = stored
     } catch (err) {}
+    window.__preferredTheme = preferredTheme
+    function followSystem() {
+        if (preferredTheme === 'system') setTheme(resolve('system'))
+    }
+    if (darkQuery.addEventListener) darkQuery.addEventListener('change', followSystem)
+    else darkQuery.addListener(followSystem)
     window.__setPreferredTheme = function (theme) {
-        const newTheme = theme === 'system' ? (darkQuery.matches ? 'dark' : 'light') : theme
+        preferredTheme = theme === 'light' || theme === 'dark' ? theme : 'system'
+        window.__preferredTheme = preferredTheme
+        var newTheme = resolve(preferredTheme)
         setTheme(newTheme)
         try {
-            localStorage.setItem('theme', newTheme)
+            localStorage.setItem('theme', preferredTheme)
         } catch (err) {}
         return newTheme
     }
-    setTheme(preferredTheme === 'system' ? (darkQuery.matches ? 'dark' : 'light') : preferredTheme)
+    setTheme(resolve(preferredTheme))
 
     // Set initial skin / reduce-transparency before React hydrates
     try {

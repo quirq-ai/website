@@ -2,7 +2,7 @@
 
 A customizable desktop for the apps, experiments, and open source projects in the [quirq GitHub organization](https://github.com/quirq-ai).
 
-Repositories become app entries with their own URLs. The desktop icons, the Home window, and search all use the same catalog. A floating dock, after [Euler](https://github.com/quirq-ai/euler)'s, is the navigation bar: Home, Projects, search, and the list of open windows. The Home window follows Euler's Home: a greeting, the catalog at a glance, a card for every app, and a [Blobatar](https://blobatar.dev/) avatar you can make your own. The desktop is a plain background with the organization's [GitHub profile README](https://github.com/quirq-ai) written on it, read live. The interface keeps the playful desktop experience: glass icons, light and dark themes, screensavers, appearance settings, and multiple app windows with expand, restore, and close controls.
+Repositories become app entries with their own URLs. The desktop icons, the Home window, and search all use the same catalog. A floating dock, after [Euler](https://github.com/quirq-ai/euler)'s, is the navigation bar: Home, Projects, quirqy (a [Blobatar](https://blobatar.dev/) avatar you can make your own, in a window of its own), search, and the list of open windows. The Home window follows Euler's Home: a greeting, the catalog at a glance, and a card for every app. The desktop is a plain background with the organization's [GitHub profile README](https://github.com/quirq-ai) written on it, read live. The interface keeps the playful desktop experience: glass icons, light and dark themes, screensavers, appearance settings, and multiple app windows with expand, restore, and close controls.
 
 Each app can have its own identity. Use a document view for Docs, a colorful showcase for an experiment, or a completely custom React page for a product. A shared data source does not require every app to look the same.
 
@@ -81,7 +81,7 @@ Edit [`quirq.apps.json`](quirq.apps.json). Keys under `repositories` must match 
         "name": "XO Space",
         "description": "Build, observe, and measure work across your local coding agents.",
         "path": "/xo-space",
-        "icon": "rocket",
+        "icon": "planet",
         "color": "purple",
         "category": "Apps",
         "featured": true,
@@ -106,7 +106,7 @@ Edit [`quirq.apps.json`](quirq.apps.json). Keys under `repositories` must match 
 
 A custom component receives `pageContext.app` and stays within the shared desktop and window system. See [`src/templates/quirq-app.tsx`](src/templates/quirq-app.tsx) for the default template and [`src/components/QuirqApp`](src/components/QuirqApp) for the reusable app views. Windows fit within the available desktop; multiple open windows share that space.
 
-In quirq-ai, Open app and Launch open the destination in its own window on this site, in an iframe at `/launch/<repository>` ([`src/templates/quirq-launch.tsx`](src/templates/quirq-launch.tsx)). Only a catalog launch URL is ever framed. An iframe only works when the destination permits embedding: a site that sends `X-Frame-Options` or a restrictive CSP `frame-ancestors` shows the browser's refusal instead, so the window always offers Open in new tab. Innernet (which sends `X-Frame-Options: DENY`) and `website` (this site) are set to `"external"`. A `/launch/` link to an `external` app, or to any URL on this site's own host, shows an "opens in a new tab" screen instead of a frame. GitHub refuses all framing, so GitHub links open in a new tab; repositories without a launch destination link to GitHub.
+In quirq-ai, Open app and Launch open the destination in its own window on this site, in an iframe at `/launch/<repository>` ([`src/templates/quirq-launch.tsx`](src/templates/quirq-launch.tsx)). The organization README's links, shown as app icons on the desktop, open the same way: a link to an app's website opens that app's window, and another web page opens framed at `/launch/readme/<address>` ([`src/lib/quirqReadmeLinks.ts`](src/lib/quirqReadmeLinks.ts)). Only a catalog launch URL, or a link the README itself has, is ever framed; never an address taken from the URL. An iframe only works when the destination permits embedding: a site that sends `X-Frame-Options` or a restrictive CSP `frame-ancestors` shows the browser's refusal instead, so the window always offers Open in new tab. Innernet (which sends `X-Frame-Options: DENY`) and `website` (this site) are set to `"external"`. A `/launch/` link to an `external` app, or to any URL on this site's own host, shows an "opens in a new tab" screen instead of a frame. GitHub refuses all framing, so GitHub links open in a new tab; repositories without a launch destination link to GitHub.
 
 For all supported values, validation rules, organization changes, and embedding details, read the [app mapping guide](docs/quirq-app-mapping.md).
 
@@ -177,11 +177,12 @@ This repository has a qq manifest and generated workflows from [quirq infra](htt
 | [`gatsby-node.ts`](gatsby-node.ts) | Generates mapped routes and excludes inactive upstream pages and queries |
 | [`src/templates/quirq-app.tsx`](src/templates/quirq-app.tsx) | Default generated app page and SEO |
 | [`src/components/HomeBase`](src/components/HomeBase) | The Euler-style Home window: greeting, catalog summary, app cards, filters, and the avatar panel |
-| [`src/components/Dock`](src/components/Dock) and [`src/components/QuirqAvatar`](src/components/QuirqAvatar) | The dock navigation bar (Home, Projects, search, open windows) and the Blobatar avatar and its editor |
+| [`src/components/Dock`](src/components/Dock) and [`src/components/QuirqAvatar`](src/components/QuirqAvatar) | The dock navigation bar (Home, Projects, quirqy, search, open windows) and the Blobatar avatar and its editor |
 | [`quirq.projects.json`](quirq.projects.json), [`scripts/lib/quirq-phases.mjs`](scripts/lib/quirq-phases.mjs) | Project groups, descriptions, phase overrides, and the phase rules |
 | [`src/components/QuirqProjects`](src/components/QuirqProjects) | The projects-by-phase view at `/projects` |
 | [`src/components/QuirqInfraV0`](src/components/QuirqInfraV0) | The quirq infra v0 guide and live view at `/v0` |
-| [`src/components/QuirqApp`](src/components/QuirqApp) | Repository overview, reader, gallery, README rendering, and optional embed |
+| [`src/components/QuirqApp`](src/components/QuirqApp) | Repository overview, reader, gallery, and optional embed; the docs browser (every Markdown file in a [@pierre/trees](src/vendor/pierre-trees/README.md) file tree) and GitHub-style Markdown formatting |
+| [`src/lib/quirqDocs.ts`](src/lib/quirqDocs.ts) | A repository's doc list (GitHub git trees API) and files (raw.githubusercontent.com), and how links and images in docs resolve |
 | [`src/components/QuirqAppIcon`](src/components/QuirqAppIcon) | Mapped icons in the existing glass icon style |
 | [`src/components/QuirqSearch`](src/components/QuirqSearch) | Local catalog search and keyboard navigation |
 | [`src/components/Desktop`](src/components/Desktop) and [`src/components/QuirqProfile`](src/components/QuirqProfile) | Desktop icons, the plain background, and the organization README written on it. The inherited top bar in [`src/components/TaskBarMenu`](src/components/TaskBarMenu) is no longer mounted; the dock replaced it |

@@ -18,12 +18,12 @@ const colorModeOptions: ToggleOption[] = [
         label: 'System',
         value: 'system',
         icon: <IconLaptop className="size-5" />,
+        default: true,
     },
     {
         label: 'Light',
         value: 'light',
         icon: <IconDay className="size-5" />,
-        default: true,
     },
     {
         label: 'Dark',

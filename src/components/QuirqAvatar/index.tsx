@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react'
+import { QuirqTile } from 'components/QuirqAppIcon'
 import {
     AvatarConfig,
     avatarBackgrounds,
@@ -15,6 +16,31 @@ import {
 export default function QuirqAvatar({ className = 'size-10', alt = '' }: { className?: string; alt?: string }) {
     const { uri } = useQuirqAvatar()
     return <img src={uri} alt={alt} className={`object-contain select-none ${className}`} draggable={false} />
+}
+
+/**
+ * The avatar as an app icon: on the same frosted tile as the other apps, unless an icon background
+ * was chosen in the editor, which then is the avatar's own tile. `className` sizes and rounds the
+ * tile; `avatarClassName` sizes the avatar on it.
+ */
+export function QuirqAvatarTile({
+    className = 'size-[58px] rounded-[17px]',
+    avatarClassName = 'size-11',
+    alt = '',
+}: {
+    className?: string
+    avatarClassName?: string
+    alt?: string
+}) {
+    const { config, uri } = useQuirqAvatar()
+    const image = (classes: string) => (
+        <img src={uri} alt={alt} className={`object-contain select-none ${classes}`} draggable={false} />
+    )
+    return config.background === 'transparent' ? (
+        <QuirqTile className={className}>{image(avatarClassName)}</QuirqTile>
+    ) : (
+        image(className)
+    )
 }
 
 const colorPresets = [

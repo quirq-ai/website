@@ -1,6 +1,8 @@
 # Project dependencies
 .cache
 node_modules
+# Vendored @pierre/trees resolves its own dependencies from here; see src/vendor/pierre-trees/README.md.
+!/src/vendor/pierre-trees/node_modules/
 .pnp.*
 .pnpm-store*
 

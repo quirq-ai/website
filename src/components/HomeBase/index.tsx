@@ -1,10 +1,11 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import Explorer from 'components/Explorer'
 import Link from 'components/Link'
 import OSButton from 'components/OSButton'
 import { QuirqAppTile } from 'components/QuirqAppIcon'
 import { QuirqWordmark } from 'components/QuirqBrand'
-import QuirqAvatar, { AvatarEditor } from 'components/QuirqAvatar'
+import { QuirqAvatarTile } from 'components/QuirqAvatar'
+import { useOpenQuirqy } from 'components/Quirqy'
 import { getLaunchTarget, quirqConfig, type QuirqApp } from 'lib/quirqApps'
 import { useQuirqCatalog } from 'lib/quirqLiveApps'
 
@@ -39,7 +40,6 @@ const icons = {
     search: 'M17 17l4 4M10.5 4a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13Z',
     settings: 'M4 7h5m6 0h5M4 17h11m4 0h1M12 4v6M17 14v6',
     code: 'm8 8-4 4 4 4m8-8 4 4-4 4',
-    chevron: 'm9 6 6 6-6 6',
 }
 
 /** Launch opens the app's own window on this site, or its website in a new tab for an `external` app. */
@@ -95,9 +95,9 @@ const Metric = ({ value, label, live }: { value: number; label: string; live?: b
 )
 
 /**
- * The Home window at `/`, laid out after Euler's Home: a greeting with the catalog at a glance,
- * every app as a card, and a "Make it yours" panel for the Blobatar avatar. The dock's Home opens
- * it; opening an app from a card opens that app's own window.
+ * The Home window at `/`, laid out after Euler's Home: a greeting with the catalog at a glance, and
+ * every app as a card. The dock's Home opens it; opening an app from a card opens that app's own
+ * window, and Personalize opens the quirqy window, where the Blobatar avatar is made yours.
  */
 export default function HomeBase() {
     const now = useNow()
@@ -105,8 +105,8 @@ export default function HomeBase() {
     const { apps } = catalog
     const [query, setQuery] = useState('')
     const [category, setCategory] = useState('All apps')
-    const [appearanceOpen, setAppearanceOpen] = useState(false)
-    const appearanceRef = useRef<HTMLDetailsElement>(null)
+    // The avatar's appearance lives in the quirqy window, which the dock also opens.
+    const personalize = useOpenQuirqy()
     const categories = useMemo(() => Array.from(new Set(apps.map((app) => app.category))).sort(), [apps])
     const liveCount = apps.filter((app) => app.launchUrl).length
 
@@ -121,13 +121,6 @@ export default function HomeBase() {
             ),
         [apps, query, category]
     )
-
-    const personalize = () => {
-        setAppearanceOpen(true)
-        window.requestAnimationFrame(() =>
-            appearanceRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-        )
-    }
 
     return (
         <Explorer
@@ -151,7 +144,7 @@ export default function HomeBase() {
             >
                 <header className="flex items-center justify-between gap-5">
                     <div className="inline-flex items-center gap-2.5">
-                        <QuirqAvatar className="size-10" alt="" />
+                        <QuirqAvatarTile className="size-10 rounded-xl" avatarClassName="size-8" />
                         <QuirqWordmark className="h-6 w-auto text-primary" />
                     </div>
                     <div className="flex items-center gap-3 @xl:gap-5">
@@ -370,48 +363,7 @@ export default function HomeBase() {
                         </p>
                     </section>
 
-                    <details
-                        ref={appearanceRef}
-                        id="appearance"
-                        open={appearanceOpen}
-                        onToggle={(event) => setAppearanceOpen(event.currentTarget.open)}
-                        className={`group mt-8 rounded-[18px] scroll-mt-4 ${glass}`}
-                    >
-                        <summary className="flex items-center gap-3.5 min-h-[84px] px-5 @xl:px-6 py-4 rounded-[18px] cursor-pointer list-none [&::-webkit-details-marker]:hidden hover:bg-white/25 dark:hover:bg-white/[0.03] group-open:rounded-b-none group-open:border-b group-open:border-white/60 dark:group-open:border-white/10">
-                            <span className={`grid place-items-center size-10 shrink-0 rounded-xl ${glass}`}>
-                                <QuirqAvatar className="size-8" />
-                            </span>
-                            <span className="flex flex-col gap-1 min-w-0">
-                                <span className="text-sm font-semibold tracking-tight text-primary">
-                                    Make quirq yours.
-                                </span>
-                                <span className="text-[11px] text-secondary">A little character for your home.</span>
-                            </span>
-                            <span className="hidden @md:block ml-auto pl-4 text-[11px] text-secondary">Appearance</span>
-                            <Icon
-                                path={icons.chevron}
-                                className="size-4 ml-auto @md:ml-1 text-muted transition-transform group-open:rotate-90"
-                            />
-                        </summary>
-                        {appearanceOpen && (
-                            <>
-                                <AvatarEditor />
-                                <p className="m-0 px-6 py-4 border-t border-white/60 dark:border-white/10 text-[11px] text-secondary">
-                                    Theme, cursor and screensaver live in{' '}
-                                    <Link
-                                        to="/display-options"
-                                        state={{ newWindow: true }}
-                                        className="font-semibold text-primary underline underline-offset-2"
-                                    >
-                                        Display options
-                                    </Link>
-                                    .
-                                </p>
-                            </>
-                        )}
-                    </details>
-
-                    <footer className="flex flex-wrap items-center justify-between gap-4 pt-5 px-0.5 text-[10px] text-muted">
+                    <footer className="flex flex-wrap items-center justify-between gap-4 mt-8 pt-5 px-0.5 border-t border-black/[0.06] dark:border-white/10 text-[10px] text-muted">
                         <span>quirq home base</span>
                         <span>
                             {apps.length} apps from{' '}

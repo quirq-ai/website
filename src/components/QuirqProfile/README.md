@@ -21,7 +21,8 @@ The README mixes Markdown and GitHub-flavored HTML. `react-markdown` parses both
 The styling follows the README's own structure rather than generic prose:
 
 - The title is a large display line, and the first paragraph is the lead.
-- A paragraph made only of links (separated by `·`) becomes a row of pill buttons; links set in bold are the filled, primary ones.
+- A paragraph made only of links (separated by `·`) becomes a row of app icons, drawn like the desktop's own. A link to an app in the catalog (its website, launch address or repository) takes that app's glyph and color; other links take a glyph for what they are about, such as install steps, discussions, security or research. Labels drop their trailing arrows.
+- Like the other apps, the icons open in windows. A link to an app's website opens that app the way Launch does (`/launch/<repository>`, or a new tab for an `external` app). Another web page opens in a window of its own that frames it (`/launch/readme/<address>`); the window frames only a link the README itself has, and offers Open in new tab. GitHub refuses to be framed, so its links, like mail links, open in a new tab; a link to this site opens here. The rules live in [`src/lib/quirqReadmeLinks.ts`](../../lib/quirqReadmeLinks.ts).
 - Images are framed with rounded corners and a soft shadow.
 - Tables sit in a rounded panel, and code blocks are dark with a **Copy** button beside them.
 - Everything after the final `---` rule is set as a small footer.

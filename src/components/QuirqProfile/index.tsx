@@ -5,16 +5,27 @@ import remarkGfm from 'remark-gfm'
 import rehypeRaw from 'rehype-raw'
 import rehypeSanitize from 'rehype-sanitize'
 import { quirqConfig } from 'lib/quirqApps'
+import { useQuirqApps } from 'lib/quirqLiveApps'
+import QuirqAppIcon from 'components/QuirqAppIcon'
+import DesktopIcon from 'components/Desktop/DesktopIcon'
+import { DESKTOP_ICON_GLOW } from 'components/Desktop/Background'
 import { PROFILE_BLOB_BASE, PROFILE_RAW_BASE, useProfileReadme } from './useProfileReadme'
+import { readmeLinkLabel, readmeLinkLook, readmeLinkTarget, siteHosts } from 'lib/quirqReadmeLinks'
 
-type HastNode = { type: string; tagName?: string; value?: string; children?: HastNode[] }
+type HastNode = {
+    type: string
+    tagName?: string
+    value?: string
+    properties?: { href?: unknown }
+    children?: HastNode[]
+}
 
 const textOf = (node?: HastNode): string =>
     node?.type === 'text' ? node.value || '' : (node?.children || []).map(textOf).join('')
 const contains = (node: HastNode, tagName: string): boolean =>
     node.tagName === tagName || (node.children || []).some((child) => contains(child, tagName))
 
-// A paragraph made only of text links, separated by "·" and the like, reads as a row of buttons.
+// A paragraph made only of text links, separated by "·" and the like, reads as a row of apps.
 const SEPARATOR = /^[\s·•|]*$/
 const isLinkRow = (node?: HastNode) => {
     const children = node?.children || []
@@ -40,28 +51,65 @@ const resolve = (url: string, base: string) => {
 }
 
 const hairline = 'border-black/[0.08] dark:border-white/10'
-const chip =
-    'inline-flex items-center gap-1 min-h-9 px-4 rounded-full text-[13px] font-medium no-underline transition-colors [&_strong]:!font-medium [&_strong]:!text-[inherit]'
-const chipPrimary = `${chip} bg-[#16171b] text-white hover:bg-black hover:text-white dark:bg-white dark:text-[#16171b] dark:hover:bg-white/90 dark:hover:text-[#16171b]`
-const chipSecondary = `${chip} border ${hairline} bg-white/70 dark:bg-white/[0.04] text-primary hover:border-black/25 dark:hover:border-white/30`
 
-type LinkProps = React.AnchorHTMLAttributes<HTMLAnchorElement> & { node?: HastNode; variant?: 'chip' }
+type LinkProps = React.AnchorHTMLAttributes<HTMLAnchorElement> & { node?: HastNode }
 
-function ReadmeLink({ node, variant, href, children }: LinkProps) {
+function ReadmeLink({ node, href, children }: LinkProps) {
     const external = !!href && !href.startsWith('#')
     const target = external ? { target: '_blank', rel: 'noopener noreferrer' } : {}
     const className =
-        variant === 'chip'
-            ? node && contains(node, 'strong')
-                ? chipPrimary
-                : chipSecondary
-            : node && contains(node, 'img')
+        node && contains(node, 'img')
             ? 'block rounded-[20px] focus-visible:outline-offset-4'
             : 'font-medium text-primary underline decoration-black/20 dark:decoration-white/25 underline-offset-4 hover:decoration-current transition-colors'
     return (
         <a href={href} className={className} {...target}>
             {children}
         </a>
+    )
+}
+
+/**
+ * A row of README links as desktop app icons: the glyph and color of the catalog app a link opens,
+ * or of what the link is about. Like the other apps they open in a window here: an app's own launch
+ * window, or a window framing the page; GitHub and mail links open in a new tab (lib/quirqReadmeLinks).
+ */
+function ReadmeAppRow({ node, centered }: { node?: HastNode; centered: boolean }) {
+    const apps = useQuirqApps()
+    // The README renders only in the browser, after it is fetched, so the page's host is known here.
+    const hosts = siteHosts()
+    const links = (node?.children || [])
+        .filter((child) => child.tagName === 'a')
+        .map((child) => ({
+            href: resolve(String(child.properties?.href || ''), PROFILE_BLOB_BASE),
+            label: readmeLinkLabel(textOf(child)),
+        }))
+        .filter((link) => link.href && link.label)
+    return (
+        <ul className={`not-prose list-none my-8 p-0 flex flex-wrap gap-y-2 ${centered ? 'justify-center' : ''}`}>
+            {links.map((link) => {
+                const look = readmeLinkLook(link.href, link.label, apps)
+                const target = readmeLinkTarget(link.href, apps, hosts)
+                return (
+                    <DesktopIcon
+                        key={`${link.href} ${link.label}`}
+                        app={{
+                            label: link.label,
+                            url: target.to,
+                            external: target.external,
+                            source: 'desktop',
+                            Icon: (
+                                <QuirqAppIcon
+                                    icon={look.icon}
+                                    color={look.color}
+                                    glowColor={DESKTOP_ICON_GLOW.light}
+                                    glowColorDark={DESKTOP_ICON_GLOW.dark}
+                                />
+                            ),
+                        }}
+                    />
+                )
+            })}
+        </ul>
     )
 }
 
@@ -110,17 +158,7 @@ const components: Components = {
     h3: ({ children }) => <h3 className="mt-10 mb-3 text-lg font-semibold tracking-tight text-primary">{children}</h3>,
     p: ({ node, children, ...props }) => {
         const centered = (props as { align?: string }).align === 'center'
-        if (isLinkRow(node as HastNode)) {
-            return (
-                <p className={`my-8 flex flex-wrap gap-2 ${centered ? 'justify-center' : ''}`}>
-                    {React.Children.map(children, (child) =>
-                        React.isValidElement(child)
-                            ? React.cloneElement(child as React.ReactElement<LinkProps>, { variant: 'chip' })
-                            : null
-                    )}
-                </p>
-            )
-        }
+        if (isLinkRow(node as HastNode)) return <ReadmeAppRow node={node as HastNode} centered={centered} />
         return (
             <p className={`my-4 text-[15px] leading-[1.75] text-secondary ${centered ? 'text-center' : ''}`}>
                 {children}
@@ -128,9 +166,9 @@ const components: Components = {
         )
     },
     a: (props) => {
-        const { node, href, variant, children } = props as LinkProps
+        const { node, href, children } = props as LinkProps
         return (
-            <ReadmeLink node={node} href={href} variant={variant}>
+            <ReadmeLink node={node} href={href}>
                 {children}
             </ReadmeLink>
         )

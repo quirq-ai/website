@@ -598,8 +598,11 @@ export default function AppWindow({ item, chrome = true }: { item: AppWindowType
             animating={animating}
         >
             <WindowContainer closing={closing}>
+                {/* AnimatePresence keys its children by `key`; unkeyed, the overlay and the window
+                    would both be "" and React warns about duplicate keys on every render. */}
                 {item.appSettings?.size?.fixed && (
                     <div
+                        key="overlay"
                         onClick={handleClose}
                         className={`fixed inset-0 z-50 bg-black/50 print:hidden ${
                             closing ? 'animate-overlay-fade-out' : !skipsOpenAnimation ? 'animate-overlay-fade-in' : ''
@@ -607,6 +610,7 @@ export default function AppWindow({ item, chrome = true }: { item: AppWindowType
                     />
                 )}
                 <div
+                    key="window"
                     onMouseDown={handleMouseDown}
                     onAnimationEnd={(e) => {
                         if (e.currentTarget !== e.target) return
