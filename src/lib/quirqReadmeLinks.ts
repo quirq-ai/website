@@ -175,6 +175,12 @@ export function readmeLinks(markdown: string, base: string): ReadmeLink[] {
     return found.filter((link) => link.href && link.label)
 }
 
+/** The README link a /launch/readme/<address> path names, framable or not, or undefined. */
+export function readmeLinkNamed(pathname: string, links: ReadmeLink[]): ReadmeLink | undefined {
+    const address = readmeLinkAddress(pathname)
+    return address ? links.find((link) => comparableUrl(link.href) === address) : undefined
+}
+
 /**
  * The README link a /launch/readme/<address> path names, if the README has one there that may be
  * framed. The frame shows the README's own link, never an address taken from the path.

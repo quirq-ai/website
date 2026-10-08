@@ -6,7 +6,8 @@ import OSButton from 'components/OSButton'
 import { MissingApp, touchTarget, useRoutedApp } from 'components/QuirqApp/RoutedApp'
 import { PROFILE_BLOB_BASE, useProfileReadme } from 'components/QuirqProfile/useProfileReadme'
 import { quirqConfig } from 'lib/quirqApps'
-import { README_LAUNCH_ROOT, readmeLinkAt, readmeLinks, siteHosts } from 'lib/quirqReadmeLinks'
+import { README_LAUNCH_ROOT, readmeLinkAt, readmeLinkNamed, readmeLinks, siteHosts } from 'lib/quirqReadmeLinks'
+import type { ReadmeLink } from 'lib/quirqReadmeLinks'
 import { isFramableUrl } from '../../scripts/lib/quirq-catalog.mjs'
 import { useApp } from '../context/App'
 import { useWindow } from '../context/Window'
@@ -78,18 +79,16 @@ function ReadmeLaunch({ pathname }: { pathname: string }) {
     const { setWindowTitle } = useApp()
     const [mounted, setMounted] = useState(false)
     useEffect(() => setMounted(true), [])
-    const link = useMemo(
-        () =>
-            mounted && readme.status === 'ready'
-                ? readmeLinkAt(
-                      pathname,
-                      readmeLinks(readme.markdown, PROFILE_BLOB_BASE),
-                      siteHosts(),
-                      quirqConfig.frameOrigins
-                  )
-                : undefined,
-        [mounted, pathname, readme]
-    )
+    // `link` may be framed; `named` is the README's link at this address even when it may not, which then
+    // opens in a new tab rather than reading as missing.
+    const { link, named } = useMemo(() => {
+        if (!mounted || readme.status !== 'ready') return { link: undefined, named: undefined }
+        const links = readmeLinks(readme.markdown, PROFILE_BLOB_BASE)
+        return {
+            link: readmeLinkAt(pathname, links, siteHosts(), quirqConfig.frameOrigins),
+            named: readmeLinkNamed(pathname, links),
+        }
+    }, [mounted, pathname, readme])
 
     useEffect(() => {
         if (link && appWindow && appWindow.meta?.title !== link.label) setWindowTitle(appWindow, link.label)
@@ -97,7 +96,11 @@ function ReadmeLaunch({ pathname }: { pathname: string }) {
 
     if (!link)
         return (
-            <MissingReadmeLink looking={!mounted || readme.status === 'loading'} offline={readme.status === 'error'} />
+            <MissingReadmeLink
+                looking={!mounted || readme.status === 'loading'}
+                offline={readme.status === 'error'}
+                newTab={named}
+            />
         )
     return (
         <>
@@ -150,10 +153,18 @@ function LaunchFrame({ title, url, about }: { title: string; url: string; about?
     )
 }
 
-/** What a /launch/readme/ window shows while it reads the README, or when the README has no such link. */
-function MissingReadmeLink({ looking, offline }: { looking: boolean; offline: boolean }) {
+/**
+ * What a /launch/readme/ window shows while it reads the README, when the README has no such link, or
+ * when it has the link but it may not be framed here (`newTab`: the README's own link, opened in a new tab).
+ */
+function MissingReadmeLink({ looking, offline, newTab }: { looking: boolean; offline: boolean; newTab?: ReadmeLink }) {
     const org = quirqConfig.organization
-    const [heading, message] = offline
+    const [heading, message] = newTab
+        ? [
+              `${newTab.label} opens in a new tab`,
+              `The ${org} profile README links here, but this page can’t open in a window on this site.`,
+          ]
+        : offline
         ? [
               'GitHub can’t be reached',
               `The ${org} profile README couldn’t be read, so this link can’t be opened here right now.`,
@@ -188,7 +199,25 @@ function MissingReadmeLink({ looking, offline }: { looking: boolean; offline: bo
                             <h1 className="text-2xl font-bold tracking-tight mb-3">{heading}</h1>
                             <p className="text-secondary mb-5 max-w-xl">{message}</p>
                             <div className="flex flex-wrap gap-2">
-                                <OSButton asLink to="/" size="sm" variant="primary" className={touchTarget}>
+                                {newTab && (
+                                    <OSButton
+                                        asLink
+                                        external
+                                        to={newTab.href}
+                                        size="sm"
+                                        variant="primary"
+                                        className={touchTarget}
+                                    >
+                                        Open in new tab
+                                    </OSButton>
+                                )}
+                                <OSButton
+                                    asLink
+                                    to="/"
+                                    size="sm"
+                                    variant={newTab ? 'default' : 'primary'}
+                                    className={touchTarget}
+                                >
                                     Home base
                                 </OSButton>
                                 <OSButton

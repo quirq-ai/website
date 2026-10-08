@@ -3,6 +3,7 @@ import assert from 'node:assert/strict'
 import {
     canFrameReadmeLink,
     readmeLinkAt,
+    readmeLinkNamed,
     readmeLinkLabel,
     readmeLinkLook,
     readmeLinks,
@@ -111,6 +112,12 @@ test('a /launch/readme/ window frames only a link the README has, never the addr
     assert.equal(at('/launch/readme/evil.example'), undefined)
     assert.equal(at('/launch/readme/github.com/quirq-ai/xo-space'), undefined)
     assert.equal(at('/launch/docs'), undefined)
+    // A link the README has but that may not be framed is still named, so it opens in a new tab.
+    const named = (path: string) => readmeLinkNamed(path, links)?.href
+    assert.equal(named('/launch/readme/app.xo.builders'), 'https://app.xo.builders/')
+    assert.equal(named('/launch/readme/docs.quirq.dev'), 'https://docs.quirq.dev/')
+    assert.equal(named('/launch/readme/evil.example'), undefined)
+    assert.equal(named('/launch/docs'), undefined)
     const frames = (href: string) => canFrameReadmeLink(href, site, origins)
     assert.ok(frames('https://docs.quirq.dev/'))
     for (const href of [
