@@ -30,12 +30,16 @@ function isThisSite(url: string) {
  * new browser tab. /launch/readme/<address>: a page the organization's profile README links to, in a
  * window the same way. Only a launch URL from the catalog, or a link the README has, is ever framed,
  * never one taken from the address, and only on an origin listed in `frameOrigins` in quirq.apps.json
- * (vercel.json's CSP frame-src lists the same origins, so the browser refuses any other). A site can refuse to be framed (X-Frame-Options or CSP
- * frame-ancestors); the browser then shows its own error in the frame, and "Open in new tab" stays one
- * click away.
+ * (vercel.json's CSP frame-src lists the same origins, so the browser refuses any other). A site can
+ * refuse to be framed (X-Frame-Options or CSP frame-ancestors); the browser then shows its own error in
+ * the frame, and "Open in new tab" stays one click away.
  */
 export default function QuirqLaunchPage({ location }: { location: { pathname: string } }) {
-    return location.pathname.startsWith(`${README_LAUNCH_ROOT}/`) ? (
+    // The built page is /launch/ for every address, so the first render (and hydration) is the app
+    // launch's "looking" state; a README window takes over after mount.
+    const [mounted, setMounted] = useState(false)
+    useEffect(() => setMounted(true), [])
+    return mounted && location.pathname.startsWith(`${README_LAUNCH_ROOT}/`) ? (
         <ReadmeLaunch pathname={location.pathname} />
     ) : (
         <AppLaunch pathname={location.pathname} />
