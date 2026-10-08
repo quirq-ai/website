@@ -48,11 +48,12 @@ quirq-ai public GitHub repositories
 ```
 
 1. **Sync:** the script fetches the organization's public repositories and the READMEs for visible entries.
-2. **Snapshot:** the result is saved in a committed JSON file. Browsers and normal builds use this saved data rather than fetching the GitHub API.
+2. **Snapshot:** the result is saved in a committed JSON file. Builds, server rendering, and each page's first paint use this saved data.
 3. **Mapping:** `quirq.apps.json` selects the organization and overrides presentation, visibility, paths, and launch destinations.
 4. **Routes:** Gatsby generates each app page from that same mapped catalog. Home base and navigation use the same entries, so their links match the generated routes.
+5. **Live:** in the visitor's browser, the desktop, Home base, and search read the organization's repository list from GitHub's public API and apply the same mapping, every 5 minutes while the tab is visible. App pages read their README from raw.githubusercontent.com. A repository created after the build opens at `/apps/<name>` through a live page ([`src/templates/quirq-live-app.tsx`](src/templates/quirq-live-app.tsx)). No token or backend is involved.
 
-Public, non-archived repositories are included by default, including forks. `.github` is excluded. Repositories do not need an explicit mapping entry to appear after a sync. Use `hidden` or `defaults.excludeRepositories` to remove infrastructure or other entries that should not appear as apps. Private repositories are never included.
+Public, non-archived repositories are included by default, including forks. quirq-ai shows every public repository, `.github` included, because `defaults.excludeRepositories` is empty; without that setting, `.github` is excluded. Repositories do not need an explicit mapping entry to appear. Use `hidden` or `defaults.excludeRepositories` to remove infrastructure or other entries that should not appear as apps. Private repositories are never included.
 
 Only Home base (`/`), Projects (`/projects`), Appearance (`/display-options`), the 404 page, and catalog app routes are active. The `infra-config` repository maps to the quirq infra v0 app at `/v0`, a guide to v0 with its live state. The original PostHog marketing, billing, community, and CMS services are not part of this build.
 
@@ -66,7 +67,7 @@ pnpm test
 
 Review the changes to `src/data/quirq-repositories.json`, then commit the snapshot along with any mapping changes. Restart `pnpm start` after syncing or changing app routes. Run a new build and deployment to update the published site.
 
-**GitHub changes do not update an existing deployment automatically.** `pnpm build` validates and builds the saved snapshot; it does not run a sync. This keeps builds reproducible and avoids requiring GitHub API access at build time.
+**Visitors see GitHub changes without a deployment; the built pages do not.** New, renamed, and deleted repositories, descriptions, and READMEs reach the browser live (see step 5 above). `pnpm build` still validates and builds the saved snapshot and does not run a sync, so server-rendered HTML and each page's first paint use the snapshot until the next sync and deploy. This keeps builds reproducible and avoids requiring GitHub API access at build time. Anonymous browser reads allow 60 GitHub API requests an hour per visitor; when GitHub can't be reached, the last list stays on screen.
 
 The sync preserves the previous snapshot if repository fetching or validation fails. A missing README does not remove its repository from the catalog. For GitHub API rate limits, provide the optional `GITHUB_TOKEN` in the shell or CI environment that runs the sync. The token is not written to the snapshot or browser bundle.
 
@@ -100,12 +101,12 @@ Edit [`quirq.apps.json`](quirq.apps.json). Keys under `repositories` must match 
 | Build a bespoke app page | `component: "src/templates/MyApp.tsx"` |
 | Set a destination | `launchUrl`; defaults to the repository's GitHub homepage field |
 | Disable the launch destination | `launchUrl: null` |
-| Request an embedded app view | `launchMode: "embed"` on that repository, with a launch URL |
+| Choose how Open app and Launch open the destination | `launchMode`: `"window"` (its own window on this site; quirq-ai's default), `"external"` (a new tab), or `"embed"` (an App tab in the repository's page, per repository only) |
 | Set restored window dimensions | `window: { "width": 1080, "height": 760 }` |
 
 A custom component receives `pageContext.app` and stays within the shared desktop and window system. See [`src/templates/quirq-app.tsx`](src/templates/quirq-app.tsx) for the default template and [`src/components/QuirqApp`](src/components/QuirqApp) for the reusable app views. Windows fit within the available desktop; multiple open windows share that space.
 
-Launch destinations open externally by default. An iframe only works when the destination permits embedding. The app view always provides an external launch option; repositories without a launch destination provide a GitHub source link.
+In quirq-ai, Open app and Launch open the destination in its own window on this site, in an iframe at `/launch/<repository>` ([`src/templates/quirq-launch.tsx`](src/templates/quirq-launch.tsx)). Only a catalog launch URL is ever framed. An iframe only works when the destination permits embedding: a site that sends `X-Frame-Options` or a restrictive CSP `frame-ancestors` shows the browser's refusal instead, so the window always offers Open in new tab. GitHub refuses all framing, so GitHub links open in a new tab; repositories without a launch destination link to GitHub.
 
 For all supported values, validation rules, organization changes, and embedding details, read the [app mapping guide](docs/quirq-app-mapping.md).
 
@@ -169,6 +170,9 @@ This repository has a qq manifest and generated workflows from [quirq infra](htt
 | [`scripts/lib/quirq-catalog.mjs`](scripts/lib/quirq-catalog.mjs) | Shared normalization, inclusion rules, URL checks, and mapping logic |
 | [`src/data/quirq-repositories.json`](src/data/quirq-repositories.json) | Generated, committed GitHub snapshot; do not edit by hand |
 | [`src/lib/quirqApps.ts`](src/lib/quirqApps.ts) | Typed catalog access shared by the UI and Gatsby |
+| [`src/lib/quirqLiveApps.ts`](src/lib/quirqLiveApps.ts) | The live catalog: the organization's repository list read in the browser, shared by the desktop, Home base, search, and app pages |
+| [`src/templates/quirq-live-app.tsx`](src/templates/quirq-live-app.tsx) | The `/apps/*` page for repositories created after the build (`vercel.json` rewrites unknown `/apps/` paths to it) |
+| [`src/templates/quirq-launch.tsx`](src/templates/quirq-launch.tsx) | The `/launch/*` window: an app's website in an iframe (`vercel.json` rewrites `/launch/` paths to it) |
 | [`gatsby-config.js`](gatsby-config.js) | Active plugins, allowed source pages, and site metadata |
 | [`gatsby-node.ts`](gatsby-node.ts) | Generates mapped routes and excludes inactive upstream pages and queries |
 | [`src/templates/quirq-app.tsx`](src/templates/quirq-app.tsx) | Default generated app page and SEO |
@@ -183,7 +187,7 @@ This repository has a qq manifest and generated workflows from [quirq infra](htt
 | [`src/components/Desktop`](src/components/Desktop) and [`src/components/QuirqProfile`](src/components/QuirqProfile) | Desktop icons, the plain background, and the organization README written on it. The inherited top bar in [`src/components/TaskBarMenu`](src/components/TaskBarMenu) is no longer mounted; the dock replaced it |
 | [`src/context/App.tsx`](src/context/App.tsx) and [`src/components/AppWindow`](src/components/AppWindow) | Shared app state, window lifecycle, layout, and controls |
 | [`src/pages/display-options.tsx`](src/pages/display-options.tsx) | Appearance and personalization settings |
-| [`vercel.json`](vercel.json) | Gatsby build and output configuration for Vercel |
+| [`vercel.json`](vercel.json) | Gatsby build and output configuration for Vercel, and the `/apps/*` rewrite to the live app page |
 
 The retained UI uses Tailwind CSS, existing theme tokens, container queries, and shared window templates. Start with the component READMEs before changing the desktop shell. Add custom app templates under `src/templates/`; adding arbitrary files to `src/pages/` does not make them active routes in this fork.
 
@@ -209,15 +213,15 @@ For Gatsby, configuration loads `.env.development.local` and `.env.development` 
 4. Optionally set `GATSBY_SITE_URL` to the production domain, then deploy.
 5. Open Home base and a direct app URL in the deployment to check routing and the hydrated desktop UI.
 
-The committed snapshot is deployed as part of the website. A normal Vercel build needs no GitHub API token. To publish new repositories or refreshed README content, sync locally or in a separate CI job, review and commit the changed snapshot, then redeploy. Linked app deployments are managed separately; this website does not deploy them.
+The committed snapshot is deployed as part of the website. A normal Vercel build needs no GitHub API token. Browsers pick up new repositories and README changes live; to refresh the server-rendered pages too, sync locally or in a separate CI job, review and commit the changed snapshot, then redeploy. Linked app deployments are managed separately; this website does not deploy them.
 
 ## Troubleshooting
 
 - **Wrong Node or pnpm version:** check `node --version` and `pnpm --version` against the prerequisites. Use the committed lockfile and do not replace it with an npm lockfile.
-- **An app is missing or stale:** run `pnpm apps:sync` and `pnpm apps:check`, check its visibility settings, and restart Gatsby. Publish a new deployment for remote changes.
+- **An app is missing or stale:** reload once; the live list refreshes on load and every 5 minutes. If it still lacks the app, check its visibility settings, and whether the browser has used up GitHub's 60 anonymous requests an hour. To refresh the built pages, run `pnpm apps:sync` and `pnpm apps:check`, restart Gatsby, and publish a new deployment.
 - **A route change does not appear:** stop the server, run `pnpm clean`, then run `pnpm start` again. The clean command removes generated output, not the catalog or mapping.
 - **GitHub sync returns a rate limit error:** provide `GITHUB_TOKEN` in the sync process environment, then retry. The existing snapshot remains usable when the sync fails.
-- **An embedded app is blank or refused:** use its external link and check the destination's embedding policy. A mapping entry cannot override that policy.
+- **An app's window is blank or refused:** use Open in new tab, and check the destination's `X-Frame-Options` and CSP `frame-ancestors` headers; they must allow this site. A mapping entry cannot override that policy, but `launchMode: "external"` on the repository sends its Launch straight to a new tab.
 - **The build runs out of memory:** reduce Gatsby workers with `GATSBY_CPU_COUNT=2`; on a machine with sufficient RAM, set `NODE_OPTIONS=--max-old-space-size=8192`. Set these through your shell or hosting environment rather than changing the catalog.
 
 ## Upstream attribution and license

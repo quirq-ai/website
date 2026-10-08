@@ -33,13 +33,14 @@
                 "rollers",
                 "perf",
                 "release",
-                "installer"
+                "installer",
+                "setup"
             ]
         },
         {
             "name": "Apps in progress",
             "description": "Apps and prototypes on their way to users.",
-            "repos": ["euler", "galileo", "instants", "quitter"]
+            "repos": ["euler", "galileo", "instants", "quitter", "ui", "agent-skills"]
         },
         {
             "name": "Knowledge",
@@ -104,6 +105,9 @@
         "installer": {
             "description": "Follows release channels for installs."
         },
+        "setup": {
+            "description": "One command to set up qq for a GitHub org, or to put qq on a machine."
+        },
         "euler": {
             "description": "A local workspace that runs Innernet, Quitter and Instants together."
         },
@@ -115,6 +119,12 @@
         },
         "quitter": {
             "description": "An agent and thread activity prototype."
+        },
+        "ui": {
+            "description": "Every UI component shape used across quirq products, demoed in one Next.js app."
+        },
+        "agent-skills": {
+            "description": "Skills that let an agent do a whole job from one prompt."
         },
         "research": {
             "description": "Research topics, including the interactive infra map."

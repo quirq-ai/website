@@ -4,30 +4,10 @@
     "defaults": {
         "category": "Apps",
         "presentation": "overview",
-        "launchMode": "external",
+        "launchMode": "window",
         "includeForks": true,
         "includeArchived": false,
-        "excludeRepositories": [
-            ".github",
-            "depot",
-            "gardener",
-            "gate",
-            "installer",
-            "perf",
-            "recipes",
-            "release",
-            "remote-build",
-            "rollers",
-            "sync",
-            "test-pipelines",
-            "toolchains",
-            "environment",
-            "quirqy",
-            "xo-cowork-api",
-            "quirq_ai",
-            "website",
-            "marketing"
-        ]
+        "excludeRepositories": []
     },
     "repositories": {
         "infra-config": {

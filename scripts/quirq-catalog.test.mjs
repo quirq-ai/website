@@ -4,7 +4,7 @@ import { mkdtemp, readFile, writeFile, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { Buffer } from 'node:buffer'
-import { buildQuirqApps, normalizeAppPath, safeWebUrl } from './lib/quirq-catalog.mjs'
+import { buildQuirqApps, mergeLiveRepositories, normalizeAppPath, safeWebUrl } from './lib/quirq-catalog.mjs'
 import { fetchOrganizationRepositories, syncQuirqApps } from './sync-quirq-apps.mjs'
 
 const config = { organization: 'quirq-ai', name: 'Quirq', defaults: {}, repositories: {} }
@@ -30,6 +30,33 @@ test('catalog excludes organizational, hidden, and archived repositories; keeps 
         ['docs']
     )
     assert.equal(apps[0].path, '/apps/docs')
+})
+
+test('a live repository list adds and removes repositories, keeps bundled READMEs and drops invalid entries', () => {
+    const bundled = snapshot([repo('docs', { readmeMarkdown: '# Docs', readmePath: 'README.md' }), repo('deleted')])
+    const merged = mergeLiveRepositories(
+        bundled,
+        [
+            repo('docs', { description: 'Fresh' }),
+            repo('new-app'),
+            repo('docs'),
+            repo('secret', { private: true }),
+            repo('elsewhere', { full_name: 'someone/elsewhere' }),
+        ],
+        '2026-10-08T00:00:00Z'
+    )
+    assert.equal(merged.fetchedAt, '2026-10-08T00:00:00Z')
+    assert.deepEqual(
+        merged.repositories.map((entry) => entry.name),
+        ['docs', 'new-app']
+    )
+    assert.equal(merged.repositories[0].description, 'Fresh')
+    assert.equal(merged.repositories[0].readmeMarkdown, '# Docs')
+    assert.equal(merged.repositories[1].readmeMarkdown, null)
+    assert.deepEqual(
+        buildQuirqApps(merged, config).map((app) => app.path),
+        ['/apps/docs', '/apps/new-app']
+    )
 })
 
 test('repository styles and custom URLs survive mapping without inventing descriptions or launches', () => {
@@ -142,6 +169,14 @@ test('launch URLs only accept web protocols and embedding is explicitly enabled 
     assert.equal(safeWebUrl('quirq.ai', { allowBareHost: true }), 'https://quirq.ai/')
     const source = snapshot([repo('app', { homepage: 'https://example.com' })])
     assert.equal(buildQuirqApps(source, config)[0].launchMode, 'external')
+    // Opening each app's website in its own window may be the catalog-wide default; a repo can opt out.
+    const windowed = { ...config, defaults: { launchMode: 'window' } }
+    assert.equal(buildQuirqApps(source, windowed)[0].launchMode, 'window')
+    assert.equal(
+        buildQuirqApps(source, { ...windowed, repositories: { app: { launchMode: 'external' } } })[0].launchMode,
+        'external'
+    )
+    assert.throws(() => buildQuirqApps(source, { ...config, defaults: { launchMode: 'tab' } }), /Invalid/)
     assert.throws(() => buildQuirqApps(source, { ...config, defaults: { launchMode: 'embed' } }), /explicitly enabled/)
     const [app] = buildQuirqApps(source, {
         ...config,

@@ -48,7 +48,7 @@ for (const legacyFirst of [false, true]) {
         if (!legacyFirst) actions.createPage(legacy)
         assert.equal(pages.get('/docs').component, path.join(root, 'src/templates/quirq-app.tsx'))
         assert.equal(pages.get('/docs').context.app.repo, 'docs')
-        assert.equal(pages.size, initialApps.length)
+        assert.equal(pages.size, initialApps.length + 2)
     })
 }
 
@@ -58,7 +58,19 @@ test('future custom routes also replace any legacy source page', () => {
     hooks.createPages({ actions })
     actions.createPage({ path: '/self-driving', component: path.join(root, 'src/pages/self-driving/index.tsx') })
     assert.equal(pages.get('/self-driving').context.app.repo, 'xo-space')
-    assert.equal(pages.size, initialApps.length)
+    assert.equal(pages.size, initialApps.length + 2)
+})
+
+test('client-only pages: live /apps/* for repositories created after the build, and /launch/*', () => {
+    const { hooks, actions, pages } = setup()
+    hooks.createPages({ actions })
+    const live = pages.get('/apps')
+    assert.equal(live.matchPath, '/apps/*')
+    assert.equal(live.component, path.join(root, 'src/templates/quirq-live-app.tsx'))
+    assert.equal(pages.get('/apps/euler').context.app.repo, 'euler')
+    const launch = pages.get('/launch')
+    assert.equal(launch.matchPath, '/launch/*')
+    assert.equal(launch.component, path.join(root, 'src/templates/quirq-launch.tsx'))
 })
 
 test('an old catalog route is rejected after its configured path changes', () => {
@@ -70,7 +82,7 @@ test('an old catalog route is rejected after its configured path changes', () =>
     hooks.createPages({ actions })
     assert.equal(pages.has('/docs'), false)
     assert.equal(pages.get('/knowledge').context.app.repo, 'docs')
-    assert.equal(pages.size, initialApps.length)
+    assert.equal(pages.size, initialApps.length + 2)
 })
 
 test('native page creator ignores archived source files before evaluating collection queries', () => {

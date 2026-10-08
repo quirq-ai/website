@@ -1,8 +1,9 @@
-import React, { useEffect, useRef } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 import Link from 'components/Link'
 import { useAppActions, useAppSettings, useAppUIState, useAppWindows } from '../../context/App'
 import QuirqAppIcon from 'components/QuirqAppIcon'
-import { getQuirqApps } from 'lib/quirqApps'
+import type { QuirqApp } from 'lib/quirqApps'
+import { useQuirqApps } from 'lib/quirqLiveApps'
 import { AppItem } from 'components/OSIcons/AppIcon'
 import ContextMenu from 'components/RadixUI/ContextMenu'
 import DesktopIcon from './DesktopIcon'
@@ -13,46 +14,84 @@ import QuirqProfile from 'components/QuirqProfile'
 import ReactConfetti from 'react-confetti'
 import { useToast } from '../../context/Toast'
 
-const catalog = getQuirqApps()
-// Keep the desktop airy as the organization grows. Every visible app remains in Home base and Apps.
-const featuredApps = catalog.filter((app) => app.featured).slice(0, 6)
-const asDesktopApp = (app: (typeof catalog)[number]): AppItem => ({
+const asDesktopApp = (app: QuirqApp): AppItem => ({
     label: app.name,
     Icon: <QuirqAppIcon icon={app.icon} color={app.color} />,
     url: app.path,
     source: 'desktop',
 })
 
-const primaryApps: AppItem[] = [
+const homeApps: AppItem[] = [
     { label: 'Home base', Icon: <QuirqAppIcon icon="home" color="teal" />, url: '/', source: 'desktop' },
     { label: 'Projects', Icon: <QuirqAppIcon icon="rocket" color="green" />, url: '/projects', source: 'desktop' },
-    ...featuredApps.map(asDesktopApp),
 ]
 
-export const useProductLinks = () => primaryApps
+const editApp: AppItem = {
+    label: 'Edit',
+    Icon: <QuirqAppIcon icon="palette" color="orange" />,
+    url: '/display-options',
+    source: 'desktop',
+}
 
-export const apps: AppItem[] = [
-    ...catalog
-        .filter((app) => !featuredApps.some((featured) => featured.id === app.id))
-        .slice(0, 5)
-        .map(asDesktopApp),
-    {
-        label: 'Make it yours',
-        Icon: <QuirqAppIcon icon="palette" color="orange" />,
-        url: '/display-options',
-        source: 'desktop',
-    },
-]
+/**
+ * Every repository in the organization, kept live, split evenly between the two icon columns:
+ * Home base, Projects and the featured apps lead the left; Edit stays in the top-right corner.
+ */
+function useDesktopApps() {
+    const catalog = useQuirqApps()
+    return useMemo(() => {
+        const featured = catalog.filter((app) => app.featured).slice(0, 6)
+        const rest = catalog.filter((app) => !featured.includes(app)).map(asDesktopApp)
+        const leading = [...homeApps, ...featured.map(asDesktopApp)]
+        const leftCount = Math.max(leading.length, Math.ceil((leading.length + rest.length + 1) / 2))
+        const leftRest = rest.slice(0, leftCount - leading.length)
+        const rightRest = rest.slice(leftRest.length)
+        return {
+            left: [...leading, ...leftRest],
+            right: [editApp, ...rightRest],
+            // Phones show one grid: the same order, with Edit last.
+            mobile: [...leading, ...leftRest, ...rightRest, editApp],
+        }
+    }, [catalog])
+}
 
 // Fixed offsets for icon layout, so nothing shifts after hydration. There is no top bar: the icons
 // start inside AppContainer's p-2 (8px) padding and stop above the dock, which is up to 100px tall
 // plus that 8px padding.
 const DESKTOP_TOP_OFFSET = 8
 const DOCK_CLEARANCE = 108
+// DesktopIcon's cell (w-28, min-h-[84px]), and the height the icon columns lose to padding and the dock.
+const ICON_WIDTH = 112
+const ICON_HEIGHT = 84
+const ICON_LIST_INSET = DESKTOP_TOP_OFFSET + 32 + DOCK_CLEARANCE
+
+/**
+ * Side padding that keeps the README clear of the icon columns at the current window size. Undefined
+ * before mount and on phones, where the README's own classes apply (on phones the icons sit above it).
+ */
+function useReadmeInset(iconsPerSide: number) {
+    const [inset, setInset] = useState<number>()
+    useEffect(() => {
+        const update = () => {
+            const { innerWidth: width, innerHeight: height } = window
+            if (width < 640) return setInset(undefined)
+            const perColumn = Math.max(1, Math.floor((height - ICON_LIST_INSET) / ICON_HEIGHT))
+            const columns = Math.ceil(iconsPerSide / perColumn)
+            // The classes' sm:px-36 / lg:px-60 stay the minimum. The README keeps at least 360px, so in a
+            // small window it runs under the innermost columns.
+            const minimum = width >= 1024 ? 240 : 144
+            setInset(Math.max(minimum, Math.min(columns * ICON_WIDTH + 24, (width - 360) / 2)))
+        }
+        update()
+        window.addEventListener('resize', update)
+        return () => window.removeEventListener('resize', update)
+    }, [iconsPerSide])
+    return inset
+}
 
 // The README recedes while a window is open in front of it and comes forward on the bare desktop.
 // Its own component, so window changes re-render only this wrapper, not the desktop.
-function DesktopReadme() {
+function DesktopReadme({ inset }: { inset?: number }) {
     const { windows } = useAppWindows()
     const covered = windows.some((item) => !item.minimized)
     return (
@@ -61,6 +100,7 @@ function DesktopReadme() {
             className={`px-5 pt-10 sm:pt-[6vh] sm:px-36 lg:px-60 transition-opacity duration-500 motion-reduce:transition-none ${
                 covered ? 'opacity-45' : 'opacity-100'
             }`}
+            style={inset === undefined ? undefined : { paddingLeft: inset, paddingRight: inset }}
         >
             <QuirqProfile />
         </div>
@@ -68,7 +108,8 @@ function DesktopReadme() {
 }
 
 function Desktop() {
-    const productLinks = useProductLinks()
+    const desktopApps = useDesktopApps()
+    const readmeInset = useReadmeInset(Math.max(desktopApps.left.length, desktopApps.right.length))
     const { setScreensaverPreviewActive, setConfetti, updateSiteSettings } = useAppActions()
     const { siteSettings, compact } = useAppSettings()
     const { screensaverPreviewActive, confetti } = useAppUIState()
@@ -158,8 +199,9 @@ function Desktop() {
                   }
                 : app
         )
-    const leftApps = applyGlow(productLinks)
-    const rightApps = applyGlow(apps)
+    const leftApps = applyGlow(desktopApps.left)
+    const rightApps = applyGlow(desktopApps.right)
+    const mobileApps = applyGlow(desktopApps.mobile)
 
     // Mobile: one continuous wrapping grid (avoids a gap when left apps don't fill a row).
     // sm+: classic left/right desktop columns that wrap into extra columns when short on height.
@@ -171,8 +213,8 @@ function Desktop() {
         'list-none m-0 p-0 flex flex-col content-start pointer-events-none [&>li]:pointer-events-auto'
     // Top padding is DESKTOP_TOP_OFFSET + 16; leave a matching cushion above the dock.
     const desktopIconListStyle = {
-        height: `calc(100dvh - ${DESKTOP_TOP_OFFSET + 32 + DOCK_CLEARANCE}px)`,
-        maxHeight: `calc(100dvh - ${DESKTOP_TOP_OFFSET + 32 + DOCK_CLEARANCE}px)`,
+        height: `calc(100dvh - ${ICON_LIST_INSET}px)`,
+        maxHeight: `calc(100dvh - ${ICON_LIST_INSET}px)`,
     } as const
 
     const handleScreensaverDismiss = () => {
@@ -244,12 +286,12 @@ function Desktop() {
                     >
                         <nav className="px-1 sm:hidden" aria-label="Desktop apps">
                             <ul className={mobileIconListClassName}>
-                                {[...leftApps, ...rightApps].map((app) => (
-                                    <DesktopIcon key={app.label} app={app} />
+                                {mobileApps.map((app) => (
+                                    <DesktopIcon key={app.url} app={app} />
                                 ))}
                             </ul>
                         </nav>
-                        <DesktopReadme />
+                        <DesktopReadme inset={readmeInset} />
                     </div>
 
                     <nav
@@ -260,7 +302,7 @@ function Desktop() {
                         <div className="flex justify-between items-start">
                             <ul className={`${desktopIconListClassName} flex-wrap`} style={desktopIconListStyle}>
                                 {leftApps.map((app) => (
-                                    <DesktopIcon key={app.label} app={app} />
+                                    <DesktopIcon key={app.url} app={app} />
                                 ))}
                             </ul>
                             <ul
@@ -268,7 +310,7 @@ function Desktop() {
                                 style={desktopIconListStyle}
                             >
                                 {rightApps.map((app) => (
-                                    <DesktopIcon key={app.label} app={app} />
+                                    <DesktopIcon key={app.url} app={app} />
                                 ))}
                             </ul>
                         </div>

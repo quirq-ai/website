@@ -19,6 +19,7 @@ This repository is quirq's Gatsby 4 / React website, adapted from the PostHog de
 | Catalog validation and normalization | `scripts/lib/quirq-catalog.mjs` |
 | Explicit GitHub refresh command | `scripts/sync-quirq-apps.mjs` |
 | Shared browser and build catalog | `src/lib/quirqApps.ts` |
+| Live catalog (repository list read in the browser) and the `/apps/*` page for repositories created after the build | `src/lib/quirqLiveApps.ts`, `src/templates/quirq-live-app.tsx`, the rewrite in `vercel.json` |
 | Generated routes and legacy-page exclusion | `gatsby-node.ts`, `gatsby-config.js` |
 | Project groups, descriptions and phase overrides | `quirq.projects.json`, phase rules in `scripts/lib/quirq-phases.mjs` |
 | Generated project phase snapshot (`pnpm projects:sync`) | `src/data/quirq-projects.json` |
@@ -36,14 +37,16 @@ This repository is quirq's Gatsby 4 / React website, adapted from the PostHog de
 
 - Keep app mapping in `quirq.apps.json`; avoid separate hard-coded app lists in menus, search, or the homepage.
 - Keep project groups and phase overrides in `quirq.projects.json`; refresh phases with `pnpm projects:sync`. A hand-set `phase` needs a `phaseReason`.
-- Live state on `/v0` and `/projects`, and the organization README on the desktop (`.github/profile/README.md`), are read in the browser from public files on raw.githubusercontent.com. Do not add a token or backend for them.
+- Live state on `/v0` and `/projects`, the organization README on the desktop (`.github/profile/README.md`), and app READMEs are read in the browser from public files on raw.githubusercontent.com. The repository list behind the desktop, Home base, search, and app pages is read in the browser from GitHub's public REST API (anonymous, 60 requests an hour per visitor). Do not add a token or backend for them.
+- Lists of apps in the UI use `useQuirqApps()` / `useQuirqCatalog()` from `src/lib/quirqLiveApps.ts`, so they follow the organization live. `getQuirqApps()` is the build's snapshot, for routes and other build-time code.
 - Refresh the generated snapshot with `pnpm apps:sync`. Do not hand-edit repository data or invent a deployment URL.
 - After hiding a repository, run `pnpm apps:sync` (or the offline `pnpm apps:prune`) so its README text leaves the bundled snapshot; `pnpm apps:check` fails until then.
 - Only public repositories belong in the snapshot. Never commit tokens or private repository metadata.
 - A repository page displays metadata and a README. Opening it does not install or run the repository's code.
-- Embedding requires an explicit per-app setting and a destination that permits framing. Preserve the external launch fallback.
+- Open app and Launch open an app's website in its own window on this site (`launchMode: "window"`, the default in `quirq.apps.json`; `/launch/<repository>`). Frame only catalog launch URLs, never a URL taken from the address. The `embed` App tab still requires an explicit per-repository setting. Framing needs a destination that permits it, so preserve the Open in new tab fallback. GitHub refuses framing; its links open in a new tab.
 - Custom app templates belong under `src/templates/` and receive `pageContext.app`. Keep direct URLs and window behavior working.
-- Restart Gatsby after route changes. Rebuild and deploy to publish a refreshed snapshot; production does not poll GitHub automatically.
+- Restart Gatsby after route changes. Browsers follow GitHub live; rebuild and deploy to refresh the snapshot that server rendering and each page's first paint use.
+- A new public repository in the organization fails `pnpm projects:check` (and so `pnpm build`) after `pnpm apps:sync` until it is placed in a group in `quirq.projects.json` and `pnpm projects:sync` has run.
 
 ## Development and checks
 

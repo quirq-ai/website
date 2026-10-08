@@ -13,7 +13,8 @@ import { AppWindow } from './Window'
 import { navigate } from 'gatsby'
 import { isSafeInternalPath } from 'lib/utils'
 import type { User } from 'hooks/useUser'
-import { getQuirqApps, getQuirqApp } from '../lib/quirqApps'
+import { getQuirqApps } from '../lib/quirqApps'
+import { findQuirqApp } from '../lib/quirqLiveApps'
 import { useToast } from './Toast'
 import { IconDay, IconLaptop, IconNight } from '@posthog/icons'
 import qs from 'qs'
@@ -1627,6 +1628,11 @@ for (const app of getQuirqApps()) {
     }
 }
 
+// Repositories created after the build (/apps/<name>) and apps' websites in their own windows
+// (/launch/<name>) get the same window behavior as the catalog apps built with the site.
+const settingsFor = (key: string) =>
+    appSettings[key] ?? (/^\/(apps|launch)\//.test(key || '') ? appSettings['/'] : undefined)
+
 export interface SiteSettings {
     colorMode: 'light' | 'dark' | 'system'
     theme: 'light' | 'dark'
@@ -1959,7 +1965,7 @@ export const Provider = ({ children, element, location }: AppProviderProps) => {
     }
 
     function getInitialSize(key: string) {
-        const settings = appSettings[key]
+        const settings = settingsFor(key)
         if (settings?.size?.fixed) {
             return { ...settings.size.min }
         }
@@ -2014,7 +2020,7 @@ export const Provider = ({ children, element, location }: AppProviderProps) => {
         // is the stable identity for both app settings and the window itself.
         const windowKey = element.props.location.pathname.replace(/\/$/, '') || '/'
         const keyToUse = getKey(windowKey)
-        const settings = appSettings[keyToUse]
+        const settings = settingsFor(keyToUse)
         const navigationState = isSSR ? {} : element.props.location.state || {}
         const size = isSSR
             ? settings?.size?.fixed
@@ -2053,7 +2059,7 @@ export const Provider = ({ children, element, location }: AppProviderProps) => {
             element,
             meta: {
                 title:
-                    getQuirqApp(element.props.location.pathname)?.name ||
+                    findQuirqApp(element.props.location.pathname.replace(/^\/launch\//, ''))?.name ||
                     (element.props.location.pathname === '/'
                         ? 'Home base'
                         : element.props.location.pathname === '/display-options'
@@ -2094,7 +2100,7 @@ export const Provider = ({ children, element, location }: AppProviderProps) => {
                       }
                     : undefined),
             minimal: element.props.minimal ?? false,
-            appSettings: appSettings[keyToUse],
+            appSettings: settings,
             location,
             expanded: shouldExpand,
             snapped: navigationState.snapped || false,

@@ -5,6 +5,22 @@ import { getQuirqApps } from './src/lib/quirqApps'
 
 const root = __dirname
 const defaultAppTemplate = path.resolve(root, 'src/templates/quirq-app.tsx')
+// Client-only routes that find their repository in the live list: /apps/* for repositories created
+// after the build, which have no page yet, and /launch/* for an app's website in its own window.
+const clientOnlyPages = [
+    {
+        path: '/apps/',
+        matchPath: '/apps/*',
+        component: path.resolve(root, 'src/templates/quirq-live-app.tsx'),
+        context: {},
+    },
+    {
+        path: '/launch/',
+        matchPath: '/launch/*',
+        component: path.resolve(root, 'src/templates/quirq-launch.tsx'),
+        context: {},
+    },
+]
 const sourcePages = new Set(['/', '/display-options', '/projects', '/404', '/404.html'])
 const normalizePath = (value: string) => value.replace(/\/$/, '') || '/'
 
@@ -26,6 +42,8 @@ export const createPages: GatsbyNode['createPages'] = ({ actions }) => {
     for (const app of getQuirqApps()) {
         actions.createPage(catalogPage(app))
     }
+    // Built app pages are more specific, so they take precedence over /apps/*.
+    for (const page of clientOnlyPages) actions.createPage(page)
 }
 
 // Retain upstream source on disk, but publish only the quirq catalog and settings.
@@ -33,6 +51,7 @@ export const createPages: GatsbyNode['createPages'] = ({ actions }) => {
 // /docs collision alone would also remove the catalog's page at that path. Restore
 // the catalog page immediately; its matching component ends the callback recursion.
 export const onCreatePage: GatsbyNode['onCreatePage'] = ({ page, actions }) => {
+    if (clientOnlyPages.some((entry) => entry.matchPath === page.matchPath)) return
     const app = getQuirqApps().find((entry) => entry.path === normalizePath(page.path))
     if (app) {
         if (path.resolve(page.component) !== getAppTemplate(app)) {
@@ -59,6 +78,8 @@ export const preprocessSource: GatsbyNode['preprocessSource'] = ({ filename }) =
         'pages/404.tsx',
         'components/seo.tsx',
         'templates/quirq-app.tsx',
+        'templates/quirq-live-app.tsx',
+        'templates/quirq-launch.tsx',
         ...getQuirqApps().map((app) => path.relative(sourceRoot, getAppTemplate(app)).replace(/\\/g, '/')),
     ])
     if (!active.has(relative)) return 'export {}'

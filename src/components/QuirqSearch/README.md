@@ -1,10 +1,10 @@
 # quirq search
 
-`SearchOverlay` replaces global PostHog search in the desktop wrapper. It consumes the same `getQuirqApps()` catalog as Home base, the desktop icons, and the taskbar. The index contains visible organization repositories plus Home base and Display options. Hidden, archived, and excluded repositories never enter it.
+`SearchOverlay` replaces global PostHog search in the desktop wrapper. It consumes the same live catalog (`useQuirqApps()` from `src/lib/quirqLiveApps.ts`) as Home base and the desktop icons, so a repository added to the organization is searchable without a rebuild. The index contains visible organization repositories plus Home base, Projects, and Edit (Display options). Hidden, archived, and excluded repositories never enter it.
 
 Mount the named or default `SearchOverlay` once inside the app provider. Existing `openSearch()` actions and the `/` and Cmd/Ctrl+K shortcuts control the app's `searchOpen` flag; the overlay closes through `setSearchOpen(false)`.
 
-Search matches the app name, description, URL, repository name, language, category, and topics locally. It sends no search requests and needs no external search credentials. The catalog is refreshed through the organization sync workflow, not on each keystroke.
+Search matches the app name, description, URL, repository name, language, category, and topics locally. It sends no search requests and needs no external search credentials. The catalog refreshes on its own schedule, not on each keystroke.
 
 Radix Dialog handles the portal, focus trap, outside click, Escape, and focus restoration. Headless UI Combobox handles arrow keys, active options, and Enter. Selecting a result uses Gatsby navigation to its mapped internal URL and retains normal window-manager behavior. A closed search clears the query for its next use.
 

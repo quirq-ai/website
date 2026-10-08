@@ -1,15 +1,16 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { Combobox } from '@headlessui/react'
 import { Dialog as RadixDialog } from 'radix-ui'
 import { navigate } from 'gatsby'
 import { IconSearch, IconX } from '@posthog/icons'
 import { useAppActions, useAppUIState } from '../../context/App'
-import { getQuirqApps, quirqConfig } from 'lib/quirqApps'
+import { quirqConfig, type QuirqApp } from 'lib/quirqApps'
+import { useQuirqApps } from 'lib/quirqLiveApps'
 import QuirqAppIcon from 'components/QuirqAppIcon'
 import OSButton from 'components/OSButton'
 import KeyboardShortcut from 'components/KeyboardShortcut'
 
-const entries = [
+const searchEntries = (apps: QuirqApp[]) => [
     {
         id: 'home-base',
         name: 'Home base',
@@ -28,24 +29,27 @@ const entries = [
         color: 'green',
         keywords: 'projects phases status swarm thought prototype built shipping',
     },
-    ...getQuirqApps().map((app) => ({
+    ...apps.map((app) => ({
         ...app,
         keywords: [app.repo, app.category, app.language, ...app.topics].join(' '),
     })),
     {
         id: 'appearance',
-        name: 'Make it yours',
+        name: 'Edit',
         description: 'Colors, themes, cursors, and screensavers.',
         path: '/display-options',
         icon: 'palette',
         color: 'orange',
-        keywords: 'appearance display options customization dark light theme cursor screensaver',
+        keywords:
+            'edit make it yours personalize appearance display options customization dark light theme cursor screensaver',
     },
 ]
 
 export function SearchOverlay() {
     const { searchOpen } = useAppUIState()
     const { setSearchOpen } = useAppActions()
+    const apps = useQuirqApps()
+    const entries = useMemo(() => searchEntries(apps), [apps])
     const [query, setQuery] = useState('')
     const normalizedQuery = query.trim().toLowerCase()
     const results = entries.filter((entry) =>
