@@ -522,8 +522,6 @@ module.exports = {
         function ({ addVariant }) {
             addVariant('skin-modern', 'body[data-skin="modern"] &')
             addVariant('skin-classic', 'body[data-skin="classic"] &')
-            addVariant('wallpaper-mobius', 'body[data-wallpaper="mobius"] &')
-            addVariant('wallpaper-light-beam', 'body[data-wallpaper="light-beam"] &')
             // Site toggle (data attr, set early in theme-init) + OS prefers-reduced-transparency
             addVariant('reduce-transparency', [
                 'body[data-reduce-transparency="true"] &',

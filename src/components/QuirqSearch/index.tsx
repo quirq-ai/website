@@ -35,11 +35,11 @@ const entries = [
     {
         id: 'appearance',
         name: 'Make it yours',
-        description: 'Wallpapers, colors, themes, cursors, and screensavers.',
+        description: 'Colors, themes, cursors, and screensavers.',
         path: '/display-options',
         icon: 'palette',
         color: 'orange',
-        keywords: 'appearance display options customization dark light wallpaper screensaver',
+        keywords: 'appearance display options customization dark light theme cursor screensaver',
     },
 ]
 

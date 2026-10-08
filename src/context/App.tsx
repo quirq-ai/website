@@ -16,7 +16,6 @@ import type { User } from 'hooks/useUser'
 import { getQuirqApps, getQuirqApp } from '../lib/quirqApps'
 import { useToast } from './Toast'
 import { IconDay, IconLaptop, IconNight } from '@posthog/icons'
-import { themeOptions } from '../hooks/useTheme'
 import qs from 'qs'
 import usePostHog from '../hooks/usePostHog'
 
@@ -340,7 +339,6 @@ export const Context = createContext<AppContextType>({
         colorMode: 'light',
         skinMode: 'modern',
         cursor: 'default',
-        wallpaper: 'mobius',
         screensaverDisabled: true,
         reduceTransparency: false,
         scrollbars: 'system',
@@ -428,7 +426,6 @@ export const SettingsContext = createContext<AppSettingsContextType>({
         colorMode: 'light',
         skinMode: 'modern',
         cursor: 'default',
-        wallpaper: 'mobius',
         screensaverDisabled: true,
         reduceTransparency: false,
         scrollbars: 'system',
@@ -1635,7 +1632,6 @@ export interface SiteSettings {
     theme: 'light' | 'dark'
     skinMode: 'modern' | 'classic'
     cursor: 'default' | 'xl'
-    wallpaper: 'mobius' | 'light-beam'
     screensaverDisabled?: boolean
     reduceTransparency?: boolean
     clickBehavior?: 'single' | 'double'
@@ -1658,7 +1654,6 @@ const getInitialSiteSettings = (): SiteSettings => {
         theme: (typeof window !== 'undefined' && (window as any).__theme) || 'light',
         skinMode: 'modern',
         cursor: 'default',
-        wallpaper: 'mobius',
         clickBehavior: 'double',
         performanceBoost: false,
         screensaverDisabled: true,
@@ -1672,10 +1667,8 @@ const getInitialSiteSettings = (): SiteSettings => {
         siteSettings.cursor = 'default'
     }
 
-    // Only quirq wallpapers remain; anything else saved earlier falls back to the default.
-    if (!['mobius', 'light-beam'].includes(siteSettings.wallpaper)) {
-        siteSettings.wallpaper = 'mobius'
-    }
+    // Wallpapers were retired for the plain background; forget a choice saved earlier.
+    delete (siteSettings as SiteSettings & { wallpaper?: string }).wallpaper
 
     // The classic skin has been retired; force anyone with it saved back to modern
     siteSettings.skinMode = 'modern'
@@ -1694,7 +1687,6 @@ export const Provider = ({ children, element, location }: AppProviderProps) => {
         theme: 'light',
         skinMode: 'modern',
         cursor: 'default',
-        wallpaper: 'mobius',
         clickBehavior: 'double',
         performanceBoost: false,
         screensaverDisabled: true,
@@ -2516,29 +2508,6 @@ export const Provider = ({ children, element, location }: AppProviderProps) => {
                 }
             }
 
-            // Wallpaper cycle with \ key (without Shift)
-            if (e.key === '\\' && !e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey) {
-                e.preventDefault()
-                e.stopPropagation()
-
-                // Get current wallpaper index
-                const currentIndex = themeOptions.findIndex((theme) => theme.value === siteSettings.wallpaper)
-                // Cycle to next wallpaper (wrap around to first if at end)
-                const nextIndex = (currentIndex + 1) % themeOptions.length
-                const nextWallpaper = themeOptions[nextIndex]
-
-                updateSiteSettings({
-                    ...siteSettings,
-                    wallpaper: nextWallpaper.value as SiteSettings['wallpaper'],
-                })
-
-                // Add toast notification
-                addToast({
-                    description: `Switched to ${nextWallpaper.label} wallpaper`,
-                    duration: 2000,
-                })
-            }
-
             // Window-specific shortcuts
             if (e.shiftKey && e.key === 'ArrowLeft') {
                 handleSnapToSide('left')
@@ -2642,9 +2611,6 @@ export const Provider = ({ children, element, location }: AppProviderProps) => {
         }
         if (siteSettings.cursor) {
             updateCursor(siteSettings.cursor)
-        }
-        if (siteSettings.wallpaper) {
-            document.body.setAttribute('data-wallpaper', siteSettings.wallpaper)
         }
         document.body.setAttribute('data-reduce-transparency', siteSettings.reduceTransparency ? 'true' : 'false')
     }, [siteSettings])

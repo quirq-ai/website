@@ -383,7 +383,7 @@ export default function HomeBase() {
                             <>
                                 <AvatarEditor />
                                 <p className="m-0 px-6 py-4 border-t border-white/60 dark:border-white/10 text-[11px] text-secondary">
-                                    Wallpaper, theme and screensaver live in{' '}
+                                    Theme, cursor and screensaver live in{' '}
                                     <Link
                                         to="/display-options"
                                         state={{ newWindow: true }}

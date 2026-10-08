@@ -19,7 +19,7 @@ export default function HTML(props: HTMLProps): JSX.Element {
                 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
                 {props.headComponents}
             </head>
-            <body {...props.bodyAttributes} className="light" data-wallpaper="mobius" data-reduce-transparency="false">
+            <body {...props.bodyAttributes} className="light" data-reduce-transparency="false">
                 {props.preBodyComponents}
                 {/* nosemgrep: typescript.react.security.audit.react-dangerouslysetinnerhtml.react-dangerouslysetinnerhtml - Gatsby body content from build, not user input */}
                 <div key={`body`} id="___gatsby" dangerouslySetInnerHTML={{ __html: props.body }} />
