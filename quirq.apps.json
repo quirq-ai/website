@@ -50,8 +50,9 @@
         },
         "docs": {
             "name": "Docs",
-            "description": "XO documentation.",
+            "description": "The XO docs site. Its Start here page lists the main links.",
             "path": "/docs",
+            "launchUrl": "https://docs.quirq.dev/docs/start",
             "icon": "book",
             "color": "blue",
             "category": "Knowledge",
