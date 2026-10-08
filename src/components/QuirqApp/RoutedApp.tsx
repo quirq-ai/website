@@ -102,7 +102,7 @@ export function MissingApp({
                 <div className="not-prose p-6 @xl:p-10 text-primary" data-testid="live-app-status">
                     {looking ? (
                         <p className="text-secondary">
-                            Looking for {name || 'this app'} in {quirqConfig.organization}…
+                            {name ? `Looking for ${name} in ${quirqConfig.organization}…` : 'Loading…'}
                         </p>
                     ) : (
                         <>
