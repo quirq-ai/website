@@ -59,6 +59,22 @@ test('a live repository list adds and removes repositories, keeps bundled README
     )
 })
 
+test('the committed mapping opens innernet and this site in a new tab and files qq infra under Infra', async () => {
+    const read = async (file) => JSON.parse(await readFile(new URL(`../${file}`, import.meta.url), 'utf8'))
+    const [mapping, repositories, projects] = await Promise.all([
+        read('quirq.apps.json'),
+        read('src/data/quirq-repositories.json'),
+        read('quirq.projects.json'),
+    ])
+    const apps = Object.fromEntries(buildQuirqApps(repositories, mapping).map((app) => [app.repo, app]))
+    // innernet refuses to be framed (X-Frame-Options: DENY); website is this site, which never frames itself.
+    assert.equal(apps.innernet.launchMode, 'external')
+    assert.equal(apps.website.launchMode, 'external')
+    for (const repo of projects.groups.find((group) => group.name === 'qq infra').repos) {
+        if (apps[repo]) assert.equal(apps[repo].category, 'Infra', `${repo} should be under Infra`)
+    }
+})
+
 test('repository styles and custom URLs survive mapping without inventing descriptions or launches', () => {
     const [app] = buildQuirqApps(snapshot([repo('xo-space', { readmeMarkdown: '# XO', readmePath: 'README.md' })]), {
         ...config,

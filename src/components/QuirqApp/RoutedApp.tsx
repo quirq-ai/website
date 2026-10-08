@@ -37,35 +37,47 @@ export function useRoutedApp(pathname: string, root: string) {
     return { name, app, status, looking: !mounted || (!!name && !app && status === 'bundled') }
 }
 
-/** What a client-only route shows while it looks for its repository, or when there is nothing to show. */
+/** At least 44px tall on phones, compact from a medium-width window up (needs an @container ancestor). */
+export const touchTarget = 'min-h-11 @md:min-h-0'
+
+/**
+ * What a client-only route shows while it looks for its repository, when there is nothing to show, or
+ * (`opensInNewTab`) when the app's website opens in a new tab rather than in a window.
+ */
 export function MissingApp({
     name,
     app,
     status,
     looking,
+    opensInNewTab = false,
 }: {
     name: string | null
     app?: QuirqApp
     status: QuirqCatalog['status']
     looking: boolean
+    opensInNewTab?: boolean
 }) {
     const title = app?.name || name || 'Apps'
     const repoUrl = app?.repoUrl || (name ? `${orgUrl}/${encodeURIComponent(name)}` : orgUrl)
-    const [heading, message] = app
-        ? ['Nothing to open', `${app.name} has no website to open here. Read about it, or see its code on GitHub.`]
-        : status === 'offline'
-        ? [
-              'GitHub can’t be reached',
-              `The ${quirqConfig.organization} repository list couldn’t be read, so ${
-                  name || 'this app'
-              } can’t be shown right now.`,
-          ]
-        : [
-              'No app here',
-              name
-                  ? `${quirqConfig.organization} has no public repository named ${name}.`
-                  : 'Open an app from the desktop or Home base.',
-          ]
+    const launchUrl = opensInNewTab ? app?.launchUrl : null
+    const [heading, message] =
+        app && launchUrl
+            ? [`${app.name} opens in a new tab`, `${app.name} runs on its own site rather than in a window here.`]
+            : app
+            ? ['Nothing to open', `${app.name} has no website to open here. Read about it, or see its code on GitHub.`]
+            : status === 'offline'
+            ? [
+                  'GitHub can’t be reached',
+                  `The ${quirqConfig.organization} repository list couldn’t be read, so ${
+                      name || 'this app'
+                  } can’t be shown right now.`,
+              ]
+            : [
+                  'No app here',
+                  name
+                      ? `${quirqConfig.organization} has no public repository named ${name}.`
+                      : 'Open an app from the desktop or Home base.',
+              ]
     return (
         <>
             <SEO title={title} />
@@ -93,27 +105,54 @@ export function MissingApp({
                         <>
                             <h1 className="text-2xl font-bold tracking-tight mb-3">{heading}</h1>
                             <p className="text-secondary mb-5 max-w-xl">{message}</p>
-                            <div className="flex gap-2">
-                                {app ? (
-                                    <OSButton
-                                        asLink
-                                        to={app.path}
-                                        state={{ newWindow: true }}
-                                        size="sm"
-                                        variant="primary"
-                                    >
-                                        About {app.name}
-                                    </OSButton>
+                            <div className="flex flex-wrap gap-2">
+                                {app && launchUrl ? (
+                                    <>
+                                        <OSButton
+                                            asLink
+                                            external
+                                            to={launchUrl}
+                                            size="sm"
+                                            variant="primary"
+                                            className={touchTarget}
+                                        >
+                                            Open {app.name}
+                                        </OSButton>
+                                        <OSButton
+                                            asLink
+                                            to={app.path}
+                                            state={{ newWindow: true }}
+                                            size="sm"
+                                            className={touchTarget}
+                                        >
+                                            About {app.name}
+                                        </OSButton>
+                                    </>
                                 ) : (
-                                    <OSButton asLink to="/" size="sm" variant="primary">
-                                        Home base
-                                    </OSButton>
+                                    <>
+                                        {app ? (
+                                            <OSButton
+                                                asLink
+                                                to={app.path}
+                                                state={{ newWindow: true }}
+                                                size="sm"
+                                                variant="primary"
+                                                className={touchTarget}
+                                            >
+                                                About {app.name}
+                                            </OSButton>
+                                        ) : (
+                                            <OSButton asLink to="/" size="sm" variant="primary" className={touchTarget}>
+                                                Home base
+                                            </OSButton>
+                                        )}
+                                        <OSButton asLink external to={repoUrl} size="sm" className={touchTarget}>
+                                            {app || (status === 'offline' && name)
+                                                ? `${app?.name || name} on GitHub`
+                                                : `${quirqConfig.organization} on GitHub`}
+                                        </OSButton>
+                                    </>
                                 )}
-                                <OSButton asLink external to={repoUrl} size="sm">
-                                    {app || (status === 'offline' && name)
-                                        ? `${app?.name || name} on GitHub`
-                                        : `${quirqConfig.organization} on GitHub`}
-                                </OSButton>
                             </div>
                         </>
                     )}
