@@ -1,6 +1,7 @@
 import config from '../../quirq.apps.json'
 import snapshot from '../data/quirq-repositories.json'
 import { buildQuirqApps } from '../../scripts/lib/quirq-catalog.mjs'
+import type { QuirqIcon } from '../components/QuirqAppIcon/glyphs'
 
 export type QuirqApp = {
     id: string
@@ -8,8 +9,8 @@ export type QuirqApp = {
     name: string
     description: string
     path: string
-    icon: 'code' | 'globe' | 'book' | 'mail' | 'chat' | 'rocket'
-    color: 'blue' | 'purple' | 'orange' | 'green' | 'red' | 'yellow'
+    icon: QuirqIcon
+    color: 'blue' | 'purple' | 'lilac' | 'orange' | 'yellow' | 'red' | 'salmon' | 'teal' | 'seagreen' | 'green' | 'pink'
     category: string
     featured: boolean
     repoUrl: string

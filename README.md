@@ -81,7 +81,7 @@ Edit [`quirq.apps.json`](quirq.apps.json). Keys under `repositories` must match 
         "name": "XO Space",
         "description": "Build, observe, and measure work across your local coding agents.",
         "path": "/xo-space",
-        "icon": "rocket",
+        "icon": "planet",
         "color": "purple",
         "category": "Apps",
         "featured": true,

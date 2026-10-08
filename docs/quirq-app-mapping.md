@@ -37,7 +37,7 @@ The key must match an actual repository name in the organization. Unlisted repos
         "xo-space": {
             "name": "XO Space",
             "path": "/xo-space",
-            "icon": "rocket",
+            "icon": "planet",
             "color": "purple",
             "featured": true,
             "presentation": "overview",
@@ -52,8 +52,8 @@ The key must match an actual repository name in the organization. Unlisted repos
 | --- | --- |
 | `name`, `description`, `category` | Optional display overrides. GitHub name and description are the default. |
 | `path` | A unique local URL, such as `/xo-space` or `/lab/instants`. Default: `/apps/<repository>`. |
-| `icon` | `code`, `globe`, `book`, `mail`, `chat`, or `rocket`. |
-| `color` | `blue`, `purple`, `orange`, `green`, `red`, or `yellow`. Unset apps get a stable color. |
+| `icon` | A glass glyph by name, such as `terminal`, `telescope`, or `planet`. [`QuirqAppIcon`](../src/components/QuirqAppIcon/README.md) lists them all. Unset apps show a `folder`. |
+| `color` | `blue`, `purple`, `lilac`, `orange`, `yellow`, `red`, `salmon`, `teal`, `seagreen`, `green`, or `pink`. Unset apps get a stable color. |
 | `featured` | Highlights the app in Home Base and desktop shortcuts. All visible repositories remain in the catalog. |
 | `hidden` | Removes this repository from app routes, Home Base, navigation, and search after Gatsby regenerates pages. |
 | `presentation` | `overview`, `reader`, or `gallery`. These are reusable starting points for individual app styles. |

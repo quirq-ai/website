@@ -9,10 +9,15 @@ import DocsBrowser from './DocsBrowser'
 const accents: Record<string, string> = {
     blue: 'bg-blue/10 border-blue/30',
     purple: 'bg-purple/10 border-purple/30',
+    lilac: 'bg-lilac/10 border-lilac/30',
     orange: 'bg-orange/10 border-orange/30',
-    green: 'bg-green/10 border-green/30',
-    red: 'bg-red/10 border-red/30',
     yellow: 'bg-yellow/20 border-yellow/40',
+    red: 'bg-red/10 border-red/30',
+    salmon: 'bg-salmon/10 border-salmon/30',
+    teal: 'bg-teal/10 border-teal/30',
+    seagreen: 'bg-seagreen/10 border-seagreen/30',
+    green: 'bg-green/10 border-green/30',
+    pink: 'bg-pink/10 border-pink/30',
 }
 
 export default function RepositoryApp({ app }: { app: QuirqApp }) {

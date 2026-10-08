@@ -4,7 +4,13 @@ import { mkdtemp, readFile, writeFile, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { Buffer } from 'node:buffer'
-import { buildQuirqApps, mergeLiveRepositories, normalizeAppPath, safeWebUrl } from './lib/quirq-catalog.mjs'
+import {
+    QUIRQ_ICONS,
+    buildQuirqApps,
+    mergeLiveRepositories,
+    normalizeAppPath,
+    safeWebUrl,
+} from './lib/quirq-catalog.mjs'
 import { fetchOrganizationRepositories, syncQuirqApps } from './sync-quirq-apps.mjs'
 
 const config = { organization: 'quirq-ai', name: 'Quirq', defaults: {}, repositories: {} }
@@ -389,4 +395,13 @@ test('--check fails while a hidden repository still carries README text, without
         await assert.rejects(syncQuirqApps({ configPath, outputPath, check: true, prune: true }), /either/)
         assert.equal(await readFile(outputPath, 'utf8'), before)
     })
+})
+
+test('every icon name the mapping accepts has a glyph, and every glyph a name', async () => {
+    const source = await readFile(new URL('../src/components/QuirqAppIcon/glyphs.ts', import.meta.url), 'utf8')
+    const glyphs = source.slice(source.indexOf('export const QUIRQ_GLYPHS = {'), source.indexOf('\n}\n'))
+    const names = [...glyphs.matchAll(/^ {4}'?([a-z][a-z-]*)'?:/gm)].map((match) => match[1])
+    assert.deepEqual([...names].sort(), [...QUIRQ_ICONS].sort())
+    // A repository without a chosen icon shows a folder.
+    assert.equal(buildQuirqApps(snapshot([repo('new-repo')]), config)[0].icon, 'folder')
 })

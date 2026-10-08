@@ -1,6 +1,62 @@
 // Shared by the Gatsby UI and the Node sync command. Keep this module free of Node APIs.
-export const QUIRQ_COLORS = ['blue', 'purple', 'orange', 'green', 'red', 'yellow']
-export const QUIRQ_ICONS = ['code', 'globe', 'book', 'mail', 'chat', 'rocket']
+// The project color tokens QuirqAppIcon tints with.
+export const QUIRQ_COLORS = [
+    'blue',
+    'purple',
+    'lilac',
+    'orange',
+    'yellow',
+    'red',
+    'salmon',
+    'teal',
+    'seagreen',
+    'green',
+    'pink',
+]
+// The glyphs in src/components/QuirqAppIcon/glyphs.ts; a test keeps the two lists equal.
+export const QUIRQ_ICONS = [
+    'apps',
+    'blob',
+    'book',
+    'browser',
+    'brush',
+    'chat',
+    'chef-hat',
+    'clipboard',
+    'code',
+    'conveyor',
+    'cube',
+    'document',
+    'download',
+    'flask',
+    'folder',
+    'gauge',
+    'globe',
+    'home',
+    'hub',
+    'mail',
+    'map',
+    'megaphone',
+    'palette',
+    'photos',
+    'planet',
+    'profile',
+    'quirq',
+    'rocket',
+    'server',
+    'shapes',
+    'shield',
+    'slash',
+    'sliders',
+    'sprout',
+    'stopwatch',
+    'sync',
+    'tag',
+    'telescope',
+    'terminal',
+    'toolbox',
+    'wand',
+]
 const presentations = ['overview', 'reader', 'gallery']
 // external: a new browser tab. window: its own window on this site, in an iframe (/launch/<repository>).
 // embed: an App tab inside the repository's page.
@@ -252,7 +308,7 @@ export function buildQuirqApps(snapshot, config) {
                     name: override.name || repo.name,
                     description: override.description ?? repo.description,
                     path,
-                    icon: choice(override.icon || defaults.icon || 'code', QUIRQ_ICONS, 'icon'),
+                    icon: choice(override.icon || defaults.icon || 'folder', QUIRQ_ICONS, 'icon'),
                     color: choice(override.color || defaults.color || colorFor(repo.name), QUIRQ_COLORS, 'color'),
                     category: override.category || defaults.category || 'Apps',
                     featured: override.featured === true,
