@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react'
 import Link from 'components/Link'
-import { useAppActions, useAppSettings, useAppUIState } from '../../context/App'
+import { useAppActions, useAppSettings, useAppUIState, useAppWindows } from '../../context/App'
 import QuirqAppIcon from 'components/QuirqAppIcon'
 import { getQuirqApps } from 'lib/quirqApps'
 import { AppItem } from 'components/OSIcons/AppIcon'
@@ -8,7 +8,8 @@ import ContextMenu from 'components/RadixUI/ContextMenu'
 import DesktopIcon from './DesktopIcon'
 import { Screensaver } from '../Screensaver'
 import { useInactivityDetection } from '../../hooks/useInactivityDetection'
-import Wallpapers, { getWallpaperGlow } from './Wallpapers'
+import Background, { DESKTOP_ICON_GLOW } from './Background'
+import QuirqProfile from 'components/QuirqProfile'
 import ReactConfetti from 'react-confetti'
 import { useToast } from '../../context/Toast'
 
@@ -49,6 +50,23 @@ export const apps: AppItem[] = [
 const DESKTOP_TOP_OFFSET = 8
 const DOCK_CLEARANCE = 108
 
+// The README recedes while a window is open in front of it and comes forward on the bare desktop.
+// Its own component, so window changes re-render only this wrapper, not the desktop.
+function DesktopReadme() {
+    const { windows } = useAppWindows()
+    const covered = windows.some((item) => !item.minimized)
+    return (
+        <div
+            data-desktop-surface
+            className={`px-5 pt-10 sm:pt-[6vh] sm:px-36 lg:px-60 transition-opacity duration-500 motion-reduce:transition-none ${
+                covered ? 'opacity-45' : 'opacity-100'
+            }`}
+        >
+            <QuirqProfile />
+        </div>
+    )
+}
+
 function Desktop() {
     const productLinks = useProductLinks()
     const { setScreensaverPreviewActive, setConfetti, updateSiteSettings } = useAppActions()
@@ -79,9 +97,10 @@ function Desktop() {
             if (event.pointerType !== 'mouse' || event.button !== 0 || !event.isPrimary) return
             const target = event.target
             if (!(target instanceof Element)) return
-            // Empty space can belong to the window layer or the desktop icon lists.
+            // Empty space can belong to the window layer, the desktop, its scrolling README layer, or
+            // the icon lists.
             const isBackground = target.matches(
-                '[data-app="WindowList"], [data-app="DesktopViewport"], [data-app="Desktop"]'
+                '[data-app="WindowList"], [data-app="DesktopViewport"], [data-app="Desktop"], [data-desktop-surface]'
             )
             const isIconList = target.matches('ul') && target.closest('[data-app="Desktop"]')
             if (!isBackground && !isIconList) return
@@ -126,8 +145,7 @@ function Desktop() {
         }
     }, [])
 
-    // Drive the desktop icons' hover-glow color from the active wallpaper (light + dark).
-    const glow = getWallpaperGlow(siteSettings.wallpaper)
+    const glow = DESKTOP_ICON_GLOW
     const applyGlow = (items: AppItem[]) =>
         items.map((app) =>
             React.isValidElement(app.Icon) && app.Icon.type === QuirqAppIcon
@@ -148,7 +166,9 @@ function Desktop() {
     // Left uses wrap (new columns grow right); right uses wrap-reverse (new columns grow left)
     // so the primary column stays pinned to the screen edge.
     const mobileIconListClassName = 'list-none m-0 p-0 flex flex-row flex-wrap pointer-events-auto w-full sm:hidden'
-    const desktopIconListClassName = 'list-none m-0 p-0 flex flex-col content-start pointer-events-auto'
+    // Only the icons take pointer events, so the README scrolls under the columns' empty space.
+    const desktopIconListClassName =
+        'list-none m-0 p-0 flex flex-col content-start pointer-events-none [&>li]:pointer-events-auto'
     // Top padding is DESKTOP_TOP_OFFSET + 16; leave a matching cushion above the dock.
     const desktopIconListStyle = {
         height: `calc(100dvh - ${DESKTOP_TOP_OFFSET + 32 + DOCK_CLEARANCE}px)`,
@@ -213,15 +233,31 @@ function Desktop() {
                 ]}
             >
                 <div data-scheme="primary" data-app="Desktop" className="fixed inset-0 pointer-events-none">
-                    <Wallpapers />
+                    <Background />
 
-                    <nav className="px-1" style={{ paddingTop: DESKTOP_TOP_OFFSET + 16 }}>
-                        <ul className={mobileIconListClassName}>
-                            {[...leftApps, ...rightApps].map((app) => (
-                                <DesktopIcon key={app.label} app={app} />
-                            ))}
-                        </ul>
-                        <div className="hidden sm:flex sm:justify-between items-start">
+                    {/* The organization's README is written on the background and scrolls; on phones the
+                        icon grid scrolls with it, above it. Windows and the dock sit on top. */}
+                    <div
+                        data-desktop-surface
+                        className="absolute inset-0 overflow-y-auto overscroll-contain pointer-events-auto [mask-image:linear-gradient(to_bottom,transparent,black_24px,black_calc(100%-140px),transparent_calc(100%-40px))]"
+                        style={{ paddingTop: DESKTOP_TOP_OFFSET + 16, paddingBottom: DOCK_CLEARANCE + 96 }}
+                    >
+                        <nav className="px-1 sm:hidden" aria-label="Desktop apps">
+                            <ul className={mobileIconListClassName}>
+                                {[...leftApps, ...rightApps].map((app) => (
+                                    <DesktopIcon key={app.label} app={app} />
+                                ))}
+                            </ul>
+                        </nav>
+                        <DesktopReadme />
+                    </div>
+
+                    <nav
+                        className="absolute inset-x-0 top-0 px-1 hidden sm:block"
+                        style={{ paddingTop: DESKTOP_TOP_OFFSET + 16 }}
+                        aria-label="Desktop apps"
+                    >
+                        <div className="flex justify-between items-start">
                             <ul className={`${desktopIconListClassName} flex-wrap`} style={desktopIconListStyle}>
                                 {leftApps.map((app) => (
                                     <DesktopIcon key={app.label} app={app} />

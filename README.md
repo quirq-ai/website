@@ -2,7 +2,7 @@
 
 A customizable desktop for the apps, experiments, and open source projects in the [quirq GitHub organization](https://github.com/quirq-ai).
 
-Repositories become app entries with their own URLs. The desktop icons, the Home window, and search all use the same catalog. A floating dock, after [Euler](https://github.com/quirq-ai/euler)'s, is the navigation bar: Home, Projects, search, and the list of open windows. The Home window follows Euler's Home: a greeting, the catalog at a glance, a card for every app, and a [Blobatar](https://blobatar.dev/) avatar you can make your own. The interface keeps the playful desktop experience: glass icons, wallpapers, light and dark themes, screensavers, appearance settings, and multiple app windows with expand, restore, and close controls.
+Repositories become app entries with their own URLs. The desktop icons, the Home window, and search all use the same catalog. A floating dock, after [Euler](https://github.com/quirq-ai/euler)'s, is the navigation bar: Home, Projects, search, and the list of open windows. The Home window follows Euler's Home: a greeting, the catalog at a glance, a card for every app, and a [Blobatar](https://blobatar.dev/) avatar you can make your own. The desktop is a plain background with the organization's [GitHub profile README](https://github.com/quirq-ai) written on it, read live. The interface keeps the playful desktop experience: glass icons, light and dark themes, screensavers, appearance settings, and multiple app windows with expand, restore, and close controls.
 
 Each app can have its own identity. Use a document view for Docs, a colorful showcase for an experiment, or a completely custom React page for a product. A shared data source does not require every app to look the same.
 
@@ -180,7 +180,7 @@ This repository has a qq manifest and generated workflows from [quirq infra](htt
 | [`src/components/QuirqApp`](src/components/QuirqApp) | Repository overview, reader, gallery, README rendering, and optional embed |
 | [`src/components/QuirqAppIcon`](src/components/QuirqAppIcon) | Mapped icons in the existing glass icon style |
 | [`src/components/QuirqSearch`](src/components/QuirqSearch) | Local catalog search and keyboard navigation |
-| [`src/components/Desktop`](src/components/Desktop) | Desktop icons and wallpaper. The inherited top bar in [`src/components/TaskBarMenu`](src/components/TaskBarMenu) is no longer mounted; the dock replaced it |
+| [`src/components/Desktop`](src/components/Desktop) and [`src/components/QuirqProfile`](src/components/QuirqProfile) | Desktop icons, the plain background, and the organization README written on it. The inherited top bar in [`src/components/TaskBarMenu`](src/components/TaskBarMenu) is no longer mounted; the dock replaced it |
 | [`src/context/App.tsx`](src/context/App.tsx) and [`src/components/AppWindow`](src/components/AppWindow) | Shared app state, window lifecycle, layout, and controls |
 | [`src/pages/display-options.tsx`](src/pages/display-options.tsx) | Appearance and personalization settings |
 | [`vercel.json`](vercel.json) | Gatsby build and output configuration for Vercel |

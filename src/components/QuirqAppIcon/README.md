@@ -1,6 +1,6 @@
 # Quirq app icons
 
-`QuirqAppIcon` is a small adapter for the existing `OSIcons/GlassIcon`. It keeps the desktop's beveled silhouettes, glass, hover motion, and wallpaper-colored glow while giving each repository a distinct glyph and color.
+`QuirqAppIcon` is a small adapter for the existing `OSIcons/GlassIcon`. It keeps the desktop's beveled silhouettes, glass, hover motion, and soft hover glow while giving each repository a distinct glyph and color.
 
 ```tsx
 <QuirqAppIcon icon={app.icon} color={app.color} className="!size-12" />

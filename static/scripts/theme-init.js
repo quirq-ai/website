@@ -27,16 +27,11 @@
     }
     setTheme(preferredTheme === 'system' ? (darkQuery.matches ? 'dark' : 'light') : preferredTheme)
 
-    // Set initial skin / wallpaper / reduce-transparency before React hydrates
+    // Set initial skin / reduce-transparency before React hydrates
     try {
         // The classic skin has been retired; always render the modern skin
         document.body.setAttribute('data-skin', 'modern')
         var siteSettings = JSON.parse(localStorage.getItem('siteSettings') || '{}')
-        var wallpaper = siteSettings.wallpaper
-        document.body.setAttribute(
-            'data-wallpaper',
-            wallpaper === 'mobius' || wallpaper === 'light-beam' ? wallpaper : 'mobius'
-        )
         document.body.setAttribute(
             'data-reduce-transparency',
             siteSettings.reduceTransparency ? 'true' : 'false'

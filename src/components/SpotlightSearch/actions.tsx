@@ -6,7 +6,6 @@ import {
     IconCursor,
     IconCursorClick,
     IconDay,
-    IconImage,
     IconLaptop,
     IconMagicWand,
     IconMouseScrollDown,
@@ -19,7 +18,6 @@ import {
 import { navigate } from 'gatsby'
 import { useApp, SiteSettings } from '../../context/App'
 import { useToast } from '../../context/Toast'
-import { themeOptions } from '../../hooks/useTheme'
 import { useHedgehogMode } from 'components/HedgehogMode'
 import useEarlyAccessFeatures from 'hooks/useEarlyAccessFeatures'
 
@@ -95,16 +93,6 @@ export const useSpotlightActions = (): SpotlightAction[] => {
         }
     }
 
-    const changeWallpaper = () => {
-        const currentIndex = themeOptions.findIndex((theme) => theme.value === siteSettings.wallpaper)
-        const nextWallpaper = themeOptions[(currentIndex + 1) % themeOptions.length]
-        updateSiteSettings({
-            ...siteSettings,
-            wallpaper: nextWallpaper.value as SiteSettings['wallpaper'],
-        })
-        toast(<IconImage className="size-5 inline-block mr-1" />, `Wallpaper: ${nextWallpaper.label}`)
-    }
-
     const cycleCursor = () => {
         const cursors: SiteSettings['cursor'][] = ['default', 'xl', 'james']
         const next = cursors[(cursors.indexOf(siteSettings.cursor) + 1) % cursors.length]
@@ -120,14 +108,6 @@ export const useSpotlightActions = (): SpotlightAction[] => {
             keywords: ['dark', 'light', 'theme', 'appearance', 'color mode', 'night'],
             keepOpen: true,
             perform: toggleTheme,
-        },
-        {
-            id: 'change-wallpaper',
-            label: 'Change wallpaper',
-            icon: <IconImage />,
-            keywords: ['wallpaper', 'background', 'desktop'],
-            keepOpen: true,
-            perform: changeWallpaper,
         },
         {
             id: 'hedgehog-mode',

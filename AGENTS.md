@@ -4,7 +4,7 @@ This repository is quirq's Gatsby 4 / React website, adapted from the PostHog de
 
 ## Preserve the character
 
-- Keep the wallpapers, glass icons, themes, screensavers, window chrome, and individual app identity.
+- Keep the plain desktop background with the organization's GitHub README written on it, the glass icons, themes, screensavers, window chrome, and individual app identity.
 - Each app can have its own URL, icon, color, presentation, custom component, and launch destination. Do not flatten everything into a uniform directory page.
 - The existing window system uses a flex layout with expand, restore, minimize, and close controls. Window dimensions adapt to the available space; this is not an operating system with freely draggable windows.
 - Reuse Explorer, shared controls, and project color tokens. Prefer container queries so layouts respond to their app window, not just the browser width.
@@ -23,6 +23,7 @@ This repository is quirq's Gatsby 4 / React website, adapted from the PostHog de
 | Project groups, descriptions and phase overrides | `quirq.projects.json`, phase rules in `scripts/lib/quirq-phases.mjs` |
 | Generated project phase snapshot (`pnpm projects:sync`) | `src/data/quirq-projects.json` |
 | Projects view and quirq infra v0 app | `src/components/QuirqProjects/`, `src/components/QuirqInfraV0/` |
+| Desktop background: plain, with the organization's GitHub profile README (read live) | `src/components/Desktop/Background.tsx`, `src/components/QuirqProfile/` |
 | Home window (`/`) | `src/components/HomeBase/` |
 | Dock navigation bar (Home, Projects, search, open windows) and the Blobatar avatar | `src/components/Dock/`, `src/components/QuirqAvatar/`, `src/lib/quirqAvatar.ts`, `src/vendor/blobatar/` |
 | Default app views | `src/components/QuirqApp/`, `src/templates/quirq-app.tsx` |
@@ -35,7 +36,7 @@ This repository is quirq's Gatsby 4 / React website, adapted from the PostHog de
 
 - Keep app mapping in `quirq.apps.json`; avoid separate hard-coded app lists in menus, search, or the homepage.
 - Keep project groups and phase overrides in `quirq.projects.json`; refresh phases with `pnpm projects:sync`. A hand-set `phase` needs a `phaseReason`.
-- Live state on `/v0` and `/projects` is read in the browser from public files on raw.githubusercontent.com. Do not add a token or backend for it.
+- Live state on `/v0` and `/projects`, and the organization README on the desktop (`.github/profile/README.md`), are read in the browser from public files on raw.githubusercontent.com. Do not add a token or backend for them.
 - Refresh the generated snapshot with `pnpm apps:sync`. Do not hand-edit repository data or invent a deployment URL.
 - After hiding a repository, run `pnpm apps:sync` (or the offline `pnpm apps:prune`) so its README text leaves the bundled snapshot; `pnpm apps:check` fails until then.
 - Only public repositories belong in the snapshot. Never commit tokens or private repository metadata.

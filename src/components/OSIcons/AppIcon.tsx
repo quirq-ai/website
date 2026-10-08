@@ -2,7 +2,6 @@ import React, { useState, useEffect, useMemo } from 'react'
 import { BaseIcon, type IconProps } from './Icons'
 import Link from 'components/Link'
 import { useRef } from 'react'
-import useTheme from '../../hooks/useTheme'
 import { useAppSettings } from '../../context/App'
 import usePostHog from 'hooks/usePostHog'
 
@@ -318,7 +317,6 @@ export const AppLink = ({
     const posthog = usePostHog()
     const { posthogInstance } = useAppSettings()
     const ref = useRef<HTMLSpanElement>(null)
-    const { getThemeSpecificBackgroundColors } = useTheme()
 
     const url = useMemo(() => {
         if (!initialUrl) return initialUrl
@@ -407,8 +405,7 @@ export const AppLink = ({
         
     `
 
-    const themeSpecificColors = getThemeSpecificBackgroundColors()
-    const backgroundMatchedColors = `${baseBackgroundColors} ${themeSpecificColors}`
+    const backgroundMatchedColors = baseBackgroundColors
 
     // Only apply theme-specific background colors if source is "desktop"
     const finalBackground = background || (source === 'desktop' ? backgroundMatchedColors : '')

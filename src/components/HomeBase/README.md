@@ -7,7 +7,7 @@ From top to bottom:
 - **Header:** the saved Blobatar avatar and the quirq wordmark, the time, when the catalog snapshot was synced, and **Personalize**, which opens the avatar panel.
 - **Welcome:** the date, a time-of-day greeting, and three counts: apps with a launch URL (**Live**), catalog **Apps**, and **Repos** in the projects snapshot. The date and greeting render after mount, so the server and browser renders match.
 - **Your apps:** category filters, local search, and a card per app. **Open** opens the app's own window (`newWindow: true`), so each app keeps its window, route and local state. **Launch** opens the app's launch URL in a browser tab when it has one, and the code button opens the repository.
-- **Make quirq yours:** the `AvatarEditor` from `components/QuirqAvatar`, plus a link to Display options for wallpaper, theme and screensaver.
+- **Make quirq yours:** the `AvatarEditor` from `components/QuirqAvatar`, plus a link to Display options for theme, cursor and screensaver.
 
 All entries come from `getQuirqApps()` in `src/lib/quirqApps.ts`, with featured apps first. Change `quirq.apps.json` to map a repository to an icon, a category, a URL, a presentation, or a custom component, and run `pnpm apps:sync` to refresh the committed GitHub snapshot.
 

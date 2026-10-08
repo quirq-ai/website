@@ -1,6 +1,6 @@
 # quirq app mapping
 
-The GitHub organization is the catalog. Its public repositories become apps in Home Base, the desktop, and navigation. The shared window system, wallpapers, themes, and app-specific URLs stay available.
+The GitHub organization is the catalog. Its public repositories become apps in Home Base, the desktop, and navigation. The shared window system, themes, and app-specific URLs stay available.
 
 ## Two files to know
 
