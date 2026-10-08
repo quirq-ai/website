@@ -50,7 +50,7 @@
         },
         "docs": {
             "name": "Docs",
-            "description": "The XO docs site. Launch opens its Start here page.",
+            "description": "The XO docs site. Its Start here page lists the main links.",
             "path": "/docs",
             "launchUrl": "https://docs.quirq.dev/docs/start",
             "icon": "book",
