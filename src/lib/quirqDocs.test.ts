@@ -1,6 +1,16 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { docImageUrl, docSrcSet, isDocPath, readmeIn, repositoryPath, themedMedia } from './quirqDocs.ts'
+import {
+    docImageUrl,
+    docLabel,
+    docSrcSet,
+    isDocPath,
+    readmeIn,
+    readmeSummary,
+    repositoryPath,
+    themedMedia,
+    withoutTitle,
+} from './quirqDocs.ts'
 
 const app = {
     id: 'quirq-ai/wiki',
@@ -73,4 +83,48 @@ test('light and dark <picture> sources follow the site theme', () => {
     assert.equal(themedMedia('(prefers-color-scheme: dark)', false), 'not all')
     assert.equal(themedMedia('(prefers-color-scheme:light)', false), 'all')
     assert.equal(themedMedia('(min-width: 600px)', true), '(min-width: 600px)')
+})
+
+test('tabs name a doc by its file name, or its path when two docs share a name', () => {
+    const paths = ['README.md', 'AGENTS.md', 'docs/README.md', 'docs/guide/Setup.mdx']
+    assert.equal(docLabel('AGENTS.md', paths), 'AGENTS')
+    assert.equal(docLabel('docs/guide/Setup.mdx', paths), 'Setup')
+    assert.equal(docLabel('README.md', paths), 'README')
+    assert.equal(docLabel('docs/README.md', paths), 'docs/README')
+    assert.equal(docLabel('README.md', ['README.md']), 'README')
+})
+
+test('a README summary is the first sentence of its opening paragraph, as plain text', () => {
+    const qq = [
+        '# qq',
+        '',
+        '`qq` is the quirq infra command line (this repo was `quirq-ai/depot` until 2026-10-09; the old',
+        'URL redirects here). Every repo that quirq infra builds pins the `qq` version it runs.',
+    ].join('\n')
+    assert.equal(
+        readmeSummary(qq),
+        'qq is the quirq infra command line (this repo was quirq-ai/depot until 2026-10-09; the old URL redirects here).'
+    )
+    const decorated = [
+        '<p align="center"><img src="logo.svg"></p>',
+        '[![CI](https://x/badge.svg)](https://x)',
+        '',
+        '```sh',
+        'not this',
+        '```',
+        '',
+        'A **fast** tool for [quirq](https://quirq.dev). More here.',
+    ].join('\n')
+    assert.equal(readmeSummary(decorated), 'A fast tool for quirq.')
+    assert.equal(readmeSummary('# Only a title\n\n- a list'), null)
+    assert.equal(readmeSummary(null), null)
+    assert.equal(readmeSummary(`Word ${'long '.repeat(60)}`, 40)?.length, 40)
+})
+
+test('a leading title that only repeats the repository name is dropped', () => {
+    assert.equal(withoutTitle('\n# qq\n\nqq is a tool.', ['qq', 'quirq-ai/qq']), '\n\nqq is a tool.')
+    assert.equal(withoutTitle('# `QQ` #\nText', ['qq']), 'Text')
+    assert.equal(withoutTitle('# qq tools\nText', ['qq']), '# qq tools\nText')
+    assert.equal(withoutTitle('Intro\n# qq', ['qq']), 'Intro\n# qq')
+    assert.equal(withoutTitle('## qq\nText', ['qq']), '## qq\nText')
 })

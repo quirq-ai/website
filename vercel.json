@@ -9,7 +9,7 @@
             "headers": [
                 {
                     "key": "Content-Security-Policy",
-                    "value": "frame-src https://docs.quirq.dev https://quitter.quirq.dev https://research.quirq.dev; frame-ancestors 'self'"
+                    "value": "frame-src https:; frame-ancestors 'self'"
                 }
             ]
         }

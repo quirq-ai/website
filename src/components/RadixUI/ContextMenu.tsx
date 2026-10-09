@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { ContextMenu as RadixContextMenu } from 'radix-ui'
-import KeyboardShortcut from "components/KeyboardShortcut"
+import KeyboardShortcut from 'components/KeyboardShortcut'
 
 export interface ContextMenuItemProps {
     type: 'item' | 'separator'
@@ -9,6 +9,8 @@ export interface ContextMenuItemProps {
     disabled?: boolean
     children?: React.ReactNode
     shortcut?: string[]
+    /** The item is a link that opens in a new browser tab, not in a window here (lib/externalLinks). */
+    newTab?: boolean
 }
 
 export interface ContextMenuProps {
@@ -41,6 +43,7 @@ const ContextMenu = ({ children, menuItems, className }: ContextMenuProps) => {
                                 key={index}
                                 className={ItemClasses}
                                 disabled={item.disabled}
+                                {...(item.newTab ? { 'data-new-tab': '' } : {})}
                                 onSelect={(e) => {
                                     // Execute any onClick handlers
                                     item.onClick?.()
@@ -59,9 +62,7 @@ const ContextMenu = ({ children, menuItems, className }: ContextMenuProps) => {
                                     }}
                                     className="w-full flex justify-between items-center gap-1"
                                 >
-                                    <span>
-                                        {item.children || item.label}
-                                    </span>
+                                    <span>{item.children || item.label}</span>
                                     <span>
                                         {item.shortcut && <KeyboardShortcut text={item.shortcut.join(' ')} size="sm" />}
                                     </span>

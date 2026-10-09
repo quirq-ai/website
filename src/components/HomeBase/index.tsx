@@ -42,7 +42,7 @@ const icons = {
     code: 'm8 8-4 4 4 4m8-8 4 4-4 4',
 }
 
-/** Launch opens the app's own window on this site, or its website in a new tab for an `external` app. */
+/** Launch opens the app's own window on this site, its website framed, or "Oops" with Open in new tab. */
 const LaunchButton = ({ app }: { app: QuirqApp }) => {
     const launch = getLaunchTarget(app)
     if (!launch) return null

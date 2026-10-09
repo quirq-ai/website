@@ -389,3 +389,10 @@ export function buildQuirqApps(snapshot, config) {
         })
         .sort((a, b) => Number(b.featured) - Number(a.featured) || a.name.localeCompare(b.name))
 }
+
+/**
+ * Whether an app gets a desktop icon: only apps with a website (their launch URL, which defaults to the
+ * repository's homepage on GitHub). Every app, with a website or not, stays in Home base, search and
+ * the menus.
+ */
+export const isDesktopApp = (app) => Boolean(app.launchUrl)

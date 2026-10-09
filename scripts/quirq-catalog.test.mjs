@@ -7,6 +7,7 @@ import { Buffer } from 'node:buffer'
 import {
     QUIRQ_ICONS,
     buildQuirqApps,
+    isDesktopApp,
     isFramableUrl,
     mergeLiveRepositories,
     normalizeAppPath,
@@ -66,7 +67,7 @@ test('a live repository list adds and removes repositories, keeps bundled README
     )
 })
 
-test('the committed mapping opens innernet and this site in a new tab and files qq infra under Infra', async () => {
+test('the committed mapping keeps innernet and this site external (never framed unchecked) and files qq infra under Infra', async () => {
     const read = async (file) => JSON.parse(await readFile(new URL(`../${file}`, import.meta.url), 'utf8'))
     const [mapping, repositories, projects] = await Promise.all([
         read('quirq.apps.json'),
@@ -289,7 +290,7 @@ test('repository mappings apply whatever case GitHub returns the name in', () =>
     )
 })
 
-test('the committed mapping frames only its allowed origins, and vercel.json allows exactly those', async () => {
+test('the committed mapping frames without asking only on its allowed origins; vercel.json lets windows frame any https page', async () => {
     const read = async (file) => JSON.parse(await readFile(new URL(`../${file}`, import.meta.url), 'utf8'))
     const [mapping, repositories, vercel] = await Promise.all([
         read('quirq.apps.json'),
@@ -311,7 +312,9 @@ test('the committed mapping frames only its allowed origins, and vercel.json all
             return [name, values]
         })
     )
-    assert.deepEqual([...directives['frame-src']].sort(), [...mapping.frameOrigins].sort())
+    // Any link opens in a window (src/templates/quirq-launch.tsx), which asks /api/frame-check first; only
+    // https, since a secure page can't frame an insecure one. No other site may frame this one.
+    assert.deepEqual(directives['frame-src'], ['https:'])
     assert.deepEqual(directives['frame-ancestors'], ["'self'"])
 })
 
@@ -513,4 +516,21 @@ test('every icon name the mapping accepts has a glyph, and every glyph a name', 
     assert.deepEqual([...names].sort(), [...QUIRQ_ICONS].sort())
     // A repository without a chosen icon shows a folder.
     assert.equal(buildQuirqApps(snapshot([repo('new-repo')]), config)[0].icon, 'folder')
+})
+
+test('only apps with a website get a desktop icon; every app stays in the catalog for the menus', async () => {
+    const read = async (file) => JSON.parse(await readFile(new URL(`../${file}`, import.meta.url), 'utf8'))
+    const apps = buildQuirqApps(await read('src/data/quirq-repositories.json'), await read('quirq.apps.json'))
+    const desktop = apps.filter(isDesktopApp)
+    assert.ok(desktop.length > 0)
+    for (const app of desktop) assert.ok(app.launchUrl, `${app.repo} is on the desktop without a website`)
+    for (const app of apps.filter((entry) => !entry.launchUrl)) assert.ok(!isDesktopApp(app), app.repo)
+    assert.ok(!isDesktopApp(apps.find((app) => app.repo === 'wiki')), 'wiki has no homepage')
+    assert.ok(isDesktopApp(apps.find((app) => app.repo === 'innernet')))
+    assert.ok(
+        apps.some((app) => app.repo === 'wiki'),
+        'apps without a website stay in the catalog'
+    )
+    assert.equal(isDesktopApp({ launchUrl: null }), false)
+    assert.equal(isDesktopApp({ launchUrl: 'https://example.com/' }), true)
 })

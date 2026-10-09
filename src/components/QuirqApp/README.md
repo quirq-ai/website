@@ -5,12 +5,11 @@ comes from GitHub repository metadata and a synced README. It supports three pre
 `overview` (app profile), `reader` (document with repository sidebar), and `gallery`
 (a colorful showcase). The presentation belongs to each entry in `quirq.apps.json`.
 
-Open app follows the entry's `launchMode`: `window` opens the launch URL in its own window on
-this site (`/launch/<repository>`, an iframe), `external` opens it in a new tab, and `embed`
-(set per repository) adds an App tab to this page. Framing depends on the destination
-allowing it, so both the launch window and the App tab keep an Open in new tab link. A
-repository with no destination opens its source on GitHub, always in a new tab, since GitHub
-refuses to be framed. Neither a repository nor a README is executable app code.
+Open app opens the launch URL in its own window on this site (`/launch/<repository>`, an
+iframe), and `embed` (set per repository) adds an App tab to this page. Framing depends on the
+destination allowing it, so the launch window asks `/api/frame-check` first and shows **Oops**
+with an Open in new tab button for a site that refuses; View code opens GitHub's window, which
+says so. Neither a repository nor a README is executable app code.
 
 `RoutedApp.tsx` holds what the client-only routes `/apps/*` and `/launch/*` share: finding the
 repository named in the URL in the live catalog, titling the window after it, and the screen
