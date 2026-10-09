@@ -21,6 +21,7 @@
             "name": "qq infra",
             "description": "quirq's CI/CD system, modeled on Chromium's.",
             "repos": [
+                "qq",
                 "depot",
                 "sync",
                 "recipes",
@@ -65,6 +66,9 @@
         },
         "website": {
             "description": "This site: the quirq Home base, deployed by Vercel on every push to main."
+        },
+        "qq": {
+            "description": "The qq command."
         },
         "depot": {
             "description": "The qq command."
