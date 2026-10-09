@@ -58,6 +58,22 @@ export const QUIRQ_ICONS = [
     'toolbox',
     'wand',
 ]
+// The organization's `role` custom property on GitHub: what a repository is. The order is the order apps
+// are listed in (after featured ones) and the order of Home base's type filters. GitHub's definition is
+// the source of truth (single select, required, default `project`); a value it adds later that isn't
+// here is ignored until it is added, so the site never shows a type it can't describe.
+export const QUIRQ_ROLES = ['project', 'agent', 'tool', 'library', 'docs', 'config']
+
+/**
+ * A repository's type from GitHub's `custom_properties.role` (the live list) or the snapshot's `role`.
+ * Null when GitHub didn't send the property or sent a value this site doesn't know.
+ */
+export function repositoryRole(repo) {
+    const value =
+        repo.custom_properties && typeof repo.custom_properties === 'object' ? repo.custom_properties.role : repo.role
+    return typeof value === 'string' && QUIRQ_ROLES.includes(value) ? value : null
+}
+
 // external: a new browser tab. window: its own window on this site, in an iframe (/launch/<repository>).
 // embed: an App tab inside the repository's page.
 const launchModes = ['external', 'window', 'embed']
@@ -243,6 +259,7 @@ export function normalizeRepository(repo, organization) {
             Number.isInteger(repo.stargazers_count) && repo.stargazers_count >= 0 ? repo.stargazers_count : 0,
         updated_at: repo.updated_at,
         default_branch: repo.default_branch,
+        role: repositoryRole(repo),
         readmeMarkdown: typeof repo.readmeMarkdown === 'string' ? repo.readmeMarkdown : null,
         readmePath: typeof repo.readmePath === 'string' ? repo.readmePath : null,
     }
@@ -271,6 +288,9 @@ export function mergeLiveRepositories(snapshot, liveRepositories, fetchedAt) {
         const bundled = readmes.get(key)
         repositories.push({
             ...repo,
+            // A list without custom properties (GitHub can leave them out) keeps the type the build read.
+            role:
+                raw.custom_properties && typeof raw.custom_properties === 'object' ? repo.role : bundled?.role ?? null,
             readmeMarkdown: bundled?.readmeMarkdown ?? null,
             readmePath: bundled?.readmePath ?? null,
         })
@@ -304,6 +324,9 @@ function validatePresentation(settings, label) {
         assert(settings[key] === undefined || typeof settings[key] === 'string', `${label}.${key} must be a string`)
     }
 }
+
+// A repository whose type isn't known sorts with projects, GitHub's default.
+const roleRank = (role) => (role ? QUIRQ_ROLES.indexOf(role) : 0)
 
 function colorFor(repo) {
     return QUIRQ_COLORS[Array.from(repo).reduce((sum, letter) => sum + letter.charCodeAt(0), 0) % QUIRQ_COLORS.length]
@@ -368,6 +391,7 @@ export function buildQuirqApps(snapshot, config) {
                     icon: choice(override.icon || defaults.icon || 'folder', QUIRQ_ICONS, 'icon'),
                     color: choice(override.color || defaults.color || colorFor(repo.name), QUIRQ_COLORS, 'color'),
                     category: override.category || defaults.category || 'Apps',
+                    role: repo.role,
                     featured: override.featured === true,
                     repoUrl: repo.html_url,
                     homepage: repo.homepage,
@@ -385,7 +409,12 @@ export function buildQuirqApps(snapshot, config) {
                 },
             ]
         })
-        .sort((a, b) => Number(b.featured) - Number(a.featured) || a.name.localeCompare(b.name))
+        .sort(
+            (a, b) =>
+                Number(b.featured) - Number(a.featured) ||
+                roleRank(a.role) - roleRank(b.role) ||
+                a.name.localeCompare(b.name)
+        )
 }
 
 /**

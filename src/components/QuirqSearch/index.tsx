@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react'
+import { roleKeywords } from 'lib/quirqRoles'
 import { Combobox } from '@headlessui/react'
 import { Dialog as RadixDialog } from 'radix-ui'
 import { navigate } from 'gatsby'
@@ -31,7 +32,7 @@ const searchEntries = (apps: QuirqApp[]) => [
     },
     ...apps.map((app) => ({
         ...app,
-        keywords: [app.repo, app.category, app.language, ...app.topics].join(' '),
+        keywords: [app.repo, app.category, roleKeywords(app.role), app.language, ...app.topics].join(' '),
     })),
     {
         id: 'appearance',

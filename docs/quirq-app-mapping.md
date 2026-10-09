@@ -64,6 +64,17 @@ The key must match an actual repository name in the organization. Unlisted repos
 
 A site's own security policy (`X-Frame-Options`, or CSP `frame-ancestors`) can prevent it from appearing in an iframe. The window then shows **Oops** with an Open in new tab button instead of the browser's refusal; GitHub, Innernet and this site are such sites. The frame check reads only a response's status and headers, from public https hosts (every address a host resolves to must be public). On a host without serverless functions the check can't be asked: the window frames the page anyway and keeps Open in new tab in its bar. Opening a repository page or a launch window does not install or start its code.
 
+## Repository types
+
+Each repository's type is the organization's `role` custom property on GitHub (single select: `project`, `agent`, `tool`, `library`, `docs`, `config`; required, default `project`). It is set on GitHub, by people or by automation, never in `quirq.apps.json`. The site reads it from `custom_properties.role` in the same repository list as everything else: `pnpm apps:sync` saves it in the snapshot as `role`, and browsers read it live. A value the site doesn't know (`QUIRQ_ROLES` in `scripts/lib/quirq-catalog.mjs`, with names and meanings in `src/lib/quirqRoles.ts`) is ignored. A live list that leaves custom properties out keeps the type the build saved.
+
+What a type changes:
+
+- **Home base** filters by type (All apps, Projects, Agents, Tools, Libraries, Docs, Config; only the types some app has) and each card shows its type as a badge. While no app's type is known, the filters and cards fall back to the mapping's `category`.
+- **Order**: after featured apps, apps are listed by type in that order (projects first, config last), then by name, on the desktop, in Home base and in the menus. An app whose type isn't known sorts with projects.
+- **Repository window**: the type is a badge in the details beside the tabs, in place of the category; hovering it shows what the type means.
+- **Search** matches a type's value, name and plural ("tool", "Tools").
+
 ## What is included
 
 Public, non-archived repositories are included by default. Forks remain included because quirq's Docs and XO Space are forks. `.github` is organization configuration and is excluded unless `excludeRepositories` is set; quirq-ai sets it to `[]` to show every public repository. Use `hidden` or `defaults.excludeRepositories` to hide infrastructure repositories you do not want presented as apps; relevance is an explicit mapping choice, not guessed from a repository's name. After hiding a repository, run `pnpm apps:sync`, or `pnpm apps:prune` when GitHub is unreachable, so its README text leaves the snapshot that every page bundles. `pnpm apps:check` fails until you do.

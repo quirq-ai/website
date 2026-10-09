@@ -4,7 +4,7 @@
 
 Mount the named or default `SearchOverlay` once inside the app provider. Existing `openSearch()` actions and the `/` and Cmd/Ctrl+K shortcuts control the app's `searchOpen` flag; the overlay closes through `setSearchOpen(false)`.
 
-Search matches the app name, description, URL, repository name, language, category, and topics locally. It sends no search requests and needs no external search credentials. The catalog refreshes on its own schedule, not on each keystroke.
+Search matches the app name, description, URL, repository name, language, category, type (its `role` on GitHub, by value, name or plural), and topics locally. It sends no search requests and needs no external search credentials. The catalog refreshes on its own schedule, not on each keystroke.
 
 Radix Dialog handles the portal, focus trap, outside click, Escape, and focus restoration. Headless UI Combobox handles arrow keys, active options, and Enter. Selecting a result uses Gatsby navigation to its mapped internal URL and retains normal window-manager behavior. A closed search clears the query for its next use.
 

@@ -1,6 +1,7 @@
 import config from '../../quirq.apps.json'
 import snapshot from '../data/quirq-repositories.json'
 import { buildQuirqApps } from '../../scripts/lib/quirq-catalog.mjs'
+import type { QuirqRole } from './quirqRoles'
 import type { QuirqIcon } from '../components/QuirqAppIcon/glyphs'
 
 export type QuirqApp = {
@@ -12,6 +13,8 @@ export type QuirqApp = {
     icon: QuirqIcon
     color: 'blue' | 'purple' | 'lilac' | 'orange' | 'yellow' | 'red' | 'salmon' | 'teal' | 'seagreen' | 'green' | 'pink'
     category: string
+    /** The organization's `role` custom property on GitHub; null when it isn't known. */
+    role: QuirqRole | null
     featured: boolean
     repoUrl: string
     homepage: string | null

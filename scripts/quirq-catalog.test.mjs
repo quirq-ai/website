@@ -6,11 +6,13 @@ import { join } from 'node:path'
 import { Buffer } from 'node:buffer'
 import {
     QUIRQ_ICONS,
+    QUIRQ_ROLES,
     buildQuirqApps,
     isDesktopApp,
     isFramableUrl,
     mergeLiveRepositories,
     normalizeAppPath,
+    normalizeRepository,
     safeWebUrl,
 } from './lib/quirq-catalog.mjs'
 import { fetchOrganizationRepositories, syncQuirqApps } from './sync-quirq-apps.mjs'
@@ -537,4 +539,71 @@ test('only apps with a website get a desktop icon; every app stays in the catalo
     )
     assert.equal(isDesktopApp({ launchUrl: null }), false)
     assert.equal(isDesktopApp({ launchUrl: 'https://example.com/' }), true)
+})
+
+test("a repository's type comes from GitHub's role custom property and only known values count", () => {
+    assert.deepEqual(QUIRQ_ROLES, ['project', 'agent', 'tool', 'library', 'docs', 'config'])
+    const type = (extra) => normalizeRepository(repo('qq', extra), 'quirq-ai').role
+    assert.equal(type({ custom_properties: { role: 'agent' } }), 'agent')
+    assert.equal(type({ custom_properties: { role: 'service' } }), null, 'a value this site does not know')
+    assert.equal(type({ custom_properties: { role: ['tool'] } }), null)
+    assert.equal(type({ custom_properties: {} }), null)
+    assert.equal(type({}), null, 'GitHub left the property out')
+    assert.equal(type({ role: 'tool' }), 'tool', 'the snapshot keeps the normalized value')
+    assert.equal(type({ role: 'tool', custom_properties: { role: 'docs' } }), 'docs', 'GitHub wins')
+})
+
+test('a live list without custom properties keeps the bundled type; one with them replaces it', () => {
+    const bundled = snapshot([repo('qq', { role: 'tool' }), repo('docs', { role: 'docs' })])
+    const merged = mergeLiveRepositories(
+        bundled,
+        [repo('qq', { custom_properties: { role: 'agent' } }), repo('docs'), repo('new-app')],
+        '2026-10-09T00:00:00Z'
+    )
+    assert.deepEqual(
+        merged.repositories.map((entry) => [entry.name, entry.role]),
+        [
+            ['docs', 'docs'],
+            ['new-app', null],
+            ['qq', 'agent'],
+        ]
+    )
+    const cleared = mergeLiveRepositories(bundled, [repo('qq', { custom_properties: {} })], '2026-10-09T00:00:00Z')
+    assert.equal(cleared.repositories[0].role, null, 'GitHub sent properties without role')
+})
+
+test('apps carry their type and list featured first, then by type, then by name', () => {
+    const apps = buildQuirqApps(
+        snapshot([
+            repo('wiki', { role: 'docs' }),
+            repo('gate', { role: 'tool' }),
+            repo('innernet', { role: 'project' }),
+            repo('infra-config', { role: 'config' }),
+            repo('sync', { role: 'library' }),
+            repo('xo-cowork-api', { role: 'agent' }),
+            repo('unknown'),
+            repo('website', { role: 'tool' }),
+        ]),
+        { ...config, repositories: { website: { featured: true } } }
+    )
+    assert.deepEqual(
+        apps.map((app) => [app.repo, app.role]),
+        [
+            ['website', 'tool'],
+            ['innernet', 'project'],
+            ['unknown', null],
+            ['xo-cowork-api', 'agent'],
+            ['gate', 'tool'],
+            ['sync', 'library'],
+            ['wiki', 'docs'],
+            ['infra-config', 'config'],
+        ]
+    )
+})
+
+test('the bundled snapshot holds only known types', async () => {
+    const bundled = JSON.parse(await readFile(new URL('../src/data/quirq-repositories.json', import.meta.url), 'utf8'))
+    for (const entry of bundled.repositories) {
+        assert.ok(entry.role === undefined || entry.role === null || QUIRQ_ROLES.includes(entry.role), entry.name)
+    }
 })
