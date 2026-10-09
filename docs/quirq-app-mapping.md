@@ -4,7 +4,7 @@ The GitHub organization is the catalog. Its public repositories become apps in H
 
 ## Two files to know
 
-- `quirq.apps.json`: organization and your presentation choices. Edit this to change a name, URL, icon, color, page style, or visibility.
+- `quirq.apps.json`: organization and your app choices. Edit this to change a name, URL, icon, color, or visibility.
 - `src/data/quirq-repositories.json`: generated public GitHub metadata and README snapshot. Refresh it with the sync command; do not hand-edit it.
 
 ```sh
@@ -28,7 +28,6 @@ The key must match an actual repository name in the organization. Unlisted repos
     "frameOrigins": ["https://docs.quirq.dev"],
     "defaults": {
         "category": "Apps",
-        "presentation": "overview",
         "launchMode": "window",
         "includeForks": true,
         "includeArchived": false,
@@ -41,7 +40,6 @@ The key must match an actual repository name in the organization. Unlisted repos
             "icon": "planet",
             "color": "purple",
             "featured": true,
-            "presentation": "overview",
             "window": { "width": 1080, "height": 760 }
         },
         "infra-config": { "hidden": true }
@@ -57,9 +55,8 @@ The key must match an actual repository name in the organization. Unlisted repos
 | `color` | `blue`, `purple`, `lilac`, `orange`, `yellow`, `red`, `salmon`, `teal`, `seagreen`, `green`, or `pink`. Unset apps get a stable color. |
 | `featured` | Highlights the app in Home Base, and among the desktop icons when it has a website. All visible repositories remain in the catalog. |
 | `hidden` | Removes this repository from app routes, Home Base, navigation, and search after Gatsby regenerates pages. |
-| `presentation` | `overview`, `reader`, or `gallery`. These are reusable starting points for individual app styles. |
 | `launchUrl` | Optional HTTP(S) destination. Defaults to the GitHub repository's homepage; set `null` to disable launching. |
-| `launchMode` | Open app, Launch and the desktop icon always open the launch URL in the app's own window on this site (`/launch/<repository>`). `window` (quirq-ai's default): frame it straight away; this takes effect only on an origin listed in `frameOrigins`, and any other launch URL is treated as `external`. `external`: ask `/api/frame-check` first and show **Oops** with Open in new tab if the site refuses frames. `embed`: an App tab inside the repository's page; set it on the individual repository only. |
+| `launchMode` | Open app, Launch and the desktop icon always open the launch URL in the app's own window on this site (`/launch/<repository>`). `window` (quirq-ai's default): frame it straight away; this takes effect only on an origin listed in `frameOrigins`, and any other launch URL is treated as `external`. `external`: ask `/api/frame-check` first and show **Oops** with Open in new tab if the site refuses frames. A launch URL on a shared hosting platform (`*.vercel.app`, `*.github.io` and the rest of `SHARED_HOST_SUFFIXES` in `src/lib/frameCheck.ts`) always shows Oops with Open in new tab, so give an app a quirq.dev address to open it in a window. `embed`: an App tab inside the repository's page; set it on the individual repository only. |
 | `component` | Optional existing component under `src/templates/`, such as `src/templates/XOSpace.tsx`, for a completely bespoke app page. The Gatsby pipeline validates that the file exists. |
 | `window` | Optional `width` and `height` in pixels for the restored window. Dimensions fit within the desktop, and multiple open windows share its available width. The window can be expanded and restored. |
 

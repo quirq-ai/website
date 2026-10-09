@@ -3,6 +3,7 @@ import Link from 'components/Link'
 import { useAppActions, useAppSettings, useAppUIState, useAppWindows } from '../../context/App'
 import QuirqAppIcon from 'components/QuirqAppIcon'
 import { getLaunchTarget, type QuirqApp } from 'lib/quirqApps'
+import { knownFrameCheck } from 'lib/frameCheck'
 import { useQuirqApps } from 'lib/quirqLiveApps'
 import { isDesktopApp } from '../../../scripts/lib/quirq-catalog.mjs'
 import { AppItem } from 'components/OSIcons/AppIcon'
@@ -17,8 +18,16 @@ import { useToast } from '../../context/Toast'
 
 // A desktop icon opens the app's website like Open app does, in its own window on this site
 // (`/launch/<repository>`): framed, or "Oops" with Open in new tab when it can't be (AGENTS.md).
-// Its README window is one click away in Home base and search.
+// An app whose website is known never to open in a window (`external`, a shared host, GitHub) opens its
+// repository window instead, where Open app is one click away.
 const asDesktopApp = (app: QuirqApp): AppItem => {
+    if (app.launchUrl && (app.launchMode === 'external' || knownFrameCheck(app.launchUrl)))
+        return {
+            label: app.name,
+            Icon: <QuirqAppIcon icon={app.icon} color={app.color} />,
+            url: app.path,
+            source: 'desktop',
+        }
     const target = getLaunchTarget(app)
     return {
         label: app.name,

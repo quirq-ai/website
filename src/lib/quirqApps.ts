@@ -17,7 +17,6 @@ export type QuirqApp = {
     homepage: string | null
     launchUrl: string | null
     launchMode: 'external' | 'window' | 'embed'
-    presentation: 'overview' | 'reader' | 'gallery'
     language: string | null
     topics: string[]
     stars: number

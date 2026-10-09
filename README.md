@@ -49,7 +49,7 @@ quirq-ai public GitHub repositories
 
 1. **Sync:** the script fetches the organization's public repositories and the READMEs for visible entries.
 2. **Snapshot:** the result is saved in a committed JSON file. Builds, server rendering, and each page's first paint use this saved data.
-3. **Mapping:** `quirq.apps.json` selects the organization and overrides presentation, visibility, paths, and launch destinations.
+3. **Mapping:** `quirq.apps.json` selects the organization and overrides names, icons, colors, visibility, paths, and launch destinations.
 4. **Routes:** Gatsby generates each app page from that same mapped catalog. Home base and navigation use the same entries, so their links match the generated routes.
 5. **Live:** in the visitor's browser, the desktop, Home base, and search read the organization's repository list from GitHub's public API and apply the same mapping, every 5 minutes while the tab is visible. App pages read their README from raw.githubusercontent.com. A repository created after the build opens at `/apps/<name>` through a live page ([`src/templates/quirq-live-app.tsx`](src/templates/quirq-live-app.tsx)). No token or backend is involved.
 
@@ -85,7 +85,6 @@ Edit [`quirq.apps.json`](quirq.apps.json). Keys under `repositories` must match 
         "color": "purple",
         "category": "Apps",
         "featured": true,
-        "presentation": "gallery",
         "window": { "width": 1080, "height": 760 }
     }
 }
@@ -97,7 +96,6 @@ Edit [`quirq.apps.json`](quirq.apps.json). Keys under `repositories` must match 
 | Change its identity | `name`, `description`, `icon`, `color`, and `category` |
 | Put it first in the Home window, and in the desktop's first column when it has a website | `featured: true` |
 | Hide an entry everywhere | `hidden: true` |
-| Choose a page layout | `presentation: "overview"`, `"reader"`, or `"gallery"` |
 | Build a bespoke app page | `component: "src/templates/MyApp.tsx"` |
 | Set a destination | `launchUrl`; defaults to the repository's GitHub homepage field |
 | Disable the launch destination | `launchUrl: null` |
@@ -106,7 +104,7 @@ Edit [`quirq.apps.json`](quirq.apps.json). Keys under `repositories` must match 
 
 A custom component receives `pageContext.app` and stays within the shared desktop and window system. See [`src/templates/quirq-app.tsx`](src/templates/quirq-app.tsx) for the default template and [`src/components/QuirqApp`](src/components/QuirqApp) for the reusable app views. Windows fit within the available desktop; multiple open windows share that space.
 
-Every link on the site opens in a window here, the page in an iframe, and never in a new tab of its own ([`src/templates/quirq-launch.tsx`](src/templates/quirq-launch.tsx)). Open app, Launch and the desktop icons open an app's website at `/launch/<repository>`; the organization README's links, shown as app icons on the desktop, open a link to an app's website in that app's window and any other page at `/launch/readme/<address>` ([`src/lib/quirqReadmeLinks.ts`](src/lib/quirqReadmeLinks.ts)); and any other link to another site, in docs, buttons or content, opens at `/launch/web/<address>` ([`src/lib/externalLinks.ts`](src/lib/externalLinks.ts), one click listener in [`gatsby-browser.tsx`](gatsby-browser.tsx)). A site decides with its headers whether it may be framed (`X-Frame-Options`, CSP `frame-ancestors`), and the browser hides that answer from the page, so before framing a page the window asks [`/api/frame-check`](src/api/frame-check.ts), the site's only server code, which reads the page's headers ([`src/lib/frameCheck.ts`](src/lib/frameCheck.ts)). A page that refuses (GitHub, Innernet, this site), can't be reached, isn't there, isn't https, or doesn't finish loading within 20 seconds shows **Oops** with an **Open in new tab** button. A frame the network drops shows the browser's own error page instead, under the same Open in new tab button. An origin in `frameOrigins` is framed without asking. Only an app's launch URL, a link the README itself has, or a page a click on this site opened is ever framed: an address someone else puts in a `/launch/web/` URL offers a new tab instead. Every Open in new tab button, and a Ctrl/Cmd- or middle-click on any link, opens a real new tab.
+Every link on the site opens in a window here, the page in an iframe, and never in a new tab of its own ([`src/templates/quirq-launch.tsx`](src/templates/quirq-launch.tsx)). Open app, Launch and the desktop icons open an app's website at `/launch/<repository>` (a desktop icon whose website can never open in a window, such as a shared-host or `external` one, opens the app's repository window instead); the organization README's links, shown as app icons on the desktop, open a link to an app's website in that app's window and any other page at `/launch/readme/<address>` ([`src/lib/quirqReadmeLinks.ts`](src/lib/quirqReadmeLinks.ts)); and any other link to another site, in docs, buttons or content, opens at `/launch/web/<address>` ([`src/lib/externalLinks.ts`](src/lib/externalLinks.ts), one click listener in [`gatsby-browser.tsx`](gatsby-browser.tsx)). A site decides with its headers whether it may be framed (`X-Frame-Options`, CSP `frame-ancestors`), and the browser hides that answer from the page, so before framing a page the window asks [`/api/frame-check`](src/api/frame-check.ts), the site's only server code, which reads the page's headers ([`src/lib/frameCheck.ts`](src/lib/frameCheck.ts)). A page that refuses (GitHub, Innernet, this site), is on a shared hosting platform where anyone can claim a name (such as `*.vercel.app` or `*.github.io`, so a name an app gives up can't be taken over to appear here as quirq's; a page whose server redirects there is caught too, but not a redirect a framed page makes with a script), can't be reached, isn't there, isn't https, or doesn't finish loading within 20 seconds shows **Oops** with an **Open in new tab** button. A frame the network drops shows the browser's own error page instead, under the same Open in new tab button. An origin in `frameOrigins` is framed without asking. Only an app's launch URL, a link the README itself has, or a page a click on this site opened is ever framed: an address someone else puts in a `/launch/web/` URL offers a new tab instead. Every Open in new tab button, and a Ctrl/Cmd- or middle-click on any link, opens a real new tab.
 
 For all supported values, validation rules, organization changes, and embedding details, read the [app mapping guide](docs/quirq-app-mapping.md).
 
@@ -165,7 +163,7 @@ This repository has a qq manifest and generated workflows from [quirq infra](htt
 
 | File or directory | Responsibility |
 | --- | --- |
-| [`quirq.apps.json`](quirq.apps.json) | Organization, catalog defaults, and per-repository presentation overrides |
+| [`quirq.apps.json`](quirq.apps.json) | Organization, catalog defaults, and per-repository overrides |
 | [`scripts/sync-quirq-apps.mjs`](scripts/sync-quirq-apps.mjs) | Public GitHub API sync and snapshot validation command |
 | [`scripts/lib/quirq-catalog.mjs`](scripts/lib/quirq-catalog.mjs) | Shared normalization, inclusion rules, URL checks, and mapping logic |
 | [`src/data/quirq-repositories.json`](src/data/quirq-repositories.json) | Generated, committed GitHub snapshot; do not edit by hand |
@@ -181,7 +179,7 @@ This repository has a qq manifest and generated workflows from [quirq infra](htt
 | [`quirq.projects.json`](quirq.projects.json), [`scripts/lib/quirq-phases.mjs`](scripts/lib/quirq-phases.mjs) | Project groups, descriptions, phase overrides, and the phase rules |
 | [`src/components/QuirqProjects`](src/components/QuirqProjects) | The projects-by-phase view at `/projects` |
 | [`src/components/QuirqInfraV0`](src/components/QuirqInfraV0) | The quirq infra v0 guide and live view at `/v0` |
-| [`src/components/QuirqApp`](src/components/QuirqApp) | Repository overview, reader, gallery, and optional embed; the docs browser (every Markdown file in a [@pierre/trees](src/vendor/pierre-trees/README.md) file tree) and GitHub-style Markdown formatting |
+| [`src/components/QuirqApp`](src/components/QuirqApp) | The repository window (one layout: header, doc tabs and an optional embedded App tab); the docs browser (every Markdown file in a [@pierre/trees](src/vendor/pierre-trees/README.md) file tree) and GitHub-style Markdown formatting |
 | [`src/lib/quirqDocs.ts`](src/lib/quirqDocs.ts) | A repository's doc list (GitHub git trees API) and files (raw.githubusercontent.com), and how links and images in docs resolve |
 | [`src/components/QuirqAppIcon`](src/components/QuirqAppIcon) | Mapped icons in the existing glass icon style |
 | [`src/components/QuirqSearch`](src/components/QuirqSearch) | Local catalog search and keyboard navigation |

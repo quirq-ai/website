@@ -82,11 +82,7 @@ export default function RepositoryApp({ app }: { app: QuirqApp }) {
         >
             {/* Radix Tabs: tab and tabpanel roles, arrow keys between tabs, and the panel labelled by its tab. */}
             <RadixTabs.Root value={active} onValueChange={choose} activationMode="manual" asChild>
-                <div
-                    className="not-prose text-primary"
-                    data-testid="repository-app"
-                    data-presentation={app.presentation}
-                >
+                <div className="not-prose text-primary" data-testid="repository-app">
                     <header className="border-b border-primary px-5 pt-5 @xl:px-8 @xl:pt-6">
                         <div className="flex flex-wrap items-center gap-x-4 gap-y-3">
                             <QuirqAppIcon icon={app.icon} color={app.color} className="size-11 shrink-0" />

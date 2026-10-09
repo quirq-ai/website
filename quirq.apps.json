@@ -4,7 +4,6 @@
     "frameOrigins": ["https://docs.quirq.dev", "https://quitter.quirq.dev", "https://research.quirq.dev"],
     "defaults": {
         "category": "Apps",
-        "presentation": "overview",
         "launchMode": "window",
         "includeForks": true,
         "includeArchived": false,
@@ -37,7 +36,6 @@
             "icon": "document",
             "color": "blue",
             "category": "Knowledge",
-            "presentation": "reader",
             "featured": true
         },
         "innernet": {
@@ -53,7 +51,6 @@
             "description": "A team collaboration prototype for sharing work and getting feedback.",
             "icon": "photos",
             "color": "yellow",
-            "presentation": "gallery",
             "featured": true
         },
         "quitter": {

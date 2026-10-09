@@ -1,9 +1,10 @@
 # Repository app windows
 
 The default app template reuses Explorer and the original window controls. Its content
-comes from GitHub repository metadata and a synced README. It supports three presentations:
-`overview` (app profile), `reader` (document with repository sidebar), and `gallery`
-(a colorful showcase). The presentation belongs to each entry in `quirq.apps.json`.
+comes from GitHub repository metadata and the repository's Markdown docs. Every repository
+window has the same layout: a header with the app's icon (in its color), name, summary and
+actions, a row of tabs for its docs (Radix Tabs), and the open doc. An app's identity comes from
+its name, icon and color in `quirq.apps.json`, or a custom `component`.
 
 Open app opens the launch URL in its own window on this site (`/launch/<repository>`, an
 iframe), and `embed` (set per repository) adds an App tab to this page. Framing depends on the
