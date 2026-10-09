@@ -22,7 +22,6 @@
             "description": "quirq's CI/CD system, modeled on Chromium's.",
             "repos": [
                 "qq",
-                "depot",
                 "sync",
                 "recipes",
                 "toolchains",
@@ -70,9 +69,7 @@
         "qq": {
             "description": "The qq command."
         },
-        "depot": {
-            "description": "The qq command."
-        },
+        "depot": { "hidden": true },
         "sync": {
             "description": "The repo manifest, infra/repo.toml, and its only parser."
         },

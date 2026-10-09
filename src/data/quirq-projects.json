@@ -1,6 +1,6 @@
 {
     "organization": "quirq-ai",
-    "fetchedAt": "2026-10-09T07:28:55.370Z",
+    "fetchedAt": "2026-10-09T07:59:36.241Z",
     "starsSource": "apps-snapshot 2026-10-08T16:03:53.173Z",
     "repositories": [
         {
@@ -44,19 +44,6 @@
         },
         {
             "name": "qq",
-            "sha": "8d9d0c04c5f117afef06a4dea624ec1ac0ae27d8",
-            "committedAt": "2026-10-09T02:20:04+00:00",
-            "people": 0,
-            "files": 41,
-            "codeFiles": 33,
-            "workflows": 2,
-            "repoToml": false,
-            "deployConfig": false,
-            "inCanary": false,
-            "stars": 0
-        },
-        {
-            "name": "depot",
             "sha": "8d9d0c04c5f117afef06a4dea624ec1ac0ae27d8",
             "committedAt": "2026-10-09T02:20:04+00:00",
             "people": 0,
