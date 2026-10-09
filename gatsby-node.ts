@@ -46,10 +46,9 @@ export const createPages: GatsbyNode['createPages'] = ({ actions }) => {
     for (const page of clientOnlyPages) actions.createPage(page)
 }
 
-// Retain upstream source on disk, but publish only the quirq catalog and settings.
-// The stateful source-page creator can run after createPages, so deleting a legacy
-// /docs collision alone would also remove the catalog's page at that path. Restore
-// the catalog page immediately; its matching component ends the callback recursion.
+// Publish only the catalog and explicit filesystem pages. Gatsby's stateful page
+// creator can run after createPages; restore a catalog page when a source route
+// collides with it, and stop recursion when its component matches.
 export const onCreatePage: GatsbyNode['onCreatePage'] = ({ page, actions }) => {
     if (clientOnlyPages.some((entry) => entry.matchPath === page.matchPath)) return
     const app = getQuirqApps().find((entry) => entry.path === normalizePath(page.path))
@@ -63,9 +62,7 @@ export const onCreatePage: GatsbyNode['onCreatePage'] = ({ page, actions }) => {
     if (!sourcePages.has(normalizePath(page.path))) actions.deletePage(page)
 }
 
-// Gatsby extracts GraphQL from every file under src, including unused legacy pages.
-// Those pages rely on PostHog's CMS schema. Limit extraction to the active app surface
-// without moving or rewriting the archived source. Catalog data is imported JSON.
+// Extract GraphQL only from the active page surface and SEO; catalog data is JSON.
 export const preprocessSource: GatsbyNode['preprocessSource'] = ({ filename }) => {
     const sourceRoot = path.resolve(root, 'src')
     const relative = path.relative(sourceRoot, filename).replace(/\\/g, '/')
@@ -75,7 +72,6 @@ export const preprocessSource: GatsbyNode['preprocessSource'] = ({ filename }) =
         'pages/display-options.tsx',
         'pages/projects.tsx',
         'pages/404.js',
-        'pages/404.tsx',
         'components/seo.tsx',
         'templates/quirq-app.tsx',
         'templates/quirq-live-app.tsx',
@@ -115,11 +111,7 @@ export const onCreateWebpackConfig: GatsbyNode['onCreateWebpackConfig'] = ({ sta
             alias: {
                 '~': path.resolve(root, 'src'),
                 lib: path.resolve(root, 'src/lib'),
-                types: path.resolve(root, 'src/types'),
-                images: path.resolve(root, 'src/images'),
                 components: path.resolve(root, 'src/components'),
-                constants: path.resolve(root, 'src/constants'),
-                logic: path.resolve(root, 'src/logic'),
                 hooks: path.resolve(root, 'src/hooks'),
             },
         },

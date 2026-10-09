@@ -434,13 +434,10 @@ export default function QuirqInfraV0({ app }: { app: QuirqApp }): JSX.Element {
     const [tab, setTab] = useState<Tab>('overview')
     return (
         <Explorer
-            template="generic"
-            slug={app.repo}
             title={app.name}
             showTitle={false}
             transparent
             padding={false}
-            showAddressBar={false}
             headerBarOptions={['showBack', 'showForward']}
             rightActionButtons={
                 <>

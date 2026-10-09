@@ -1,10 +1,9 @@
 import React, { useEffect } from 'react'
 import { Helmet } from 'react-helmet'
-import { useLocation } from '@reach/router'
+import { useLocation } from '@gatsbyjs/reach-router'
 import { useStaticQuery, graphql } from 'gatsby'
 import { useApp } from '../context/App'
 import { useWindow } from '../context/Window'
-import { quirqConfig } from 'lib/quirqApps'
 
 interface SEOProps {
     title: string
@@ -19,10 +18,7 @@ interface SEOProps {
     languageAlternates?: LanguageAlternate[]
     /** schema.org JSON-LD object(s) emitted as <script type="application/ld+json"> */
     structuredData?: Record<string, any> | Record<string, any>[]
-    documentRkey?: string
 }
-
-const SITE_URL = process.env.GATSBY_SITE_URL || 'http://localhost:8001'
 
 export type LanguageAlternate = {
     hrefLang: string
@@ -114,63 +110,6 @@ export const SEO = ({
 }
 
 export default SEO
-
-/**
- * quirq as a schema.org Organization. Shared so the homepage and every product page
- * describe the same entity rather than drifting copies of it.
- */
-const ORGANIZATION = {
-    '@context': 'https://schema.org',
-    '@type': 'Organization',
-    name: quirqConfig.name,
-    url: SITE_URL,
-    logo: `${SITE_URL}/quirq-icon.svg`,
-    sameAs: [`https://github.com/${quirqConfig.organization}`],
-}
-
-/**
- * Build schema.org JSON-LD for a product/app page: a SoftwareApplication, the quirq
- * Organization, and (optionally) a FAQPage. Pass the result to <SEO structuredData={...} />.
- * FAQ entries without an `answer` are skipped, so FAQPage only renders once answers exist.
- */
-export const buildProductStructuredData = ({
-    name,
-    description,
-    slug,
-    operatingSystem = 'Web',
-    faq,
-}: {
-    name: string
-    description?: string
-    slug: string
-    operatingSystem?: string
-    faq?: { question?: string; answer?: string }[]
-}): Record<string, any>[] => {
-    const items: Record<string, any>[] = [
-        {
-            '@context': 'https://schema.org',
-            '@type': 'SoftwareApplication',
-            name,
-            description,
-            applicationCategory: 'BusinessApplication',
-            operatingSystem,
-            url: `${SITE_URL}/${(slug || '').replace(/^\//, '')}`,
-            publisher: { '@type': 'Organization', name: quirqConfig.name, url: SITE_URL },
-        },
-        ORGANIZATION,
-    ]
-    const faqEntities = (faq || [])
-        .filter((q) => q && q.question && q.answer)
-        .map((q) => ({
-            '@type': 'Question',
-            name: q.question,
-            acceptedAnswer: { '@type': 'Answer', text: q.answer },
-        }))
-    if (faqEntities.length) {
-        items.push({ '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: faqEntities })
-    }
-    return items
-}
 
 const query = graphql`
     query SEO {
