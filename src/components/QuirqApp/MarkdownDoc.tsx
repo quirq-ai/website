@@ -207,8 +207,12 @@ export default function MarkdownDoc({ app, path, markdown, dark, onOpenDoc, isDo
             const inRepository = href ? repositoryPath(href, path) : null
             if (inRepository && inRepository.path && onOpenDoc && isDoc?.(inRepository.path)) {
                 return (
+                    // A plain click opens the doc in place; anything that follows the link itself (a modified
+                    // click, a click without JavaScript) goes to GitHub in a new tab, like every external link.
                     <a
                         href={githubFileUrl(app, inRepository.path) + inRepository.hash}
+                        target="_blank"
+                        rel="noopener noreferrer"
                         onClick={(event) => {
                             if (event.metaKey || event.ctrlKey || event.shiftKey || event.button !== 0) return
                             event.preventDefault()
@@ -254,6 +258,15 @@ export default function MarkdownDoc({ app, path, markdown, dark, onOpenDoc, isDo
                 <CodeBlock code={text} language={(language || '').toLowerCase()} />
             )
         },
+        // Inline code reads as a soft tint, not the site's bordered chip; fenced code goes through `pre`.
+        code: ({ inline, className, children }) =>
+            inline ? (
+                <code className="inline rounded-md border-0 bg-black/[0.06] px-1.5 py-0.5 font-code text-[0.85em] font-normal text-primary dark:bg-white/[0.08]">
+                    {children}
+                </code>
+            ) : (
+                <code className={className}>{children}</code>
+            ),
         details: ({ children }) => (
             <details className="not-prose my-4 rounded-lg border border-primary px-4 py-2 [&>*:not(summary)]:prose [&>*:not(summary)]:prose-sm dark:[&>*:not(summary)]:prose-invert">
                 {children}
@@ -267,7 +280,7 @@ export default function MarkdownDoc({ app, path, markdown, dark, onOpenDoc, isDo
     return (
         <div
             ref={container}
-            className="prose prose-sm dark:prose-invert max-w-none break-words [&_img]:inline-block [&_img]:max-w-full [&_img]:my-1 [&_table]:block [&_table]:overflow-x-auto"
+            className="prose prose-sm @3xl:prose-base dark:prose-invert max-w-none break-words [&_img]:inline-block [&_img]:max-w-full [&_img]:my-1 [&_table]:block [&_table]:overflow-x-auto [&_h2]:mt-10 [&_h2]:border-b [&_h2]:border-primary [&_h2]:pb-2 [&>:first-child]:mt-0"
             data-testid="repository-readme"
         >
             <ReactMarkdown

@@ -114,3 +114,66 @@ export async function loadDoc(app: QuirqApp, path: string, signal?: AbortSignal)
     if (!response.ok) throw new Error(`GitHub returned ${response.status}`)
     return response.text()
 }
+
+const stem = (path: string) => (path.split('/').pop() || path).replace(DOC_FILE, '')
+
+/**
+ * A doc's name on its tab: the file name without its extension (README, AGENTS), or its path when
+ * another doc in the list has the same file name.
+ */
+export function docLabel(path: string, paths: string[]): string {
+    const name = stem(path)
+    const clash = paths.some((other) => other !== path && stem(other).toLowerCase() === name.toLowerCase())
+    return clash ? path.replace(DOC_FILE, '') : name
+}
+
+/**
+ * The first sentence of a README's opening paragraph, as plain text, for repositories with no GitHub
+ * description. Headings, HTML, images, badges, quotes, lists, tables and code are skipped.
+ */
+export function readmeSummary(markdown: string | null | undefined, maxLength = 160): string | null {
+    if (!markdown) return null
+    const paragraph: string[] = []
+    let fenced = false
+    for (const raw of markdown.split(/\r?\n/)) {
+        const line = raw.trim()
+        if (/^(```|~~~)/.test(line)) {
+            fenced = !fenced
+            continue
+        }
+        if (fenced) continue
+        if (!line) {
+            if (paragraph.length) break
+            continue
+        }
+        if (/^(#|<|!\[|\[!\[|>|[-*+] |\d+\. |\||={3,}|-{3,})/.test(line)) {
+            if (paragraph.length) break
+            continue
+        }
+        paragraph.push(line)
+    }
+    const text = paragraph
+        .join(' ')
+        .replace(/!\[[^\]]*\]\([^)]*\)/g, '')
+        .replace(/\[([^\]]+)\]\([^)]*\)/g, '$1')
+        .replace(/`([^`]+)`/g, '$1')
+        .replace(/(\*\*|__|\*|_)(\S(?:.*?\S)?)\1/g, '$2')
+        .replace(/\s+/g, ' ')
+        .trim()
+    if (!text) return null
+    const sentence = text.match(/^.+?[.!?](?=\s|$)/)?.[0] || text
+    return sentence.length > maxLength ? `${sentence.slice(0, maxLength - 1).trimEnd()}…` : sentence
+}
+
+/**
+ * The Markdown without a leading `# Title` that only repeats the repository's name, which the window's
+ * header already shows.
+ */
+export function withoutTitle(markdown: string, names: string[]): string {
+    const wanted = new Set(names.map((name) => name.trim().toLowerCase()))
+    const lines = markdown.split(/\r?\n/)
+    const first = lines.findIndex((line) => line.trim())
+    const title = first === -1 ? null : lines[first].trim().match(/^#\s+(.+?)\s*#*$/)
+    if (!title || !wanted.has(title[1].replace(/`/g, '').trim().toLowerCase())) return markdown
+    return [...lines.slice(0, first), ...lines.slice(first + 1)].join('\n')
+}
