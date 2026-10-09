@@ -80,5 +80,6 @@ The quirq infra workflows (`.github/workflows/qq-website-*.yml`, generated in qu
 - Keep internal links relative. When changing an existing public URL, consider a redirect in `vercel.json` and check both URLs.
 - Describe the user-visible result, relevant validation, and any remaining limitations in pull requests.
 - Preserve license and attribution notices for inherited code and assets.
+- Never approve a pull request; approvals are human (gate #29: product PRs need one approval).
 
 The inherited [apps](agents/apps.md), [components](agents/components.md), [styling](agents/styling.md), and [window system](agents/windows.md) guides can help explain shared code. They are historical reference: their PostHog data sources, integration steps, and contributor approval requirements do not override this file or the active quirq implementation.
