@@ -72,6 +72,19 @@ export const SHARED_HOST_SUFFIXES = [
     'carrd.co',
     'streamlit.app',
     'hf.space',
+    'ondigitalocean.app',
+    'readthedocs.io',
+    'gitbook.io',
+    'bitbucket.io',
+    'neocities.org',
+    'azureedge.net',
+    'core.windows.net',
+    'trafficmanager.net',
+    'cloudapp.azure.com',
+    'amazonaws.com',
+    'storage.googleapis.com',
+    'lovable.app',
+    'pages.gitlab.com',
 ]
 
 /** Whether a URL is on a shared hosting platform (SHARED_HOST_SUFFIXES): the platform or a name on it. */
@@ -82,7 +95,7 @@ export function isSharedHost(url: string): boolean {
 
 const sharedHostCheck = (url: string): FrameCheck => ({
     verdict: 'refused',
-    reason: `${plainHost(url)} is on a shared host where anyone can claim a name, so it opens in a new tab.`,
+    reason: `${plainHost(url)} is on a shared host where anyone can claim a name, so open it in a new tab instead.`,
 })
 
 /** A host without www. or a trailing dot, in lower case. */
@@ -111,7 +124,7 @@ export function knownFrameCheck(url: string): FrameCheck | null {
     // A sign-in name or password in the address would travel into the frame; a new tab shows the browser's
     // own warning instead.
     if (parsed.username || parsed.password)
-        return { verdict: 'refused', reason: 'Its address carries a sign-in name, so it opens in a new tab.' }
+        return { verdict: 'refused', reason: 'Its address carries a sign-in name, so open it in a new tab instead.' }
     if (isSharedHost(url)) return sharedHostCheck(url)
     if (REFUSING_HOSTS.includes(plainHost(url)))
         return { verdict: 'refused', reason: `${plainHost(url)} doesn’t let other sites show it in a window.` }
@@ -292,8 +305,11 @@ export async function followFrameCheck(
                 return { verdict: 'insecure', reason: `${url.hostname} redirects to an insecure (http) page.` }
             // A frame follows the redirect, so a page that moves to a shared host is judged as one.
             if (isSharedHost(next.href)) return sharedHostCheck(next.href)
+            // A redirect the server may not follow (an IP address, another port) could lead anywhere, a
+            // shared host included, so it doesn't open in a window.
             const safe = probeableUrl(next.href)
-            if (!safe) return { verdict: 'unknown' }
+            if (!safe)
+                return { verdict: 'refused', reason: `${url.hostname} redirects to an address this site can’t check.` }
             url = safe
             continue
         }

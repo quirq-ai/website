@@ -195,11 +195,12 @@ test('a redirect to http, a private-looking host or an invalid address is never 
             )
         ).verdict
     assert.equal(await verdict('http://a.example.com/'), 'insecure')
-    assert.equal(await verdict('https://127.0.0.1/'), 'unknown')
-    assert.equal(await verdict('https://intranet/'), 'unknown')
-    assert.equal(await verdict('https://db.internal/'), 'unknown')
-    assert.equal(await verdict('https://a.example.com:8443/'), 'unknown')
-    assert.equal(await verdict('https://[::1]/'), 'unknown')
+    // An address the server may not fetch could redirect anywhere, so the page opens in a new tab.
+    assert.equal(await verdict('https://127.0.0.1/'), 'refused')
+    assert.equal(await verdict('https://intranet/'), 'refused')
+    assert.equal(await verdict('https://db.internal/'), 'refused')
+    assert.equal(await verdict('https://a.example.com:8443/'), 'refused')
+    assert.equal(await verdict('https://[::1]/'), 'refused')
 })
 
 test('the server check stops after the redirect limit, on errors and at its deadline', async () => {

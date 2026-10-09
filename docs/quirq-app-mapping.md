@@ -4,7 +4,7 @@ The GitHub organization is the catalog. Its public repositories become apps in H
 
 ## Two files to know
 
-- `quirq.apps.json`: organization and your presentation choices. Edit this to change a name, URL, icon, color, or visibility.
+- `quirq.apps.json`: organization and your app choices. Edit this to change a name, URL, icon, color, or visibility.
 - `src/data/quirq-repositories.json`: generated public GitHub metadata and README snapshot. Refresh it with the sync command; do not hand-edit it.
 
 ```sh
