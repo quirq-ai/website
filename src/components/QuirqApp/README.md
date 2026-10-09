@@ -4,7 +4,7 @@ The default app template reuses Explorer and the original window controls. Its c
 comes from GitHub repository metadata and the repository's Markdown docs. Every repository
 window has the same layout: a header with the app's icon (in its color), name, summary and
 actions, a row of tabs for its docs (Radix Tabs) with its details beside them (its type, the
-`role` property on GitHub, as a badge, or the mapping's category when the type isn't known), and
+`role` property on GitHub, as a badge once three types are in use, otherwise the mapping's category), and
 the open doc. An app's identity comes from
 its name, icon and color in `quirq.apps.json`, or a custom `component`.
 

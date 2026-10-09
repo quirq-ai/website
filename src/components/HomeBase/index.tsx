@@ -9,6 +9,7 @@ import { useOpenQuirqy } from 'components/Quirqy'
 import { getLaunchTarget, quirqConfig, type QuirqApp } from 'lib/quirqApps'
 import { useQuirqCatalog } from 'lib/quirqLiveApps'
 import { quirqRoles, roleInfo, roleKeywords } from 'lib/quirqRoles'
+import { showsRoles } from '../../../scripts/lib/quirq-catalog.mjs'
 import { Badge } from 'components/ui/badge'
 
 const orgUrl = `https://github.com/${quirqConfig.organization}`
@@ -75,19 +76,21 @@ const allApps: Filter = { key: 'all', label: 'All apps', matches: () => true }
 
 /**
  * Home base's filters: one per repository type (the organization's `role` property on GitHub) that some
- * app has, in the order types are listed. While no app's type is known (GitHub left the property out),
- * the mapping's categories instead.
+ * app has, in the order types are listed, once enough types are in use (`showsRoles`). An app whose type
+ * isn't known counts as a project, GitHub's default, as it does in the order. Until then, the mapping's
+ * categories.
  */
 function filtersFor(apps: QuirqApp[]): Filter[] {
-    if (apps.some((app) => app.role)) {
+    if (showsRoles(apps)) {
+        const roleOf = (app: QuirqApp) => app.role || 'project'
         return [
             allApps,
             ...quirqRoles
-                .filter((role) => apps.some((app) => app.role === role))
+                .filter((role) => apps.some((app) => roleOf(app) === role))
                 .map((role) => ({
                     key: `role:${role}`,
                     label: roleInfo[role].plural,
-                    matches: (app: QuirqApp) => app.role === role,
+                    matches: (app: QuirqApp) => roleOf(app) === role,
                 })),
         ]
     }
@@ -143,6 +146,7 @@ export default function HomeBase() {
     // The avatar's appearance lives in the quirqy window, which the dock also opens.
     const personalize = useOpenQuirqy()
     const filters = useMemo(() => filtersFor(apps), [apps])
+    const typed = filters.some((item) => item.key.startsWith('role:'))
     // A filter the live list no longer has (its last app changed type, say) falls back to all apps.
     const filter = filters.find((item) => item.key === filterKey) || allApps
     const liveCount = apps.filter((app) => app.launchUrl).length
@@ -268,11 +272,7 @@ export default function HomeBase() {
                             <div
                                 className="flex flex-wrap gap-0.5 p-[3px] rounded-[11px] border border-white/60 dark:border-white/10 bg-white/20 dark:bg-black/40 backdrop-blur-xl reduce-transparency:backdrop-blur-none"
                                 role="group"
-                                aria-label={
-                                    filters.some((item) => item.key.startsWith('role:'))
-                                        ? 'App types'
-                                        : 'App categories'
-                                }
+                                aria-label={typed ? 'App types' : 'App categories'}
                             >
                                 {filters.map((item) => (
                                     <button
@@ -280,7 +280,7 @@ export default function HomeBase() {
                                         key={item.key}
                                         onClick={() => setFilterKey(item.key)}
                                         aria-pressed={filter.key === item.key}
-                                        className={`min-h-8 px-3 rounded-lg border text-[11px] font-semibold whitespace-nowrap transition-colors ${
+                                        className={`min-h-11 @xl:min-h-8 px-3 rounded-lg border text-[11px] font-semibold whitespace-nowrap transition-colors ${
                                             filter.key === item.key
                                                 ? 'border-white/90 dark:border-white/10 bg-white/75 dark:bg-white/10 text-primary shadow-sm'
                                                 : 'border-transparent text-secondary hover:text-primary hover:bg-white/40 dark:hover:bg-white/5'
@@ -346,17 +346,19 @@ export default function HomeBase() {
                                             />
                                             {app.launchUrl ? 'Live' : 'Read me'}
                                         </span>
-                                        {app.role ? (
+                                        {!typed ? (
+                                            <span className="text-[11px] text-muted">{app.category}</span>
+                                        ) : app.role ? (
                                             <Badge
                                                 variant="outline"
                                                 title={roleInfo[app.role].meaning}
                                                 data-testid="app-type"
                                             >
+                                                <span className="sr-only">Type: </span>
                                                 {roleInfo[app.role].label}
+                                                <span className="sr-only">. {roleInfo[app.role].meaning}</span>
                                             </Badge>
-                                        ) : (
-                                            <span className="text-[11px] text-muted">{app.category}</span>
-                                        )}
+                                        ) : null}
                                     </div>
                                     <p className="mt-2.5 mb-5 pb-4 border-b border-black/[0.06] dark:border-white/10 text-[11px] text-muted break-all">
                                         {app.path}
