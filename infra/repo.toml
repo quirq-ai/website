@@ -9,7 +9,7 @@
 #
 # The node pin is the one quirq-ai/toolchains promoted (promoted.toml, node 24.21.0 revision 1,
 # built from 5739fee), the same pin innernet uses: `source` names the OCI image manifest and
-# `digest` the layer in it, as quirq-ai/depot's `qq sync` fetches it. Only linux-x86_64 is built
+# `digest` the layer in it, as quirq-ai/qq's `qq sync` fetches it. Only linux-x86_64 is built
 # so far. The toolchain roller (quirq-ai/rollers) moves this pin; do not edit it by hand.
 #
 # Not in the canary yet: infra-config lists no channels for website. TODO(expert): deploy target.

@@ -31,12 +31,12 @@ export type InfraRepo = {
 
 export const REPOS: InfraRepo[] = [
     {
-        name: 'depot',
+        name: 'qq',
         lane: 0,
         sub: 'the qq command',
         role: 'The qq command line you run: fetch, sync, build, test, upload, try, land, status. Each onboarded product repo pins the qq version it uses.',
         counterpart: 'depot_tools',
-        open: "No versioned qq release can be cut until the release executor App, which exists, is wired into release and allowed to write depot's tags.",
+        open: "No versioned qq release can be cut until the release executor App, which exists, is wired into release and allowed to write qq's tags.",
     },
     {
         name: 'sync',
@@ -142,17 +142,17 @@ export const FLOW: FlowStep[] = [
     {
         title: 'You sync',
         text: 'qq sync reads the repo’s infra/repo.toml and downloads each pinned toolchain, checked against its digest. Toolchains are Linux x86_64 only so far: on a Mac qq sync stops with “no pin for platform”.',
-        repos: ['depot', 'sync', 'toolchains'],
+        repos: ['qq', 'sync', 'toolchains'],
     },
     {
         title: 'You build and test',
         text: 'qq build and qq test hand the manifest to recipes, which plans and runs each build and test action. On a Mac they need the pinned toolchains installed by hand. remote-build, the shared action cache, is built but qq does not call it yet.',
-        repos: ['depot', 'recipes'],
+        repos: ['qq', 'recipes'],
     },
     {
         title: 'You open a PR',
         text: 'qq try pushes your branch, opens the PR and returns at once with a run ID. The verdict is reported later, so an agent never waits on a tool call.',
-        repos: ['depot'],
+        repos: ['qq'],
     },
     {
         title: 'The gate decides what must pass',
@@ -167,7 +167,7 @@ export const FLOW: FlowStep[] = [
     {
         title: 'You land',
         text: 'qq land waits for a pass, then joins GitHub’s merge queue, which tests your change on top of the ones ahead and squash-merges it into main.',
-        repos: ['depot', 'gate'],
+        repos: ['qq', 'gate'],
     },
     {
         title: 'main stays green',
@@ -223,8 +223,8 @@ export const GUIDE: GuideSection[] = [
         title: 'Land a change',
         steps: [
             {
-                text: 'Put depot’s bin on your PATH once. Inside a product repo, qq runs the version that repo pins.',
-                code: 'git clone https://github.com/quirq-ai/depot\nexport PATH="$PWD/depot/bin:$PATH"',
+                text: 'Put qq’s bin on your PATH once. Inside a product repo, qq runs the version that repo pins.',
+                code: 'git clone https://github.com/quirq-ai/qq\nexport PATH="$PWD/qq/bin:$PATH"',
             },
             {
                 text: 'Fetch the pinned toolchains, checked against their digests.',

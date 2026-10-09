@@ -68,6 +68,7 @@
             "color": "teal",
             "launchMode": "external"
         },
+        "qq": { "icon": "terminal", "color": "teal", "category": "Infra" },
         "depot": { "icon": "terminal", "color": "teal", "category": "Infra" },
         "sync": { "icon": "sync", "color": "blue", "category": "Infra" },
         "recipes": { "icon": "chef-hat", "color": "salmon", "category": "Infra" },
