@@ -37,7 +37,7 @@ type LaunchLocation = { pathname: string; search?: string; hash?: string; state?
  * - /launch/readme/<address>: a page the organization's profile README links to.
  * - /launch/web/<address>: any other page a link on this site points to (lib/externalLinks).
  * Before framing a page, the window asks /api/frame-check whether the page allows it (lib/frameCheck).
- * A page that refuses, can't be reached or isn't there, or that doesn't load in time, shows "Oops"
+ * A page that refuses, can't be reached or isn't there, or that never finishes loading, shows "Oops"
  * with an Open in new tab button. Only an app's launch URL, a link the README has, or a page a click on
  * this site opened is ever framed, never an address someone else put in the URL.
  */
@@ -130,6 +130,7 @@ function WebLaunch({ location, url }: { location: LaunchLocation; url: string })
 }
 
 const LOAD_TIMEOUT_MS = 20000
+const CHECK_TIMEOUT_MS = 10000
 
 // One check per page while the site is open; Try again asks afresh.
 const frameChecks = new Map<string, Promise<FrameCheck>>()
@@ -140,10 +141,17 @@ function askFrameCheck(url: string, fresh: boolean): Promise<FrameCheck> {
     let pending = frameChecks.get(url)
     if (!pending) {
         const query = new URLSearchParams({ url, origin: window.location.origin })
-        pending = fetch(`/api/frame-check?${query}`)
+        // The server gives up after 8 s (src/api/frame-check.ts); a check still running at 10 s didn't load.
+        const signal = typeof AbortSignal.timeout === 'function' ? AbortSignal.timeout(CHECK_TIMEOUT_MS) : undefined
+        pending = fetch(`/api/frame-check?${query}`, { signal })
             .then((response) => (response.ok ? response.json() : null))
             .then((body): FrameCheck => (isFrameCheck(body) ? body : { verdict: 'unknown' }))
-            .catch((): FrameCheck => ({ verdict: 'unknown' }))
+            .catch(
+                (error): FrameCheck =>
+                    error?.name === 'TimeoutError'
+                        ? { verdict: 'unreachable', reason: `${plainHost(url)} took too long to answer.` }
+                        : { verdict: 'unknown' }
+            )
         frameChecks.set(url, pending)
     }
     return pending
@@ -322,7 +330,7 @@ function FrameNotice({
                 />
                 <h1 className="mt-5 text-2xl font-bold tracking-tight">{heading}</h1>
                 <p className="mt-2 text-secondary">{message}</p>
-                <p className="mt-1 text-sm text-muted [overflow-wrap:anywhere]">{webWindowTitle(url)}</p>
+                <p className="mt-1 text-sm text-secondary [overflow-wrap:anywhere]">{webWindowTitle(url)}</p>
                 <div className="mt-5 flex flex-wrap justify-center gap-2">
                     <OSButton asLink external to={url} variant="primary" size="md" className={touchTarget} data-new-tab>
                         Open in new tab

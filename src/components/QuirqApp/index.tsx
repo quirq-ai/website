@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react'
+import { Tabs as RadixTabs } from 'radix-ui'
 import Explorer from 'components/Explorer'
 import OSButton from 'components/OSButton'
 import QuirqAppIcon from 'components/QuirqAppIcon'
@@ -79,92 +80,102 @@ export default function RepositoryApp({ app }: { app: QuirqApp }) {
             showAddressBar={false}
             headerBarOptions={['showBack', 'showForward']}
         >
-            <div className="not-prose text-primary" data-testid="repository-app" data-presentation={app.presentation}>
-                <header className="border-b border-primary px-5 pt-5 @xl:px-8 @xl:pt-6">
-                    <div className="flex items-center gap-4">
-                        <QuirqAppIcon icon={app.icon} color={app.color} className="size-11 shrink-0" />
-                        <div className="min-w-0 flex-1">
-                            <div className="flex min-w-0 items-baseline gap-2">
-                                <h1 className="m-0 truncate text-xl font-semibold tracking-tight">{app.name}</h1>
-                                <span className="hidden truncate font-mono text-xs text-muted @md:inline">
-                                    {app.id}
-                                </span>
+            {/* Radix Tabs: tab and tabpanel roles, arrow keys between tabs, and the panel labelled by its tab. */}
+            <RadixTabs.Root value={active} onValueChange={choose} activationMode="manual" asChild>
+                <div
+                    className="not-prose text-primary"
+                    data-testid="repository-app"
+                    data-presentation={app.presentation}
+                >
+                    <header className="border-b border-primary px-5 pt-5 @xl:px-8 @xl:pt-6">
+                        <div className="flex flex-wrap items-center gap-x-4 gap-y-3">
+                            <QuirqAppIcon icon={app.icon} color={app.color} className="size-11 shrink-0" />
+                            <div className="min-w-[12rem] flex-1">
+                                <div className="flex min-w-0 items-baseline gap-2">
+                                    <h1 className="m-0 truncate text-xl font-semibold tracking-tight">{app.name}</h1>
+                                    <span className="hidden truncate font-mono text-xs text-secondary @md:inline">
+                                        {app.id}
+                                    </span>
+                                </div>
+                                {summary && <p className="m-0 mt-0.5 line-clamp-2 text-sm text-secondary">{summary}</p>}
                             </div>
-                            {summary && <p className="m-0 mt-0.5 line-clamp-2 text-sm text-secondary">{summary}</p>}
-                        </div>
-                        <div className="flex shrink-0 items-center gap-2">
-                            {launch && (
-                                <OSButton
-                                    asLink
-                                    external={launch.external}
-                                    to={launch.to}
-                                    state={launch.external ? undefined : { newWindow: true }}
-                                    variant="primary"
-                                    size="sm"
-                                    className={touchTarget}
-                                >
-                                    Open app
-                                </OSButton>
-                            )}
-                            <OSButton asLink external to={app.repoUrl} size="sm" className={touchTarget}>
-                                View code
-                            </OSButton>
-                        </div>
-                    </div>
-                    <div className="mt-3 flex flex-wrap items-end gap-x-6">
-                        {tabs.length > 0 && (
-                            <div
-                                role="tablist"
-                                aria-label={`${app.name} docs`}
-                                className="-mb-px flex max-w-full gap-5 overflow-x-auto"
-                            >
-                                {tabs.map((tab) => (
-                                    <button
-                                        key={tab.key}
-                                        type="button"
-                                        role="tab"
-                                        aria-selected={tab.key === active}
-                                        title={tab.title}
-                                        onClick={() => choose(tab.key)}
-                                        className={`shrink-0 whitespace-nowrap border-b-2 pb-2.5 pt-1 text-sm ${
-                                            tab.key === active
-                                                ? 'border-current font-semibold text-primary'
-                                                : 'border-transparent text-secondary hover:text-primary'
-                                        }`}
+                            <div className="flex shrink-0 items-center gap-2">
+                                {launch && (
+                                    <OSButton
+                                        asLink
+                                        external={launch.external}
+                                        to={launch.to}
+                                        state={launch.external ? undefined : { newWindow: true }}
+                                        variant="primary"
+                                        size="sm"
+                                        className={touchTarget}
                                     >
-                                        {tab.label}
-                                    </button>
-                                ))}
+                                        Open app
+                                    </OSButton>
+                                )}
+                                <OSButton asLink external to={app.repoUrl} size="sm" className={touchTarget}>
+                                    View code
+                                </OSButton>
                             </div>
+                        </div>
+                        <div className="mt-3 flex flex-wrap items-end gap-x-6">
+                            {tabs.length > 0 && (
+                                <RadixTabs.List
+                                    aria-label={`${app.name} docs`}
+                                    className="-mb-px flex max-w-full gap-5 overflow-x-auto"
+                                >
+                                    {tabs.map((tab) => (
+                                        <RadixTabs.Trigger
+                                            key={tab.key}
+                                            value={tab.key}
+                                            title={tab.title}
+                                            className={`${touchTarget} shrink-0 whitespace-nowrap border-b-2 pb-2.5 pt-1 text-sm ${
+                                                tab.key === active
+                                                    ? 'border-current font-semibold text-primary'
+                                                    : 'border-transparent text-secondary hover:text-primary'
+                                            }`}
+                                        >
+                                            {tab.label}
+                                        </RadixTabs.Trigger>
+                                    ))}
+                                </RadixTabs.List>
+                            )}
+                            <p className="m-0 ml-auto flex flex-wrap gap-x-3 pb-2.5 pt-1 text-xs text-secondary">
+                                {details.map((detail) => (
+                                    <span key={detail}>{detail}</span>
+                                ))}
+                            </p>
+                        </div>
+                    </header>
+                    <Panel tabbed={tabs.length > 0} value={active}>
+                        {view === 'app' && embedded && app.launchUrl ? (
+                            <div className="p-3">
+                                <p className="mb-3 text-xs text-secondary">
+                                    If this app doesn’t allow embedding,{' '}
+                                    <a href={app.launchUrl} target="_blank" rel="noopener noreferrer" data-new-tab>
+                                        open it in a browser tab ↗
+                                    </a>
+                                    .
+                                </p>
+                                <iframe
+                                    src={app.launchUrl}
+                                    title={app.name}
+                                    className="h-[65vh] w-full rounded border border-primary"
+                                    sandbox="allow-scripts allow-forms allow-same-origin allow-popups allow-downloads"
+                                    referrerPolicy="no-referrer"
+                                />
+                            </div>
+                        ) : (
+                            <DocsBrowser app={app} docs={docs} dark={dark} />
                         )}
-                        <p className="m-0 ml-auto flex flex-wrap gap-x-3 pb-2.5 pt-1 text-xs text-muted">
-                            {details.map((detail) => (
-                                <span key={detail}>{detail}</span>
-                            ))}
-                        </p>
-                    </div>
-                </header>
-                {view === 'app' && embedded && app.launchUrl ? (
-                    <div className="p-3">
-                        <p className="mb-3 text-xs text-secondary">
-                            If this app doesn’t allow embedding,{' '}
-                            <a href={app.launchUrl} target="_blank" rel="noopener noreferrer">
-                                open it in a browser tab ↗
-                            </a>
-                            .
-                        </p>
-                        <iframe
-                            src={app.launchUrl}
-                            title={app.name}
-                            className="h-[65vh] w-full rounded border border-primary"
-                            sandbox="allow-scripts allow-forms allow-same-origin allow-popups allow-downloads"
-                            referrerPolicy="no-referrer"
-                        />
-                    </div>
-                ) : (
-                    <DocsBrowser app={app} docs={docs} dark={dark} />
-                )}
-            </div>
+                    </Panel>
+                </div>
+            </RadixTabs.Root>
         </Explorer>
     )
+}
+
+/** The open tab's panel, labelled by its tab; the content alone when the window has no tabs. */
+function Panel({ tabbed, value, children }: { tabbed: boolean; value: string; children: React.ReactNode }) {
+    return tabbed ? <RadixTabs.Content value={value}>{children}</RadixTabs.Content> : <>{children}</>
 }

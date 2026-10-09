@@ -3,6 +3,7 @@ import assert from 'node:assert/strict'
 import {
     ancestorAllowed,
     frameAncestors,
+    followFrameCheck,
     frameVerdict,
     isFrameCheck,
     isPublicAddress,
@@ -136,4 +137,98 @@ test('only a well-formed verdict from the server is believed', () => {
     assert.ok(!isFrameCheck({ verdict: 'allowed', reason: 1 }))
     assert.ok(!isFrameCheck('<!doctype html>'))
     assert.ok(!isFrameCheck(null))
+})
+
+test('a sign-in name in the address opens in a new tab, never in a frame', () => {
+    assert.equal(knownFrameCheck('https://user@docs.quirq.dev/')?.verdict, 'refused')
+    assert.equal(knownFrameCheck('https://user:pass@example.com/')?.verdict, 'refused')
+})
+
+test('IPv6 ranges that embed or stand for private addresses are not public', () => {
+    for (const address of [
+        '::7f00:1',
+        '::127.0.0.1',
+        'fec0::1',
+        'feff::1',
+        '100::1',
+        '2001::1',
+        '2001:0:4136::1',
+        '2002:7f00:1::1',
+    ])
+        assert.equal(isPublicAddress(address), false, address)
+    for (const address of ['2606:4700::1111', '2001:4860:4860::8888', '2a00:1450::1'])
+        assert.equal(isPublicAddress(address), true, address)
+})
+
+/** A server that answers each URL from a table, recording what it was asked. */
+function stubServer(answers: Record<string, { status: number; headers?: Record<string, string> } | Error>) {
+    const asked: string[] = []
+    const fetchHead = async (url: URL) => {
+        asked.push(url.href)
+        const answer = answers[url.href]
+        if (!answer) throw new Error(`unexpected request to ${url.href}`)
+        if (answer instanceof Error) throw answer
+        return { status: answer.status, headers: answer.headers || {} }
+    }
+    return { asked, fetchHead }
+}
+
+const later = () => Date.now() + 60_000
+
+test('the server check follows redirects, checking each hop, and judges the last page', async () => {
+    const { asked, fetchHead } = stubServer({
+        'https://a.example.com/': { status: 301, headers: { location: '/next' } },
+        'https://a.example.com/next': { status: 302, headers: { location: 'https://b.example.com/end' } },
+        'https://b.example.com/end': { status: 200, headers: { 'x-frame-options': 'DENY' } },
+    })
+    assert.equal((await followFrameCheck('https://a.example.com/', site, fetchHead, later())).verdict, 'refused')
+    assert.deepEqual(asked, ['https://a.example.com/', 'https://a.example.com/next', 'https://b.example.com/end'])
+})
+
+test('a redirect to http, a private-looking host or an invalid address is never followed', async () => {
+    const verdict = async (location: string) =>
+        (
+            await followFrameCheck(
+                'https://a.example.com/',
+                site,
+                stubServer({ 'https://a.example.com/': { status: 302, headers: { location } } }).fetchHead,
+                later()
+            )
+        ).verdict
+    assert.equal(await verdict('http://a.example.com/'), 'insecure')
+    assert.equal(await verdict('https://127.0.0.1/'), 'unknown')
+    assert.equal(await verdict('https://intranet/'), 'unknown')
+    assert.equal(await verdict('https://db.internal/'), 'unknown')
+    assert.equal(await verdict('https://a.example.com:8443/'), 'unknown')
+    assert.equal(await verdict('https://[::1]/'), 'unknown')
+})
+
+test('the server check stops after the redirect limit, on errors and at its deadline', async () => {
+    const loop = stubServer({ 'https://a.example.com/': { status: 302, headers: { location: '/' } } })
+    assert.equal(
+        (await followFrameCheck('https://a.example.com/', site, loop.fetchHead, later(), 3)).verdict,
+        'unreachable'
+    )
+    assert.equal(loop.asked.length, 4)
+    const down = stubServer({ 'https://a.example.com/': new Error('ECONNREFUSED') })
+    assert.equal(
+        (await followFrameCheck('https://a.example.com/', site, down.fetchHead, later())).verdict,
+        'unreachable'
+    )
+    const slow = stubServer({})
+    const late = await followFrameCheck('https://a.example.com/', site, slow.fetchHead, Date.now() - 1)
+    assert.equal(late.verdict, 'unreachable')
+    assert.deepEqual(slow.asked, [])
+    // An address the server may not fetch at all is left to the frame, unchecked.
+    assert.equal((await followFrameCheck('https://10.0.0.1/', site, slow.fetchHead, later())).verdict, 'unknown')
+})
+
+test('the server check hands each hop the time left before its deadline', async () => {
+    const times: number[] = []
+    const fetchHead = async (_url: URL, timeoutMs: number) => {
+        times.push(timeoutMs)
+        return { status: 200, headers: {} }
+    }
+    await followFrameCheck('https://a.example.com/', site, fetchHead, Date.now() + 5000)
+    assert.ok(times[0] > 4000 && times[0] <= 5000, String(times[0]))
 })

@@ -67,7 +67,7 @@ test('a live repository list adds and removes repositories, keeps bundled README
     )
 })
 
-test('the committed mapping opens innernet and this site in a new tab and files qq infra under Infra', async () => {
+test('the committed mapping keeps innernet and this site external (never framed unchecked) and files qq infra under Infra', async () => {
     const read = async (file) => JSON.parse(await readFile(new URL(`../${file}`, import.meta.url), 'utf8'))
     const [mapping, repositories, projects] = await Promise.all([
         read('quirq.apps.json'),

@@ -183,7 +183,7 @@ export default function DocsBrowser({
                     aria-label={`${app.name} docs`}
                     className="border-b @3xl:border-b-0 @3xl:border-r border-primary px-2 py-3 @3xl:sticky @3xl:top-0 self-start"
                 >
-                    <p className="m-0 mb-1 px-2 text-[11px] text-muted">{docs.paths.length} docs</p>
+                    <p className="m-0 mb-1 px-2 text-[11px] text-secondary">{docs.paths.length} docs</p>
                     <DocsTree
                         key={app.id}
                         paths={docs.paths}
@@ -193,7 +193,7 @@ export default function DocsBrowser({
                         height={treeHeight(docs.paths)}
                     />
                     {docs.truncated && (
-                        <p className="mt-2 px-2 text-[11px] text-muted">
+                        <p className="mt-2 px-2 text-[11px] text-secondary">
                             GitHub listed part of this repository.{' '}
                             <a href={app.repoUrl} target="_blank" rel="noopener noreferrer">
                                 See all files ↗
@@ -204,15 +204,15 @@ export default function DocsBrowser({
             )}
             <div ref={top} className="min-w-0 scroll-mt-4 px-5 py-6 @xl:px-8 @xl:py-8">
                 <div className="mx-auto max-w-[70ch]">
-                    {tree && doc.path && <p className="m-0 mb-4 font-mono text-xs text-muted">{doc.path}</p>}
+                    {tree && doc.path && <p className="m-0 mb-4 font-mono text-xs text-secondary">{doc.path}</p>}
                     {content}
                     {doc.state === 'ready' && doc.path && (
-                        <p className="m-0 mt-10 border-t border-primary pt-4 text-xs text-muted">
+                        <p className="m-0 mt-10 border-t border-primary pt-4 text-xs text-secondary">
                             <a
                                 href={githubFileUrl(app, doc.path)}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="text-muted hover:text-primary"
+                                className="text-secondary hover:text-primary"
                             >
                                 View {doc.path} on GitHub ↗
                             </a>

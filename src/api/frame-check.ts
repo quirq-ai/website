@@ -1,9 +1,8 @@
 import https from 'node:https'
 import dns from 'node:dns'
-import type { IncomingHttpHeaders } from 'node:http'
 import type { LookupFunction } from 'node:net'
 import type { GatsbyFunctionRequest, GatsbyFunctionResponse } from 'gatsby'
-import { frameVerdict, isPublicAddress, probeableUrl, type FrameCheck } from '../lib/frameCheck'
+import { followFrameCheck, isPublicAddress, type FrameCheck, type FrameResponse } from '../lib/frameCheck'
 
 // GET /api/frame-check?url=<https page>&origin=<this site's origin>: whether the page lets this site
 // show it in a window (src/lib/frameCheck.ts). The browser can't read another site's headers, so this
@@ -12,6 +11,8 @@ import { frameVerdict, isPublicAddress, probeableUrl, type FrameCheck } from '..
 // a private network.
 
 const TIMEOUT_MS = 6000
+// The whole check, redirects included; the window gives up a little later (quirq-launch.tsx).
+const TOTAL_MS = 8000
 const MAX_REDIRECTS = 5
 
 const publicLookup: LookupFunction = (hostname, options, callback) => {
@@ -28,14 +29,14 @@ const publicLookup: LookupFunction = (hostname, options, callback) => {
 }
 
 /** The status and headers of a GET, as a frame would request it; the body is never read. */
-function head(url: URL): Promise<{ status: number; headers: IncomingHttpHeaders }> {
+function head(url: URL, timeoutMs: number): Promise<FrameResponse> {
     return new Promise((resolve, reject) => {
         const request = https.request(
             url,
             {
                 method: 'GET',
                 lookup: publicLookup,
-                timeout: TIMEOUT_MS,
+                timeout: Math.min(timeoutMs, TIMEOUT_MS),
                 headers: {
                     accept: 'text/html,application/xhtml+xml,*/*;q=0.8',
                     'user-agent': 'Mozilla/5.0 (compatible; quirq-frame-check; +https://quirq.dev)',
@@ -45,46 +46,25 @@ function head(url: URL): Promise<{ status: number; headers: IncomingHttpHeaders 
                 },
             },
             (response) => {
+                clearTimeout(deadline)
                 resolve({ status: response.statusCode || 0, headers: response.headers })
                 response.destroy()
             }
         )
+        // `timeout` fires only on silence; a host that trickles its headers is cut off here.
+        const deadline = setTimeout(() => request.destroy(new Error('timed out')), timeoutMs)
         request.on('timeout', () => request.destroy(new Error('timed out')))
-        request.on('error', reject)
+        request.on('error', (error) => {
+            clearTimeout(deadline)
+            reject(error)
+        })
         request.end()
     })
 }
 
 /** Follows redirects (each hop checked like the first) and judges the page the frame would show. */
-export async function checkFrame(value: string, parentOrigin: string): Promise<FrameCheck> {
-    let url = probeableUrl(value)
-    if (!url) return { verdict: 'unknown' }
-    for (let hop = 0; hop <= MAX_REDIRECTS; hop++) {
-        let response: Awaited<ReturnType<typeof head>>
-        try {
-            response = await head(url)
-        } catch {
-            return { verdict: 'unreachable', reason: `${url.hostname} can’t be reached right now.` }
-        }
-        const location = response.headers.location
-        if (response.status >= 300 && response.status < 400 && location) {
-            let next: URL
-            try {
-                next = new URL(location, url)
-            } catch {
-                return { verdict: 'unreachable', reason: `${url.hostname} redirects to an invalid address.` }
-            }
-            if (next.protocol === 'http:')
-                return { verdict: 'insecure', reason: `${url.hostname} redirects to an insecure (http) page.` }
-            const safe = probeableUrl(next.href)
-            if (!safe) return { verdict: 'unknown' }
-            url = safe
-            continue
-        }
-        return frameVerdict(response.status, response.headers, url.href, parentOrigin)
-    }
-    return { verdict: 'unreachable', reason: `${url.hostname} redirects too many times.` }
-}
+export const checkFrame = (value: string, parentOrigin: string): Promise<FrameCheck> =>
+    followFrameCheck(value, parentOrigin, head, Date.now() + TOTAL_MS, MAX_REDIRECTS)
 
 const originOf = (value: unknown): string | null => {
     try {
@@ -97,6 +77,9 @@ const originOf = (value: unknown): string | null => {
 
 export default async function handler(req: GatsbyFunctionRequest, res: GatsbyFunctionResponse) {
     if (req.method !== 'GET') return res.status(405).json({ verdict: 'unknown' })
+    // Only this site's own pages ask; a browser on another site (Sec-Fetch-Site) is turned away.
+    const site = req.headers['sec-fetch-site']
+    if (site && site !== 'same-origin') return res.status(403).json({ verdict: 'unknown' })
     const url = typeof req.query.url === 'string' ? req.query.url : ''
     const parentOrigin = originOf(req.query.origin) || originOf(process.env.GATSBY_SITE_URL) || 'https://quirq.dev'
     const check = await checkFrame(url, parentOrigin)

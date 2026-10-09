@@ -47,6 +47,10 @@ export function knownFrameCheck(url: string): FrameCheck | null {
     // A secure page can't show an insecure one (mixed content).
     if (parsed.protocol !== 'https:')
         return { verdict: 'insecure', reason: 'It isn’t a secure (https) page, so this secure site can’t show it.' }
+    // A sign-in name or password in the address would travel into the frame; a new tab shows the browser's
+    // own warning instead.
+    if (parsed.username || parsed.password)
+        return { verdict: 'refused', reason: 'Its address carries a sign-in name, so it opens in a new tab.' }
     if (REFUSING_HOSTS.includes(plainHost(url)))
         return { verdict: 'refused', reason: `${plainHost(url)} doesn’t let other sites show it in a window.` }
     return null
@@ -171,13 +175,65 @@ export function isPublicAddress(address: string): boolean {
     const v6 = address.toLowerCase()
     if (!v6.includes(':')) return false
     return !(
-        v6 === '::' ||
-        v6 === '::1' ||
-        /^f[cd]/.test(v6) ||
-        /^fe[89ab]/.test(v6) ||
-        /^ff/.test(v6) ||
-        v6.startsWith('::ffff:') ||
-        v6.startsWith('64:ff9b:') ||
-        v6.startsWith('2001:db8:')
+        // ::, ::1, IPv4-mapped and the deprecated IPv4-compatible ::a.b.c.d / ::7f00:1 forms.
+        (
+            v6.startsWith('::') ||
+            /^f[cd]/.test(v6) ||
+            // Link-local fe80::/10 and the deprecated site-local fec0::/10.
+            /^fe[89a-f]/.test(v6) ||
+            /^ff/.test(v6) ||
+            v6.startsWith('64:ff9b:') ||
+            // 0100::/8: reserved, discard-only 100::/64 among it.
+            v6.startsWith('100:') ||
+            v6.startsWith('2001:db8:') ||
+            // Teredo 2001::/32 and 6to4 2002::/16 embed an IPv4 address that may be private.
+            /^2001:(0{0,4})?:/.test(v6) ||
+            v6.startsWith('2002:')
+        )
     )
+}
+
+/** A page's status and headers, as the server reads them (src/api/frame-check.ts). */
+export type FrameResponse = { status: number; headers: Headers }
+
+/**
+ * Follows redirects (each hop checked like the first) and judges the page a frame would show. `fetchHead`
+ * reads one hop; the whole check gives up at `deadline` (a Date.now() time), so a slow host can't hold it.
+ */
+export async function followFrameCheck(
+    value: string,
+    parentOrigin: string,
+    fetchHead: (url: URL, timeoutMs: number) => Promise<FrameResponse>,
+    deadline: number,
+    maxRedirects = 5
+): Promise<FrameCheck> {
+    let url = probeableUrl(value)
+    if (!url) return { verdict: 'unknown' }
+    for (let hop = 0; hop <= maxRedirects; hop++) {
+        const left = deadline - Date.now()
+        if (left <= 0) return { verdict: 'unreachable', reason: `${url.hostname} took too long to answer.` }
+        let response: FrameResponse
+        try {
+            response = await fetchHead(url, left)
+        } catch {
+            return { verdict: 'unreachable', reason: `${url.hostname} can’t be reached right now.` }
+        }
+        const location = header(response.headers, 'location')
+        if (response.status >= 300 && response.status < 400 && location) {
+            let next: URL
+            try {
+                next = new URL(location, url)
+            } catch {
+                return { verdict: 'unreachable', reason: `${url.hostname} redirects to an invalid address.` }
+            }
+            if (next.protocol === 'http:')
+                return { verdict: 'insecure', reason: `${url.hostname} redirects to an insecure (http) page.` }
+            const safe = probeableUrl(next.href)
+            if (!safe) return { verdict: 'unknown' }
+            url = safe
+            continue
+        }
+        return frameVerdict(response.status, response.headers, url.href, parentOrigin)
+    }
+    return { verdict: 'unreachable', reason: `${url.hostname} redirects too many times.` }
 }
