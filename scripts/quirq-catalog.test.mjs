@@ -92,7 +92,6 @@ test('repository styles and custom URLs survive mapping without inventing descri
                 path: '/space/lab/',
                 color: 'purple',
                 icon: 'rocket',
-                presentation: 'gallery',
                 component: 'src/templates/XO.tsx',
                 window: { width: 980, height: 720 },
                 featured: true,
@@ -104,7 +103,6 @@ test('repository styles and custom URLs survive mapping without inventing descri
     assert.equal(app.description, '')
     assert.equal(app.launchUrl, null)
     assert.equal(app.readmeMarkdown, '# XO')
-    assert.equal(app.presentation, 'gallery')
     assert.equal(app.component, 'src/templates/XO.tsx')
     assert.deepEqual(app.window, { width: 980, height: 720 })
 })
@@ -137,6 +135,12 @@ test('default exclusions and visibility flags are explicit and validate before a
         () => buildQuirqApps(source, { ...config, repositories: { future: { path: '/display-options' } } }),
         /reserved/
     )
+    // The per-app layout setting was removed; a leftover one fails instead of silently doing nothing.
+    for (const settings of [
+        { defaults: { presentation: 'overview' } },
+        { repositories: { archive: { presentation: 'gallery' } } },
+    ])
+        assert.throws(() => buildQuirqApps(source, { ...config, ...settings }), /presentation is no longer supported/)
 })
 
 test('private, foreign, and duplicate repositories cannot enter the catalog', () => {

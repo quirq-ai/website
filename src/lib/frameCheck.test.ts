@@ -7,6 +7,7 @@ import {
     frameVerdict,
     isFrameCheck,
     isPublicAddress,
+    isSharedHost,
     knownFrameCheck,
     probeableUrl,
 } from './frameCheck.ts'
@@ -20,8 +21,6 @@ test('insecure pages and pages known to refuse say so before any request', () =>
     assert.equal(knownFrameCheck('https://www.github.com/quirq-ai')?.verdict, 'refused')
     assert.equal(knownFrameCheck('https://gist.github.com/x')?.verdict, 'refused')
     assert.equal(knownFrameCheck('not a url')?.verdict, 'unreachable')
-    // GitHub Pages sites may allow frames; only a request can tell.
-    assert.equal(knownFrameCheck('https://quirq-ai.github.io/'), null)
     assert.equal(knownFrameCheck('https://docs.quirq.dev/'), null)
 })
 
@@ -231,4 +230,25 @@ test('the server check hands each hop the time left before its deadline', async 
     }
     await followFrameCheck('https://a.example.com/', site, fetchHead, Date.now() + 5000)
     assert.ok(times[0] > 4000 && times[0] <= 5000, String(times[0]))
+})
+
+test('pages on shared hosting platforms never open in a window, wherever the check starts', async () => {
+    for (const url of [
+        'https://instants-quirq.vercel.app/',
+        'https://www.monitoring.vercel.app/x',
+        'https://quirq-ai.github.io/',
+        'https://site.netlify.app./',
+        'https://vercel.app/',
+    ]) {
+        assert.equal(isSharedHost(url), true, url)
+        assert.equal(knownFrameCheck(url)?.verdict, 'refused', url)
+    }
+    for (const url of ['https://docs.quirq.dev/', 'https://notvercel.app/', 'https://vercel.app.example.com/'])
+        assert.equal(isSharedHost(url), false, url)
+    // A page that redirects to a shared host is judged as the shared host, without asking it.
+    const { asked, fetchHead } = stubServer({
+        'https://a.example.com/': { status: 302, headers: { location: 'https://taken.vercel.app/' } },
+    })
+    assert.equal((await followFrameCheck('https://a.example.com/', site, fetchHead, later())).verdict, 'refused')
+    assert.deepEqual(asked, ['https://a.example.com/'])
 })

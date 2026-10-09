@@ -58,7 +58,6 @@ export const QUIRQ_ICONS = [
     'toolbox',
     'wand',
 ]
-const presentations = ['overview', 'reader', 'gallery']
 // external: a new browser tab. window: its own window on this site, in an iframe (/launch/<repository>).
 // embed: an App tab inside the repository's page.
 const launchModes = ['external', 'window', 'embed']
@@ -292,11 +291,15 @@ function validatePresentation(settings, label) {
     for (const [key, options] of Object.entries({
         icon: QUIRQ_ICONS,
         color: QUIRQ_COLORS,
-        presentation: presentations,
         launchMode: launchModes,
     })) {
         if (settings[key] !== undefined) choice(settings[key], options, `${label}.${key}`)
     }
+    // Every repository window has one layout (src/components/QuirqApp); a leftover setting would do nothing.
+    assert(
+        settings.presentation === undefined,
+        `${label}.presentation is no longer supported: every repository window uses the same layout`
+    )
     for (const key of ['name', 'description', 'category']) {
         assert(settings[key] === undefined || typeof settings[key] === 'string', `${label}.${key} must be a string`)
     }
@@ -370,11 +373,6 @@ export function buildQuirqApps(snapshot, config) {
                     homepage: repo.homepage,
                     launchUrl,
                     launchMode,
-                    presentation: choice(
-                        override.presentation || defaults.presentation || 'overview',
-                        presentations,
-                        'presentation'
-                    ),
                     language: repo.language,
                     topics: repo.topics,
                     stars: repo.stargazers_count,

@@ -24,6 +24,67 @@ export const isFrameCheck = (value: unknown): value is FrameCheck =>
 /** Pages that refuse every frame, so their windows say so at once, without asking the server. */
 const REFUSING_HOSTS = ['github.com', 'gist.github.com']
 
+/**
+ * Shared hosting platforms, where anyone can claim a name (and claim one an app gave up). A page there
+ * never opens in a window, so a page someone else took over can't appear inside this site as quirq's;
+ * it opens in a new tab instead, at its own address.
+ */
+export const SHARED_HOST_SUFFIXES = [
+    'vercel.app',
+    'now.sh',
+    'netlify.app',
+    'netlify.com',
+    'github.io',
+    'githubusercontent.com',
+    'gitlab.io',
+    'pages.dev',
+    'workers.dev',
+    'herokuapp.com',
+    'onrender.com',
+    'fly.dev',
+    'railway.app',
+    'up.railway.app',
+    'web.app',
+    'firebaseapp.com',
+    'appspot.com',
+    'azurewebsites.net',
+    'azurestaticapps.net',
+    'cloudfront.net',
+    'amplifyapp.com',
+    'surge.sh',
+    'glitch.me',
+    'replit.app',
+    'repl.co',
+    'ngrok.io',
+    'ngrok-free.app',
+    'ngrok.app',
+    'deno.dev',
+    'stackblitz.io',
+    'codesandbox.io',
+    'csb.app',
+    'webflow.io',
+    'framer.app',
+    'framer.website',
+    'wixsite.com',
+    'blogspot.com',
+    'wordpress.com',
+    'notion.site',
+    'carrd.co',
+    'streamlit.app',
+    'hf.space',
+]
+
+/** Whether a URL is on a shared hosting platform (SHARED_HOST_SUFFIXES): the platform or a name on it. */
+export function isSharedHost(url: string): boolean {
+    const host = plainHost(url)
+    return !!host && SHARED_HOST_SUFFIXES.some((suffix) => host === suffix || host.endsWith(`.${suffix}`))
+}
+
+const sharedHostCheck = (url: string): FrameCheck => ({
+    verdict: 'refused',
+    reason: `${plainHost(url)} is on a shared host where anyone can claim a name, so it opens in a new tab.`,
+})
+
 /** A host without www. or a trailing dot, in lower case. */
 export const plainHost = (url: string): string => {
     try {
@@ -51,6 +112,7 @@ export function knownFrameCheck(url: string): FrameCheck | null {
     // own warning instead.
     if (parsed.username || parsed.password)
         return { verdict: 'refused', reason: 'Its address carries a sign-in name, so it opens in a new tab.' }
+    if (isSharedHost(url)) return sharedHostCheck(url)
     if (REFUSING_HOSTS.includes(plainHost(url)))
         return { verdict: 'refused', reason: `${plainHost(url)} doesn’t let other sites show it in a window.` }
     return null
@@ -228,6 +290,8 @@ export async function followFrameCheck(
             }
             if (next.protocol === 'http:')
                 return { verdict: 'insecure', reason: `${url.hostname} redirects to an insecure (http) page.` }
+            // A frame follows the redirect, so a page that moves to a shared host is judged as one.
+            if (isSharedHost(next.href)) return sharedHostCheck(next.href)
             const safe = probeableUrl(next.href)
             if (!safe) return { verdict: 'unknown' }
             url = safe
