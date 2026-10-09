@@ -6,14 +6,21 @@ import OSButton from 'components/OSButton'
 import { MissingApp, touchTarget, useRoutedApp } from 'components/QuirqApp/RoutedApp'
 import { PROFILE_BLOB_BASE, useProfileReadme } from 'components/QuirqProfile/useProfileReadme'
 import { quirqConfig } from 'lib/quirqApps'
-import { README_LAUNCH_ROOT, readmeLinkAt, readmeLinks, siteHosts } from 'lib/quirqReadmeLinks'
+import { README_LAUNCH_ROOT, readmeLinkAt, readmeLinkNamed, readmeLinks, siteHosts } from 'lib/quirqReadmeLinks'
+import type { ReadmeLink } from 'lib/quirqReadmeLinks'
+import { isFramableUrl } from '../../scripts/lib/quirq-catalog.mjs'
 import { useApp } from '../context/App'
 import { useWindow } from '../context/Window'
 
-/** Whether a URL is this site: the page's own host or the canonical one, with or without www. */
+/** Whether a URL is this site: the page's own host or the canonical one, with or without www or a trailing dot. */
 function isThisSite(url: string) {
     try {
-        return siteHosts().includes(new URL(url).hostname.toLowerCase().replace(/^www\./, ''))
+        return siteHosts().includes(
+            new URL(url).hostname
+                .toLowerCase()
+                .replace(/\.+$/, '')
+                .replace(/^www\./, '')
+        )
     } catch {
         return true
     }
@@ -23,12 +30,17 @@ function isThisSite(url: string) {
  * /launch/<repository>: the app's website in its own window on this site, in an iframe, instead of a
  * new browser tab. /launch/readme/<address>: a page the organization's profile README links to, in a
  * window the same way. Only a launch URL from the catalog, or a link the README has, is ever framed,
- * never one taken from the address. A site can refuse to be framed (X-Frame-Options or CSP
- * frame-ancestors); the browser then shows its own error in the frame, and "Open in new tab" stays one
- * click away.
+ * never one taken from the address, and only on an origin listed in `frameOrigins` in quirq.apps.json
+ * (vercel.json's CSP frame-src lists the same origins, so the browser refuses any other). A site can
+ * refuse to be framed (X-Frame-Options or CSP frame-ancestors); the browser then shows its own error in
+ * the frame, and "Open in new tab" stays one click away.
  */
 export default function QuirqLaunchPage({ location }: { location: { pathname: string } }) {
-    return location.pathname.startsWith(`${README_LAUNCH_ROOT}/`) ? (
+    // The built page is /launch/ for every address, so the first render (and hydration) is the app
+    // launch's "looking" state; a README window takes over after mount.
+    const [mounted, setMounted] = useState(false)
+    useEffect(() => setMounted(true), [])
+    return mounted && location.pathname.startsWith(`${README_LAUNCH_ROOT}/`) ? (
         <ReadmeLaunch pathname={location.pathname} />
     ) : (
         <AppLaunch pathname={location.pathname} />
@@ -38,10 +50,15 @@ export default function QuirqLaunchPage({ location }: { location: { pathname: st
 function AppLaunch({ pathname }: { pathname: string }) {
     const { name, app, status, looking } = useRoutedApp(pathname, '/launch')
     if (!app?.launchUrl) return <MissingApp name={name} app={app} status={status} looking={looking} />
-    // An app set to open externally does so even from a typed or shared /launch link, and this site never
-    // frames itself (a second desktop, and a same-origin frame can lift its own sandbox). The app only
-    // resolves after mount, so these checks run in the browser and hydration still matches.
-    if (app.launchMode === 'external' || isThisSite(app.launchUrl)) {
+    // An app that opens externally does so even from a typed or shared /launch link: one set to `external`,
+    // or one whose website is not on an allowed origin. This site never frames itself (a second desktop,
+    // and a same-origin frame can lift its own sandbox). The app only resolves after mount, so these
+    // checks run in the browser and hydration still matches.
+    if (
+        app.launchMode !== 'window' ||
+        !isFramableUrl(app.launchUrl, quirqConfig.frameOrigins) ||
+        isThisSite(app.launchUrl)
+    ) {
         return <MissingApp name={name} app={app} status={status} looking={false} opensInNewTab />
     }
     return (
@@ -62,13 +79,16 @@ function ReadmeLaunch({ pathname }: { pathname: string }) {
     const { setWindowTitle } = useApp()
     const [mounted, setMounted] = useState(false)
     useEffect(() => setMounted(true), [])
-    const link = useMemo(
-        () =>
-            mounted && readme.status === 'ready'
-                ? readmeLinkAt(pathname, readmeLinks(readme.markdown, PROFILE_BLOB_BASE), siteHosts())
-                : undefined,
-        [mounted, pathname, readme]
-    )
+    // `link` may be framed; `named` is the README's link at this address even when it may not, which then
+    // opens in a new tab rather than reading as missing.
+    const { link, named } = useMemo(() => {
+        if (!mounted || readme.status !== 'ready') return { link: undefined, named: undefined }
+        const links = readmeLinks(readme.markdown, PROFILE_BLOB_BASE)
+        return {
+            link: readmeLinkAt(pathname, links, siteHosts(), quirqConfig.frameOrigins),
+            named: readmeLinkNamed(pathname, links),
+        }
+    }, [mounted, pathname, readme])
 
     useEffect(() => {
         if (link && appWindow && appWindow.meta?.title !== link.label) setWindowTitle(appWindow, link.label)
@@ -76,7 +96,11 @@ function ReadmeLaunch({ pathname }: { pathname: string }) {
 
     if (!link)
         return (
-            <MissingReadmeLink looking={!mounted || readme.status === 'loading'} offline={readme.status === 'error'} />
+            <MissingReadmeLink
+                looking={!mounted || readme.status === 'loading'}
+                offline={readme.status === 'error'}
+                newTab={named}
+            />
         )
     return (
         <>
@@ -121,7 +145,7 @@ function LaunchFrame({ title, url, about }: { title: string; url: string; about?
                     data-testid="launched-app"
                     className="absolute inset-0 size-full border-0"
                     sandbox="allow-scripts allow-forms allow-same-origin allow-popups allow-popups-to-escape-sandbox allow-downloads allow-modals"
-                    allow="clipboard-read; clipboard-write; fullscreen"
+                    allow="clipboard-write; fullscreen"
                     referrerPolicy="no-referrer"
                 />
             </div>
@@ -129,10 +153,18 @@ function LaunchFrame({ title, url, about }: { title: string; url: string; about?
     )
 }
 
-/** What a /launch/readme/ window shows while it reads the README, or when the README has no such link. */
-function MissingReadmeLink({ looking, offline }: { looking: boolean; offline: boolean }) {
+/**
+ * What a /launch/readme/ window shows while it reads the README, when the README has no such link, or
+ * when it has the link but it may not be framed here (`newTab`: the README's own link, opened in a new tab).
+ */
+function MissingReadmeLink({ looking, offline, newTab }: { looking: boolean; offline: boolean; newTab?: ReadmeLink }) {
     const org = quirqConfig.organization
-    const [heading, message] = offline
+    const [heading, message] = newTab
+        ? [
+              `${newTab.label} opens in a new tab`,
+              `The ${org} profile README links here, but this page can’t open in a window on this site.`,
+          ]
+        : offline
         ? [
               'GitHub can’t be reached',
               `The ${org} profile README couldn’t be read, so this link can’t be opened here right now.`,
@@ -154,7 +186,7 @@ function MissingReadmeLink({ looking, offline }: { looking: boolean; offline: bo
                 showAddressBar={false}
                 headerBarOptions={['showBack', 'showForward']}
                 rightActionButtons={
-                    <OSButton asLink to="/" size="sm">
+                    <OSButton asLink to="/" size="sm" className={touchTarget}>
                         Home base
                     </OSButton>
                 }
@@ -167,7 +199,25 @@ function MissingReadmeLink({ looking, offline }: { looking: boolean; offline: bo
                             <h1 className="text-2xl font-bold tracking-tight mb-3">{heading}</h1>
                             <p className="text-secondary mb-5 max-w-xl">{message}</p>
                             <div className="flex flex-wrap gap-2">
-                                <OSButton asLink to="/" size="sm" variant="primary" className={touchTarget}>
+                                {newTab && (
+                                    <OSButton
+                                        asLink
+                                        external
+                                        to={newTab.href}
+                                        size="sm"
+                                        variant="primary"
+                                        className={touchTarget}
+                                    >
+                                        Open in new tab
+                                    </OSButton>
+                                )}
+                                <OSButton
+                                    asLink
+                                    to="/"
+                                    size="sm"
+                                    variant={newTab ? 'default' : 'primary'}
+                                    className={touchTarget}
+                                >
                                     Home base
                                 </OSButton>
                                 <OSButton

@@ -88,7 +88,7 @@ function ReadmeAppRow({ node, centered }: { node?: HastNode; centered: boolean }
         <ul className={`not-prose list-none my-8 p-0 flex flex-wrap gap-y-2 ${centered ? 'justify-center' : ''}`}>
             {links.map((link) => {
                 const look = readmeLinkLook(link.href, link.label, apps)
-                const target = readmeLinkTarget(link.href, apps, hosts)
+                const target = readmeLinkTarget(link.href, apps, hosts, quirqConfig.frameOrigins)
                 return (
                     <DesktopIcon
                         key={`${link.href} ${link.label}`}

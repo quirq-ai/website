@@ -3,6 +3,17 @@
     "framework": "gatsby",
     "buildCommand": "pnpm build",
     "outputDirectory": "public",
+    "headers": [
+        {
+            "source": "/(.*)",
+            "headers": [
+                {
+                    "key": "Content-Security-Policy",
+                    "value": "frame-src https://docs.quirq.dev https://quitter.quirq.dev https://research.quirq.dev; frame-ancestors 'self'"
+                }
+            ]
+        }
+    ],
     "redirects": [{ "source": "/quirq", "destination": "/", "permanent": false }],
     "rewrites": [
         { "source": "/apps/:path*", "destination": "/apps/index.html" },

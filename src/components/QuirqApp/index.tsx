@@ -5,6 +5,7 @@ import QuirqAppIcon from 'components/QuirqAppIcon'
 import Link from 'components/Link'
 import { getLaunchTarget, type QuirqApp } from 'lib/quirqApps'
 import DocsBrowser from './DocsBrowser'
+import { touchTarget } from './RoutedApp'
 
 const accents: Record<string, string> = {
     blue: 'bg-blue/10 border-blue/30',
@@ -35,12 +36,12 @@ export default function RepositoryApp({ app }: { app: QuirqApp }) {
             <p className="font-mono text-xs text-secondary break-all mb-5">{app.id}</p>
             <div className="flex flex-col gap-2 text-sm">
                 <a href={app.repoUrl} target="_blank" rel="noopener noreferrer">
-                    Source code â†—
+                    Source code ↗
                 </a>
                 {launch &&
                     (launch.external ? (
                         <a href={launch.to} target="_blank" rel="noopener noreferrer">
-                            Open website â†—
+                            Open website ↗
                         </a>
                     ) : (
                         <Link to={launch.to} state={{ newWindow: true }}>
@@ -65,7 +66,7 @@ export default function RepositoryApp({ app }: { app: QuirqApp }) {
             headerBarOptions={['showBack', 'showForward']}
             rightActionButtons={
                 <>
-                    <OSButton asLink to="/" size="sm">
+                    <OSButton asLink to="/" size="sm" className={touchTarget}>
                         Home base
                     </OSButton>
                     {launch ? (
@@ -76,11 +77,12 @@ export default function RepositoryApp({ app }: { app: QuirqApp }) {
                             state={launch.external ? undefined : { newWindow: true }}
                             variant="primary"
                             size="sm"
+                            className={touchTarget}
                         >
                             Open app
                         </OSButton>
                     ) : (
-                        <OSButton asLink external to={app.repoUrl} variant="primary" size="sm">
+                        <OSButton asLink external to={app.repoUrl} variant="primary" size="sm" className={touchTarget}>
                             Open repository
                         </OSButton>
                     )}
@@ -122,7 +124,7 @@ export default function RepositoryApp({ app }: { app: QuirqApp }) {
                                         {app.language}
                                     </span>
                                 )}
-                                {app.stars > 0 && <span className="px-2 py-0.5">â˜† {app.stars}</span>}
+                                {app.stars > 0 && <span className="px-2 py-0.5">☆ {app.stars}</span>}
                             </div>
                         </div>
                     </div>
@@ -140,9 +142,9 @@ export default function RepositoryApp({ app }: { app: QuirqApp }) {
                 {tab === 'app' && launchUrl ? (
                     <div className="p-3">
                         <p className="text-xs text-secondary mb-3">
-                            If this app doesnâ€™t allow embedding,{' '}
+                            If this app doesn’t allow embedding,{' '}
                             <a href={launchUrl} target="_blank" rel="noopener noreferrer">
-                                open it in a browser tab â†—
+                                open it in a browser tab ↗
                             </a>
                             .
                         </p>

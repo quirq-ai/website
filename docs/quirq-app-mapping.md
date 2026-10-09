@@ -25,6 +25,7 @@ The key must match an actual repository name in the organization. Unlisted repos
 {
     "organization": "quirq-ai",
     "name": "quirq",
+    "frameOrigins": ["https://docs.quirq.dev"],
     "defaults": {
         "category": "Apps",
         "presentation": "overview",
@@ -62,7 +63,9 @@ The key must match an actual repository name in the organization. Unlisted repos
 | `component` | Optional existing component under `src/templates/`, such as `src/templates/XOSpace.tsx`, for a completely bespoke app page. The Gatsby pipeline validates that the file exists. |
 | `window` | Optional `width` and `height` in pixels for the restored window. Dimensions fit within the desktop, and multiple open windows share its available width. The window can be expanded and restored. |
 
-A site's own security policy (`X-Frame-Options`, or CSP `frame-ancestors`) can prevent it from appearing in an iframe, in a launch window or an App tab. Both keep an Open in new tab link; for such a site, set `"launchMode": "external"` on that repository. Only a catalog launch URL, or a page the organization's profile README links to (its app icons on the desktop open such a page at `/launch/readme/<address>`), is ever framed; never an address taken from the URL. GitHub refuses all framing, so repository links open in a new tab. Opening a repository page or a launch window does not install or start its code.
+Only a launch URL, or a page the organization's profile README links to (its app icons on the desktop open such a page at `/launch/readme/<address>`), whose origin is listed in the top-level `frameOrigins` is ever framed, in a launch window, a README window or an App tab; never an address taken from the URL. Each entry is an exact `https://` origin on a quirq.dev subdomain (not `www`), with no path or wildcard, and never a host on a shared platform such as `*.vercel.app`, where anyone can claim a name. Any other launch URL or README link opens in a new tab, whatever `launchMode` says: homepages and the README come from GitHub live, so a new repository, an edited homepage or a new README link is never framed until its origin is added here. `vercel.json` sends a CSP `frame-src` listing the same origins (a test keeps the two equal) and `frame-ancestors 'self'`, so the browser refuses any other frame too. Repository mapping keys match GitHub names in any case.
+
+A site's own security policy (`X-Frame-Options`, or CSP `frame-ancestors`) can prevent it from appearing in an iframe, in a launch window or an App tab. Both keep an Open in new tab link; for such a site, set `"launchMode": "external"` on that repository. GitHub refuses all framing, so repository links open in a new tab. Opening a repository page or a launch window does not install or start its code.
 
 ## What is included
 

@@ -1,4 +1,5 @@
 import type { QuirqApp } from './quirqApps'
+import { isFramableUrl } from '../../scripts/lib/quirq-catalog.mjs'
 import type { QuirqIcon } from '../components/QuirqAppIcon/glyphs'
 
 // The links in the organization's profile README, as the desktop shows them: each is an app icon
@@ -42,7 +43,10 @@ export const comparableUrl = (url: string): string =>
 
 const hostOf = (url: string): string | null => {
     try {
-        return new URL(url).hostname.toLowerCase().replace(/^www\./, '')
+        return new URL(url).hostname
+            .toLowerCase()
+            .replace(/\.+$/, '')
+            .replace(/^www\./, '')
     } catch {
         return null
     }
@@ -84,11 +88,13 @@ export const readmeLinkLabel = (text: string): string =>
         .trim()
 
 /**
- * Whether a README link may open in a window here: a web page that isn't GitHub (which refuses to be
- * framed) or this site (which never frames itself). `siteHosts` are this site's hosts, without www.
+ * Whether a README link may open in a window here: a web page on an origin listed in `frameOrigins`
+ * (quirq.apps.json), and never this site (which never frames itself) or GitHub (which refuses to be
+ * framed). `siteHosts` are this site's hosts, without www. The README is read live, so any other link,
+ * whoever added it, opens in a new tab.
  */
-export function canFrameReadmeLink(href: string, siteHosts: string[]): boolean {
-    if (!/^https?:\/\//i.test(href)) return false
+export function canFrameReadmeLink(href: string, siteHosts: string[], frameOrigins: string[]): boolean {
+    if (!/^https?:\/\//i.test(href) || !isFramableUrl(href, frameOrigins)) return false
     const host = hostOf(href)
     return !!host && host !== 'github.com' && !host.endsWith('.github.com') && !siteHosts.includes(host)
 }
@@ -113,7 +119,12 @@ export function readmeLinkAddress(pathname: string): string | null {
  * window of its own, framed from the README (/launch/readme/<address>). A link to this site opens here;
  * GitHub, mail and anything else open in a new tab.
  */
-export function readmeLinkTarget(href: string, apps: QuirqApp[], siteHosts: string[]): ReadmeLinkTarget {
+export function readmeLinkTarget(
+    href: string,
+    apps: QuirqApp[],
+    siteHosts: string[],
+    frameOrigins: string[]
+): ReadmeLinkTarget {
     const host = hostOf(href)
     if (host && siteHosts.includes(host) && /^https?:\/\//i.test(href)) {
         const url = new URL(href)
@@ -133,7 +144,7 @@ export function readmeLinkTarget(href: string, apps: QuirqApp[], siteHosts: stri
             ? { to: `/launch/${app.repo}`, external: false }
             : { to: href, external: true }
     }
-    if (canFrameReadmeLink(href, siteHosts)) return { to: readmeLinkPath(href), external: false }
+    if (canFrameReadmeLink(href, siteHosts, frameOrigins)) return { to: readmeLinkPath(href), external: false }
     return { to: href, external: true }
 }
 
@@ -164,19 +175,32 @@ export function readmeLinks(markdown: string, base: string): ReadmeLink[] {
     return found.filter((link) => link.href && link.label)
 }
 
+/** The README link a /launch/readme/<address> path names, framable or not, or undefined. */
+export function readmeLinkNamed(pathname: string, links: ReadmeLink[]): ReadmeLink | undefined {
+    const address = readmeLinkAddress(pathname)
+    return address ? links.find((link) => comparableUrl(link.href) === address) : undefined
+}
+
 /**
  * The README link a /launch/readme/<address> path names, if the README has one there that may be
  * framed. The frame shows the README's own link, never an address taken from the path.
  */
-export function readmeLinkAt(pathname: string, links: ReadmeLink[], siteHosts: string[]): ReadmeLink | undefined {
+export function readmeLinkAt(
+    pathname: string,
+    links: ReadmeLink[],
+    siteHosts: string[],
+    frameOrigins: string[]
+): ReadmeLink | undefined {
     const address = readmeLinkAddress(pathname)
     if (!address) return undefined
-    return links.find((link) => comparableUrl(link.href) === address && canFrameReadmeLink(link.href, siteHosts))
+    return links.find(
+        (link) => comparableUrl(link.href) === address && canFrameReadmeLink(link.href, siteHosts, frameOrigins)
+    )
 }
 
 /** This site's hosts, without www.: the page's own and the canonical one. Browser only. */
 export function siteHosts(): string[] {
-    const hosts = [window.location.hostname.toLowerCase().replace(/^www\./, '')]
+    const hosts = [hostOf(window.location.href) as string]
     const canonical = process.env.GATSBY_SITE_URL ? hostOf(process.env.GATSBY_SITE_URL) : null
     if (canonical && !hosts.includes(canonical)) hosts.push(canonical)
     return hosts

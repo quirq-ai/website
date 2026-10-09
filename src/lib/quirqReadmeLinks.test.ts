@@ -3,6 +3,7 @@ import assert from 'node:assert/strict'
 import {
     canFrameReadmeLink,
     readmeLinkAt,
+    readmeLinkNamed,
     readmeLinkLabel,
     readmeLinkLook,
     readmeLinks,
@@ -72,16 +73,24 @@ test('README links come from Markdown and HTML, resolved like GitHub, without im
     assert.ok(!links.some((link) => link.href.startsWith('javascript:') || link.href.includes('#top')))
 })
 
-test('a README link to an app opens that app the way Launch does; other web pages open in a window of their own', () => {
-    const target = (href: string) => readmeLinkTarget(href, apps, site)
+// The origins quirq.apps.json allows in a frame.
+const origins = ['https://docs.quirq.dev', 'https://research.quirq.dev']
+
+test('a README link to an app opens that app the way Launch does; other allowed pages open in a window of their own', () => {
+    const target = (href: string) => readmeLinkTarget(href, apps, site, origins)
     assert.deepEqual(target('https://docs.quirq.dev/'), { to: '/launch/docs', external: false })
     // www and a trailing slash don't matter, and .github doesn't claim the website.
     assert.deepEqual(target('https://www.quirq.ai/'), { to: '/launch/quirq_ai', external: false })
     assert.deepEqual(target('https://innernet.example'), { to: 'https://innernet.example', external: true })
-    assert.deepEqual(target('https://app.xo.builders/'), { to: '/launch/readme/app.xo.builders', external: false })
-    assert.deepEqual(target('https://www.quirq.ai/research?x=1#y'), {
-        to: '/launch/readme/quirq.ai/research',
+    // A page on an allowed origin opens in a window; any other opens in a new tab.
+    assert.deepEqual(target('https://research.quirq.dev/notes'), {
+        to: '/launch/readme/research.quirq.dev/notes',
         external: false,
+    })
+    assert.deepEqual(target('https://app.xo.builders/'), { to: 'https://app.xo.builders/', external: true })
+    assert.deepEqual(target('https://www.quirq.ai/research?x=1#y'), {
+        to: 'https://www.quirq.ai/research?x=1#y',
+        external: true,
     })
     // GitHub refuses to be framed, and mail isn't a page.
     assert.deepEqual(target('https://github.com/quirq-ai/xo-space#quick-start'), {
@@ -95,14 +104,34 @@ test('a README link to an app opens that app the way Launch does; other web page
 
 test('a /launch/readme/ window frames only a link the README has, never the address in the path', () => {
     const links = readmeLinks(readme, base)
-    assert.equal(readmeLinkAt('/launch/readme/app.xo.builders', links, site)?.href, 'https://app.xo.builders/')
-    assert.equal(readmeLinkAt('/launch/readme/quirq.ai/research/', links, site)?.label, 'Read the research')
-    assert.equal(readmeLinkAt('/launch/readme/evil.example', links, site), undefined)
-    assert.equal(readmeLinkAt('/launch/readme/github.com/quirq-ai/xo-space', links, site), undefined)
-    assert.equal(readmeLinkAt('/launch/docs', links, site), undefined)
-    assert.ok(!canFrameReadmeLink('https://quirq.dev/', site))
-    assert.ok(!canFrameReadmeLink('http://gist.github.com/x', site))
-    assert.ok(canFrameReadmeLink('https://docs.quirq.dev/', site))
+    const at = (path: string) => readmeLinkAt(path, links, site, origins)
+    assert.equal(at('/launch/readme/docs.quirq.dev')?.href, 'https://docs.quirq.dev/')
+    // Links the README has, but not on an allowed origin, are never framed.
+    assert.equal(at('/launch/readme/app.xo.builders'), undefined)
+    assert.equal(at('/launch/readme/quirq.ai/research/'), undefined)
+    assert.equal(at('/launch/readme/evil.example'), undefined)
+    assert.equal(at('/launch/readme/github.com/quirq-ai/xo-space'), undefined)
+    assert.equal(at('/launch/docs'), undefined)
+    // A link the README has but that may not be framed is still named, so it opens in a new tab.
+    const named = (path: string) => readmeLinkNamed(path, links)?.href
+    assert.equal(named('/launch/readme/app.xo.builders'), 'https://app.xo.builders/')
+    assert.equal(named('/launch/readme/docs.quirq.dev'), 'https://docs.quirq.dev/')
+    assert.equal(named('/launch/readme/evil.example'), undefined)
+    assert.equal(named('/launch/docs'), undefined)
+    const frames = (href: string) => canFrameReadmeLink(href, site, origins)
+    assert.ok(frames('https://docs.quirq.dev/'))
+    for (const href of [
+        'https://quirq.dev/',
+        'http://gist.github.com/x',
+        'http://docs.quirq.dev/',
+        'https://docs.quirq.dev./',
+        'https://user@docs.quirq.dev/',
+        'https://docs.quirq.dev.evil.example/',
+        'https://xo-space.vercel.app/',
+        'http://localhost:5002/',
+        'https://x.com/quirq',
+    ])
+        assert.ok(!frames(href), href)
 })
 
 test('README links look like the app they open, or like what they are about', () => {
