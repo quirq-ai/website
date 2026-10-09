@@ -7,6 +7,7 @@ import { IconArrowUpRight } from '@posthog/icons'
 import ContextMenu, { ContextMenuItemProps } from 'components/RadixUI/ContextMenu'
 import { useAppSettings } from '../../context/App'
 import { useWindow } from '../../context/Window'
+import { isAbsoluteWebUrl } from '../../lib/externalLinks'
 
 const POSTHOG_APP_HOSTNAMES = new Set(['app.posthog.com', 'us.posthog.com', 'eu.posthog.com'])
 
@@ -50,6 +51,7 @@ const createStandardMenuItems = (url: string, state?: any, isExternal = false): 
         },
         {
             type: 'item',
+            newTab: true,
             children: (
                 // Keeps noreferrer, unlike the anchors below. `url` reaches href on this line, and
                 // CodeQL reports js/xss-through-dom against any line this file changes here.
@@ -185,6 +187,10 @@ export default function Link({
         }
     }
 
+    // A link to another site carries a new-tab target, flagged `external` or not, for a Ctrl/Cmd- or
+    // middle-click and for no JavaScript; a plain click opens it in a window here (AGENTS.md).
+    const opensNewTab = isSignupUrl || !!external || !!externalNoIcon || isAbsoluteWebUrl(url)
+
     // Determine if link is external
     const isExternal = Boolean(
         !internal || !!external || !!externalNoIcon || (url && !url.startsWith('/') && !url.includes('posthog.com'))
@@ -239,7 +245,7 @@ export default function Link({
                     {...other}
                     href={url}
                     className={`${className} group`}
-                    target={isSignupUrl || external || externalNoIcon ? '_blank' : ''}
+                    target={opensNewTab ? '_blank' : ''}
                 >
                     {external ? (
                         <span className="inline-flex justify-center items-center group">
@@ -294,7 +300,7 @@ export default function Link({
                     {...other}
                     href={url}
                     className={`${className} group`}
-                    target={isSignupUrl || external || externalNoIcon ? '_blank' : ''}
+                    target={opensNewTab ? '_blank' : ''}
                 >
                     {external ? (
                         <span className="inline-flex justify-center items-center group">

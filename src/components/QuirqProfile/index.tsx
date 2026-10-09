@@ -71,7 +71,7 @@ function ReadmeLink({ node, href, children }: LinkProps) {
 /**
  * A row of README links as desktop app icons: the glyph and color of the catalog app a link opens,
  * or of what the link is about. Like the other apps they open in a window here: an app's own launch
- * window, or a window framing the page; GitHub and mail links open in a new tab (lib/quirqReadmeLinks).
+ * window, or a window framing the page, GitHub's included; mail links open the mail app (lib/quirqReadmeLinks).
  */
 function ReadmeAppRow({ node, centered }: { node?: HastNode; centered: boolean }) {
     const apps = useQuirqApps()
@@ -88,7 +88,7 @@ function ReadmeAppRow({ node, centered }: { node?: HastNode; centered: boolean }
         <ul className={`not-prose list-none my-8 p-0 flex flex-wrap gap-y-2 ${centered ? 'justify-center' : ''}`}>
             {links.map((link) => {
                 const look = readmeLinkLook(link.href, link.label, apps)
-                const target = readmeLinkTarget(link.href, apps, hosts, quirqConfig.frameOrigins)
+                const target = readmeLinkTarget(link.href, apps, hosts)
                 return (
                     <DesktopIcon
                         key={`${link.href} ${link.label}`}

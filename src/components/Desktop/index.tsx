@@ -2,8 +2,9 @@ import React, { useEffect, useMemo, useRef, useState } from 'react'
 import Link from 'components/Link'
 import { useAppActions, useAppSettings, useAppUIState, useAppWindows } from '../../context/App'
 import QuirqAppIcon from 'components/QuirqAppIcon'
-import type { QuirqApp } from 'lib/quirqApps'
+import { getLaunchTarget, type QuirqApp } from 'lib/quirqApps'
 import { useQuirqApps } from 'lib/quirqLiveApps'
+import { isDesktopApp } from '../../../scripts/lib/quirq-catalog.mjs'
 import { AppItem } from 'components/OSIcons/AppIcon'
 import ContextMenu from 'components/RadixUI/ContextMenu'
 import DesktopIcon from './DesktopIcon'
@@ -14,12 +15,19 @@ import QuirqProfile from 'components/QuirqProfile'
 import ReactConfetti from 'react-confetti'
 import { useToast } from '../../context/Toast'
 
-const asDesktopApp = (app: QuirqApp): AppItem => ({
-    label: app.name,
-    Icon: <QuirqAppIcon icon={app.icon} color={app.color} />,
-    url: app.path,
-    source: 'desktop',
-})
+// A desktop icon opens the app's website like Open app does, in its own window on this site
+// (`/launch/<repository>`): framed, or "Oops" with Open in new tab when it can't be (AGENTS.md).
+// Its README window is one click away in Home base and search.
+const asDesktopApp = (app: QuirqApp): AppItem => {
+    const target = getLaunchTarget(app)
+    return {
+        label: app.name,
+        Icon: <QuirqAppIcon icon={app.icon} color={app.color} />,
+        url: target?.to || app.repoUrl,
+        external: target ? target.external : true,
+        source: 'desktop',
+    }
+}
 
 const editApp: AppItem = {
     label: 'Edit',
@@ -29,15 +37,16 @@ const editApp: AppItem = {
 }
 
 /**
- * Every repository in the organization, kept live, split evenly between the two icon columns: the
- * featured apps lead the left; Edit stays in the top-right corner. Home base and Projects are on the
- * dock, not here.
+ * The repositories with a website (`isDesktopApp`), kept live, split evenly between the two icon
+ * columns: the featured apps lead the left; Edit stays in the top-right corner. Repositories without a
+ * website are in Home base, search and the menus, not here. Home base and Projects are on the dock.
  */
 function useDesktopApps() {
     const catalog = useQuirqApps()
     return useMemo(() => {
-        const featured = catalog.filter((app) => app.featured).slice(0, 6)
-        const rest = catalog.filter((app) => !featured.includes(app)).map(asDesktopApp)
+        const withWebsite = catalog.filter(isDesktopApp)
+        const featured = withWebsite.filter((app) => app.featured).slice(0, 6)
+        const rest = withWebsite.filter((app) => !featured.includes(app)).map(asDesktopApp)
         const leading = featured.map(asDesktopApp)
         const leftCount = Math.max(leading.length, Math.ceil((leading.length + rest.length + 1) / 2))
         const leftRest = rest.slice(0, leftCount - leading.length)

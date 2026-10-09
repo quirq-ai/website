@@ -38,14 +38,13 @@ export function getQuirqApps(): QuirqApp[] {
 }
 
 /**
- * Where an app's Open app and Launch controls go: its own window on this site (`/launch/<repository>`)
- * when its launch mode is `window`, otherwise its website in a new tab. Null when it has no website.
+ * Where an app's Open app, Launch and desktop icon go: its own window on this site
+ * (`/launch/<repository>`), its website in an iframe, or "Oops" with Open in new tab when the website
+ * can't be shown there. Null when it has no website.
  */
 export function getLaunchTarget(app: QuirqApp): { to: string; external: boolean } | null {
     if (!app.launchUrl) return null
-    return app.launchMode === 'window'
-        ? { to: `/launch/${app.repo}`, external: false }
-        : { to: app.launchUrl, external: true }
+    return { to: `/launch/${app.repo}`, external: false }
 }
 
 export function getQuirqApp(pathOrSlug: string): QuirqApp | undefined {
