@@ -8,6 +8,8 @@ import { QuirqAvatarTile } from 'components/QuirqAvatar'
 import { useOpenQuirqy } from 'components/Quirqy'
 import { getLaunchTarget, quirqConfig, type QuirqApp } from 'lib/quirqApps'
 import { useQuirqCatalog } from 'lib/quirqLiveApps'
+import { quirqRoles, roleInfo, roleKeywords } from 'lib/quirqRoles'
+import { Badge } from 'components/ui/badge'
 
 const orgUrl = `https://github.com/${quirqConfig.organization}`
 // UTC keeps the server render and the browser render on the same day.
@@ -68,6 +70,39 @@ const LaunchButton = ({ app }: { app: QuirqApp }) => {
     )
 }
 
+type Filter = { key: string; label: string; matches: (app: QuirqApp) => boolean }
+const allApps: Filter = { key: 'all', label: 'All apps', matches: () => true }
+
+/**
+ * Home base's filters: one per repository type (the organization's `role` property on GitHub) that some
+ * app has, in the order types are listed. While no app's type is known (GitHub left the property out),
+ * the mapping's categories instead.
+ */
+function filtersFor(apps: QuirqApp[]): Filter[] {
+    if (apps.some((app) => app.role)) {
+        return [
+            allApps,
+            ...quirqRoles
+                .filter((role) => apps.some((app) => app.role === role))
+                .map((role) => ({
+                    key: `role:${role}`,
+                    label: roleInfo[role].plural,
+                    matches: (app: QuirqApp) => app.role === role,
+                })),
+        ]
+    }
+    return [
+        allApps,
+        ...Array.from(new Set(apps.map((app) => app.category)))
+            .sort()
+            .map((category) => ({
+                key: `category:${category}`,
+                label: category,
+                matches: (app: QuirqApp) => app.category === category,
+            })),
+    ]
+}
+
 const greetingFor = (hour: number) =>
     hour < 5 ? 'Good evening.' : hour < 12 ? 'Good morning.' : hour < 18 ? 'Good afternoon.' : 'Good evening.'
 
@@ -104,22 +139,24 @@ export default function HomeBase() {
     const catalog = useQuirqCatalog()
     const { apps } = catalog
     const [query, setQuery] = useState('')
-    const [category, setCategory] = useState('All apps')
+    const [filterKey, setFilterKey] = useState(allApps.key)
     // The avatar's appearance lives in the quirqy window, which the dock also opens.
     const personalize = useOpenQuirqy()
-    const categories = useMemo(() => Array.from(new Set(apps.map((app) => app.category))).sort(), [apps])
+    const filters = useMemo(() => filtersFor(apps), [apps])
+    // A filter the live list no longer has (its last app changed type, say) falls back to all apps.
+    const filter = filters.find((item) => item.key === filterKey) || allApps
     const liveCount = apps.filter((app) => app.launchUrl).length
 
     const matches = useMemo(
         () =>
             apps.filter(
                 (app) =>
-                    (category === 'All apps' || app.category === category) &&
-                    `${app.name} ${app.repo} ${app.description} ${app.topics.join(' ')}`
+                    filter.matches(app) &&
+                    `${app.name} ${app.repo} ${app.description} ${app.topics.join(' ')} ${roleKeywords(app.role)}`
                         .toLowerCase()
                         .includes(query.toLowerCase().trim())
             ),
-        [apps, query, category]
+        [apps, query, filter]
     )
 
     return (
@@ -231,21 +268,25 @@ export default function HomeBase() {
                             <div
                                 className="flex flex-wrap gap-0.5 p-[3px] rounded-[11px] border border-white/60 dark:border-white/10 bg-white/20 dark:bg-black/40 backdrop-blur-xl reduce-transparency:backdrop-blur-none"
                                 role="group"
-                                aria-label="App categories"
+                                aria-label={
+                                    filters.some((item) => item.key.startsWith('role:'))
+                                        ? 'App types'
+                                        : 'App categories'
+                                }
                             >
-                                {['All apps', ...categories].map((item) => (
+                                {filters.map((item) => (
                                     <button
                                         type="button"
-                                        key={item}
-                                        onClick={() => setCategory(item)}
-                                        aria-pressed={category === item}
+                                        key={item.key}
+                                        onClick={() => setFilterKey(item.key)}
+                                        aria-pressed={filter.key === item.key}
                                         className={`min-h-8 px-3 rounded-lg border text-[11px] font-semibold whitespace-nowrap transition-colors ${
-                                            category === item
+                                            filter.key === item.key
                                                 ? 'border-white/90 dark:border-white/10 bg-white/75 dark:bg-white/10 text-primary shadow-sm'
                                                 : 'border-transparent text-secondary hover:text-primary hover:bg-white/40 dark:hover:bg-white/5'
                                         }`}
                                     >
-                                        {item}
+                                        {item.label}
                                     </button>
                                 ))}
                             </div>
@@ -305,7 +346,17 @@ export default function HomeBase() {
                                             />
                                             {app.launchUrl ? 'Live' : 'Read me'}
                                         </span>
-                                        <span className="text-[11px] text-muted">{app.category}</span>
+                                        {app.role ? (
+                                            <Badge
+                                                variant="outline"
+                                                title={roleInfo[app.role].meaning}
+                                                data-testid="app-type"
+                                            >
+                                                {roleInfo[app.role].label}
+                                            </Badge>
+                                        ) : (
+                                            <span className="text-[11px] text-muted">{app.category}</span>
+                                        )}
                                     </div>
                                     <p className="mt-2.5 mb-5 pb-4 border-b border-black/[0.06] dark:border-white/10 text-[11px] text-muted break-all">
                                         {app.path}
@@ -342,14 +393,14 @@ export default function HomeBase() {
                                         No apps found
                                     </h3>
                                     <p className="mt-0 mb-5 text-xs text-muted">
-                                        Try a different name or choose another category.
+                                        Try a different name or another filter.
                                     </p>
                                     <button
                                         type="button"
                                         className={secondaryButton}
                                         onClick={() => {
                                             setQuery('')
-                                            setCategory('All apps')
+                                            setFilterKey(allApps.key)
                                         }}
                                     >
                                         Clear filters

@@ -5,6 +5,8 @@ import OSButton from 'components/OSButton'
 import QuirqAppIcon from 'components/QuirqAppIcon'
 import { getLaunchTarget, type QuirqApp } from 'lib/quirqApps'
 import { docLabel, readmeSummary } from 'lib/quirqDocs'
+import { roleInfo } from 'lib/quirqRoles'
+import { Badge } from 'components/ui/badge'
 import { useAppSettings } from '../../context/App'
 import DocsBrowser, { useRepositoryDocs } from './DocsBrowser'
 import { touchTarget } from './RoutedApp'
@@ -67,7 +69,11 @@ export default function RepositoryApp({ app }: { app: QuirqApp }) {
         setView('docs')
         if (key !== 'docs') docs.selectDoc(key)
     }
-    const details = [app.language, app.category, app.stars > 0 ? `☆ ${app.stars}` : null, updated].filter(Boolean)
+    // The repository's type (its `role` on GitHub) says what it is; the mapping's category is the fallback.
+    const type = app.role ? roleInfo[app.role] : null
+    const details = [app.language, type ? null : app.category, app.stars > 0 ? `☆ ${app.stars}` : null, updated].filter(
+        Boolean
+    )
 
     return (
         <Explorer
@@ -136,7 +142,13 @@ export default function RepositoryApp({ app }: { app: QuirqApp }) {
                                     ))}
                                 </RadixTabs.List>
                             )}
-                            <p className="m-0 ml-auto flex flex-wrap gap-x-3 pb-2.5 pt-1 text-xs text-secondary">
+                            <p className="m-0 ml-auto flex flex-wrap items-center gap-x-3 gap-y-1 pb-2.5 pt-1 text-xs text-secondary">
+                                {type && (
+                                    <Badge variant="outline" title={type.meaning} data-testid="app-type">
+                                        <span className="sr-only">Type: </span>
+                                        {type.label}
+                                    </Badge>
+                                )}
                                 {details.map((detail) => (
                                     <span key={detail}>{detail}</span>
                                 ))}
