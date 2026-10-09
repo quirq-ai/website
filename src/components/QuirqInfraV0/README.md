@@ -1,4 +1,4 @@
-# QuirqInfraV0
+# quirq infra v0
 
 The "quirq infra" app at `/v0`: a guide to quirq infra (qq) v0 and a live view of it running. The catalog maps the
 `infra-config` repository to this component through `src/templates/QuirqInfraV0.tsx` (see `quirq.apps.json`).

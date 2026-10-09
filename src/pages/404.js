@@ -10,7 +10,7 @@ export default function NotFound() {
                 og tags and no llms.txt signpost — and nothing telling a search engine
                 not to index it. */}
             <SEO title="404: Page not found" noindex />
-            <Explorer template="generic" slug="404" title="This app isn't here" showAddressBar={false}>
+            <Explorer title="This app isn't here">
                 <p>This address isn't part of the current quirq app collection.</p>
                 <OSButton asLink to="/" variant="primary">
                     Back to home base

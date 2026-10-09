@@ -15,16 +15,7 @@ const glass =
  */
 export default function QuirqyWindow(_props: { location: { pathname: string }; newWindow?: boolean }) {
     return (
-        <Explorer
-            template="generic"
-            slug="quirqy"
-            title="quirqy"
-            showTitle={false}
-            showAddressBar={false}
-            transparent
-            padding={false}
-            headerBarOptions={[]}
-        >
+        <Explorer title="quirqy" showTitle={false} transparent padding={false} headerBarOptions={[]}>
             <div
                 className="not-prose w-full max-w-[1000px] mx-auto px-5 @xl:px-9 pt-6 pb-8 text-primary"
                 data-testid="quirqy"

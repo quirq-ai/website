@@ -2,7 +2,7 @@ import React from 'react'
 import Tooltip from 'components/RadixUI/Tooltip'
 import Link from 'components/Link'
 import ZoomHover from 'components/ZoomHover'
-import { IconArrowUpRight, IconExternal } from '@posthog/icons'
+import { IconArrowUpRight } from '@posthog/icons'
 
 // Basic usage
 // <OSButton>Click me</OSButton>
@@ -155,11 +155,11 @@ export default function OSButton({
     }
 
     const variantClasses = {
-        default: `bg-transparent border-transparent skin-classic:border-b-3 rounded ${
+        default: `bg-transparent border-transparent rounded ${
             active
-                ? 'font-bold skin-modern:bg-accent/50 dark:skin-modern:bg-accent skin-modern:hover:border-primary skin-classic:border-primary skin-classic:bg-primary'
+                ? 'font-bold bg-accent/50 dark:bg-accent hover:border-primary'
                 : hover === 'border'
-                ? 'hover:border-primary skin-classic:hover:border-primary skin-classic:border-transparent disabled:hover:bg-transparent disabled:hover:border-transparent'
+                ? 'hover:border-primary disabled:hover:bg-transparent disabled:hover:border-transparent'
                 : 'hover:bg-accent dark:hover:bg-accent disabled:hover:bg-transparent disabled:hover:border-transparent'
         } ${
             hover === 'border'

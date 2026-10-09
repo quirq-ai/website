@@ -1,4 +1,4 @@
-# QuirqBrand
+# quirq brand
 
 `QuirqMark` (the "q" tile) and `QuirqWordmark` (lowercase "quirq", drawn in `currentColor`) as inline SVG.
 

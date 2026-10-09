@@ -77,13 +77,10 @@ export default function RepositoryApp({ app }: { app: QuirqApp }) {
 
     return (
         <Explorer
-            template="generic"
-            slug={app.repo}
             title={app.name}
             showTitle={false}
             transparent
             padding={false}
-            showAddressBar={false}
             headerBarOptions={['showBack', 'showForward']}
         >
             {/* Radix Tabs: tab and tabpanel roles, arrow keys between tabs, and the panel labelled by its tab. */}

@@ -1,7 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react'
-import { IconSearch, IconX } from '@posthog/icons'
+import { IconX } from '@posthog/icons'
 import OSButton from 'components/OSButton'
-import { useSearch } from './SearchProvider'
 import Mark from 'mark.js'
 import debounce from 'lodash/debounce'
 
@@ -22,16 +21,10 @@ export const SearchBar: React.FC<SearchBarProps> = ({
     dataScheme = 'primary',
     onSearch,
 }) => {
-    const { searchQuery, setSearchQuery } = useSearch()
-    const [inputValue, setInputValue] = useState(searchQuery)
+    const [inputValue, setInputValue] = useState('')
     const markedRef = useRef(null)
     const duplicateContainerRef = useRef<HTMLDivElement>(null)
     const containerRef = useRef<HTMLDivElement>(null)
-    // Sync input value with searchQuery when it changes externally
-    useEffect(() => {
-        setInputValue(searchQuery)
-    }, [searchQuery])
-
     // Reset when closing
     useEffect(() => {
         if (!contentRef?.current) return
@@ -76,7 +69,6 @@ export const SearchBar: React.FC<SearchBarProps> = ({
     const handleKeyDown = (e: React.KeyboardEvent) => {
         if (e.key === 'Escape') {
             onSearch?.('')
-            setSearchQuery('')
             setInputValue('')
             onClose()
         }
@@ -89,10 +81,9 @@ export const SearchBar: React.FC<SearchBarProps> = ({
         onSearch?.(value)
     }
 
-    // Update the global search state after a brief delay (debounce)
-    const debouncedSetSearchQuery = React.useCallback(
+    // Highlight matching content after a brief delay (debounce)
+    const debouncedHighlight = React.useCallback(
         debounce((value) => {
-            setSearchQuery(value)
             if (markedRef.current && duplicateContainerRef.current) {
                 markedRef.current.unmark()
                 markedRef.current.mark(value)
@@ -102,8 +93,9 @@ export const SearchBar: React.FC<SearchBarProps> = ({
     )
 
     useEffect(() => {
-        debouncedSetSearchQuery(inputValue)
-    }, [inputValue, debouncedSetSearchQuery])
+        debouncedHighlight(inputValue)
+        return () => debouncedHighlight.cancel()
+    }, [inputValue, debouncedHighlight])
 
     useEffect(() => {
         return () => {
@@ -114,17 +106,15 @@ export const SearchBar: React.FC<SearchBarProps> = ({
     }, [])
 
     useEffect(() => {
-        const handleClickOutside = (event: MouseEvent) => {
-            if (visible && event.target instanceof HTMLElement && !containerRef.current?.contains(event.target)) {
-                if (duplicateContainerRef.current) {
-                    duplicateContainerRef.current.remove()
-                }
-                onClose()
-            }
+        if (!visible) return
+        const handleClickOutside = (event: PointerEvent) => {
+            const target = event.target
+            if (!(target instanceof Element) || target.closest('[data-page-search-trigger]')) return
+            if (!containerRef.current?.contains(target)) onClose()
         }
-        document.addEventListener('click', handleClickOutside)
-        return () => document.removeEventListener('click', handleClickOutside)
-    }, [])
+        document.addEventListener('pointerdown', handleClickOutside)
+        return () => document.removeEventListener('pointerdown', handleClickOutside)
+    }, [visible, onClose])
 
     if (!visible) return null
 
@@ -135,6 +125,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
             className={`absolute w-64 p-1.5 border border-t-0 border-primary rounded-b z-50 flex items-center gap-1 ${className}`}
         >
             <input
+                aria-label="Search this page"
                 placeholder="Search this page..."
                 className="w-full p-1 rounded border border-input text-primary text-sm bg-light dark:bg-dark"
                 value={inputValue}
@@ -144,10 +135,10 @@ export const SearchBar: React.FC<SearchBarProps> = ({
             />
             <OSButton
                 size="xs"
+                aria-label="Close page search"
                 icon={<IconX />}
                 onClick={() => {
                     onSearch?.('')
-                    setSearchQuery('')
                     onClose()
                 }}
                 className="rounded-full !p-1.5"

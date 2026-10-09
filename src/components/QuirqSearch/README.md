@@ -1,6 +1,6 @@
 # quirq search
 
-`SearchOverlay` replaces global PostHog search in the desktop wrapper. It consumes the same live catalog (`useQuirqApps()` from `src/lib/quirqLiveApps.ts`) as Home base and the desktop icons, so a repository added to the organization is searchable without a rebuild. The index contains visible organization repositories plus Home base, Projects, and Edit (Display options). Hidden, archived, and excluded repositories never enter it.
+`SearchOverlay` provides local catalog search in the desktop wrapper. It consumes the same live catalog (`useQuirqApps()` from `src/lib/quirqLiveApps.ts`) as Home base and the desktop icons, so a repository added to the organization is searchable without a rebuild. The index contains visible organization repositories plus Home base, Projects, and Edit (Display options). Hidden, archived, and excluded repositories never enter it.
 
 Mount the named or default `SearchOverlay` once inside the app provider. Existing `openSearch()` actions and the `/` and Cmd/Ctrl+K shortcuts control the app's `searchOpen` flag; the overlay closes through `setSearchOpen(false)`.
 

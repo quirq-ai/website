@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-empty-function */
+/* eslint-disable @typescript-eslint/no-empty-function */
 import React, {
     createContext,
     useContext,
@@ -11,22 +12,12 @@ import React, {
 } from 'react'
 import { AppWindow } from './Window'
 import { navigate } from 'gatsby'
-import { isSafeInternalPath } from 'lib/utils'
-import type { User } from 'hooks/useUser'
 import { getQuirqApps } from '../lib/quirqApps'
-import { findQuirqApp } from '../lib/quirqLiveApps'
+import { findQuirqApp, useQuirqApps } from '../lib/quirqLiveApps'
 import { QUIRQY_WINDOW } from '../lib/quirqAvatar'
 import { useToast } from './Toast'
 import { IconDay, IconLaptop, IconNight } from '@posthog/icons'
 import qs from 'qs'
-import usePostHog from '../hooks/usePostHog'
-
-declare global {
-    interface Window {
-        __setPreferredTheme: (theme: string) => string
-        __onThemeChange: (theme: string) => void
-    }
-}
 
 export interface MenuItem {
     name: string
@@ -36,30 +27,10 @@ export interface MenuItem {
     platformLogo?: string
     showChildrenIcons?: boolean
     sortChildrenAlpha?: boolean
-    // When set, this item (and its children) is only shown to users for whom the
-    // named PostHog feature flag is enabled. Gating is client-side only — see
-    // src/hooks/useActiveFeatureFlags.ts and note the static-site caveat.
-    featureFlag?: string
     children?: MenuItem[]
 }
 
 export type Menu = MenuItem[]
-
-interface ChatContext {
-    type: 'page'
-    value: { path: string; label: string }
-}
-
-export interface ChatParams {
-    path: string
-    sessionKey?: number
-    context?: ChatContext[]
-    quickQuestions?: string[]
-    chatId?: string
-    date?: string
-    initialQuestion?: string
-    codeSnippet?: { code: string; language: string; sourceUrl: string }
-}
 
 type WindowElement = React.ReactNode & {
     key: string
@@ -112,20 +83,13 @@ interface AppContextType {
     taskbarRef: React.RefObject<HTMLDivElement>
     expandWindow: (target?: AppWindow) => void
     getExpandedDimensions: () => { position: { x: number; y: number }; size: { width: number; height: number } }
-    openSignIn: (onSuccess?: (user: User) => void) => void
-    openRegister: () => void
-    openForgotPassword: () => void
     siteSettings: SiteSettings
     updateSiteSettings: (settings: SiteSettings) => void
-    openNewChat: (params: ChatParams) => void
-    isNotificationsPanelOpen: boolean
-    setIsNotificationsPanelOpen: (isOpen: boolean) => void
     isActiveWindowsPanelOpen: boolean
     setIsActiveWindowsPanelOpen: (isOpen: boolean) => void
     isMobile: boolean
     compact: boolean
     menu: Menu
-    openStart: ({ subdomain, initialTab }: { subdomain?: string; initialTab?: string }) => void
     animateClosingAllWindows: () => void
     closingAllWindowsAnimation: boolean
     closeAllWindows: () => void
@@ -134,7 +98,6 @@ interface AppContextType {
     setScreensaverPreviewActive: (isActive: boolean) => void
     setConfetti: (isActive: boolean) => void
     confetti: boolean
-    posthogInstance?: string
     desktopParams?: string
     copyDesktopParams: () => void
     desktopCopied: boolean
@@ -143,9 +106,6 @@ interface AppContextType {
     searchOpen: boolean
     setSearchOpen: (isOpen: boolean) => void
     searchInitialFilter: string
-    chatOpen: boolean
-    setChatOpen: (isOpen: boolean) => void
-    chatParams: ChatParams | null
     updateTaskbarHeight: () => void
 }
 
@@ -168,14 +128,8 @@ type AppActionKeys =
     | 'taskbarRef'
     | 'expandWindow'
     | 'getExpandedDimensions'
-    | 'openSignIn'
-    | 'openRegister'
-    | 'openForgotPassword'
     | 'updateSiteSettings'
-    | 'openNewChat'
-    | 'setIsNotificationsPanelOpen'
     | 'setIsActiveWindowsPanelOpen'
-    | 'openStart'
     | 'animateClosingAllWindows'
     | 'closeAllWindows'
     | 'setClosingAllWindowsAnimation'
@@ -183,7 +137,6 @@ type AppActionKeys =
     | 'setConfetti'
     | 'copyDesktopParams'
     | 'setSearchOpen'
-    | 'setChatOpen'
     | 'updateTaskbarHeight'
 
 export type AppActionsContextType = Pick<AppContextType, AppActionKeys> & {
@@ -195,7 +148,7 @@ export type AppActionsContextType = Pick<AppContextType, AppActionKeys> & {
 // Rarely-changing global state (display settings, environment flags, nav menu).
 // Split out so consumers reading only these don't re-render when volatile window
 // state (windows, focusedWindow, panels, etc.) changes. See `useAppSettings`.
-type AppSettingsKeys = 'siteSettings' | 'compact' | 'isMobile' | 'posthogInstance' | 'menu'
+type AppSettingsKeys = 'siteSettings' | 'compact' | 'isMobile' | 'menu'
 
 export type AppSettingsContextType = Pick<AppContextType, AppSettingsKeys>
 
@@ -203,14 +156,11 @@ export type AppSettingsContextType = Pick<AppContextType, AppSettingsKeys>
 // consumers reading these (e.g. the desktop) don't re-render when windows change.
 // See `useAppUIState`.
 type AppUIStateKeys =
-    | 'isNotificationsPanelOpen'
     | 'isActiveWindowsPanelOpen'
     | 'closingAllWindowsAnimation'
     | 'screensaverPreviewActive'
     | 'confetti'
     | 'searchOpen'
-    | 'chatOpen'
-    | 'chatParams'
 
 export type AppUIStateContextType = Pick<AppContextType, AppUIStateKeys>
 
@@ -333,30 +283,21 @@ export const Context = createContext<AppContextType>({
     taskbarRef: { current: null },
     expandWindow: () => {},
     getExpandedDimensions: () => ({ position: { x: 0, y: 0 }, size: { width: 0, height: 0 } }),
-    openSignIn: () => null,
-    openRegister: () => {},
-    openForgotPassword: () => {},
     siteSettings: {
         theme: 'light',
         colorMode: 'light',
-        skinMode: 'modern',
+
         cursor: 'default',
         screensaverDisabled: true,
         reduceTransparency: false,
         scrollbars: 'system',
-        clickBehavior: 'double',
-        performanceBoost: false,
     },
     updateSiteSettings: () => {},
-    openNewChat: () => {},
-    isNotificationsPanelOpen: false,
-    setIsNotificationsPanelOpen: () => {},
     isActiveWindowsPanelOpen: false,
     setIsActiveWindowsPanelOpen: () => {},
     isMobile: false,
     compact: false,
     menu: [],
-    openStart: () => {},
     animateClosingAllWindows: () => {},
     closingAllWindowsAnimation: false,
     closeAllWindows: () => {},
@@ -365,7 +306,6 @@ export const Context = createContext<AppContextType>({
     setScreensaverPreviewActive: () => {},
     setConfetti: () => {},
     confetti: false,
-    posthogInstance: undefined,
     desktopParams: undefined,
     copyDesktopParams: () => {},
     desktopCopied: false,
@@ -374,9 +314,6 @@ export const Context = createContext<AppContextType>({
     searchOpen: false,
     setSearchOpen: () => {},
     searchInitialFilter: '',
-    chatOpen: false,
-    setChatOpen: () => {},
-    chatParams: null,
     updateTaskbarHeight: () => {},
 })
 
@@ -399,14 +336,8 @@ export const ActionsContext = createContext<AppActionsContextType>({
     taskbarRef: { current: null },
     expandWindow: () => {},
     getExpandedDimensions: () => ({ position: { x: 0, y: 0 }, size: { width: 0, height: 0 } }),
-    openSignIn: () => null,
-    openRegister: () => {},
-    openForgotPassword: () => {},
     updateSiteSettings: () => {},
-    openNewChat: () => {},
-    setIsNotificationsPanelOpen: () => {},
     setIsActiveWindowsPanelOpen: () => {},
-    openStart: () => {},
     animateClosingAllWindows: () => {},
     closeAllWindows: () => {},
     setClosingAllWindowsAnimation: () => {},
@@ -414,7 +345,6 @@ export const ActionsContext = createContext<AppActionsContextType>({
     setConfetti: () => {},
     copyDesktopParams: () => {},
     setSearchOpen: () => {},
-    setChatOpen: () => {},
     updateTaskbarHeight: () => {},
     windowsInViewRef: { current: [] },
 })
@@ -426,17 +356,14 @@ export const SettingsContext = createContext<AppSettingsContextType>({
     siteSettings: {
         theme: 'light',
         colorMode: 'light',
-        skinMode: 'modern',
+
         cursor: 'default',
         screensaverDisabled: true,
         reduceTransparency: false,
         scrollbars: 'system',
-        clickBehavior: 'double',
-        performanceBoost: false,
     },
     compact: false,
     isMobile: false,
-    posthogInstance: undefined,
     menu: [],
 })
 
@@ -444,14 +371,11 @@ export const SettingsContext = createContext<AppSettingsContextType>({
 // screensaver, search) should read from `useAppUIState()` so they don't re-render
 // when volatile window state changes.
 export const UIStateContext = createContext<AppUIStateContextType>({
-    isNotificationsPanelOpen: false,
     isActiveWindowsPanelOpen: false,
     closingAllWindowsAnimation: false,
     screensaverPreviewActive: false,
     confetti: false,
     searchOpen: false,
-    chatOpen: false,
-    chatParams: null,
 })
 
 export const WindowsContext = createContext<AppWindowsContextType>({
@@ -459,10 +383,6 @@ export const WindowsContext = createContext<AppWindowsContextType>({
 })
 
 export interface AppSetting {
-    experiment?: {
-        variant: 'control' | 'test'
-        flag: string
-    }
     size?: {
         min: { width: number; height: number }
         max: { width: number; height: number }
@@ -505,460 +425,6 @@ const appSettings: AppSettings = {
         },
         position: {
             center: true,
-            getPositionDefaults: (size, windows, getDesktopCenterPosition) => {
-                if (typeof window === 'undefined') {
-                    return {
-                        x: 0,
-                        y: 0,
-                    }
-                }
-
-                const { x, y } = getDesktopCenterPosition(size)
-                const iconColumnRight = 145
-                const keyboardGardenImageLeft = window.innerWidth - 700
-                if (x + size.width > keyboardGardenImageLeft) {
-                    const availableWidth = keyboardGardenImageLeft - iconColumnRight
-                    const newX = iconColumnRight + Math.max(0, (availableWidth - size.width) / 2)
-                    return { x: newX, y }
-                }
-                return { x, y }
-            },
-        },
-    },
-    '/products': {
-        size: {
-            min: {
-                width: 700,
-                height: 500,
-            },
-            max: {
-                width: 960,
-                height: 1000,
-            },
-            fixed: false,
-        },
-        position: {
-            center: true,
-            getPositionDefaults: (size, windows, getDesktopCenterPosition) => {
-                if (typeof window === 'undefined') {
-                    return {
-                        x: 0,
-                        y: 0,
-                    }
-                }
-
-                const { x, y } = getDesktopCenterPosition(size)
-                const iconColumnRight = 145
-                const keyboardGardenImageLeft = window.innerWidth - 700
-                if (x + size.width > keyboardGardenImageLeft) {
-                    const availableWidth = keyboardGardenImageLeft - iconColumnRight
-                    const newX = iconColumnRight + Math.max(0, (availableWidth - size.width) / 2)
-                    return { x: newX, y }
-                }
-                return { x, y }
-            },
-        },
-    },
-    '/wizard': {
-        size: {
-            min: {
-                width: 700,
-                height: 500,
-            },
-            max: {
-                width: 900,
-                height: 1000,
-            },
-            fixed: false,
-        },
-        position: {
-            center: true,
-        },
-    },
-    '/mcp': {
-        size: {
-            min: {
-                width: 700,
-                height: 500,
-            },
-            max: {
-                width: 900,
-                height: 1000,
-            },
-            fixed: false,
-        },
-        position: {
-            center: true,
-        },
-    },
-    // The e-reader: tall enough that a guide page reads like a page, wide enough for the
-    // front matter's two columns.
-    '/pocket-guides': {
-        size: {
-            min: {
-                width: 700,
-                height: 600,
-            },
-            max: {
-                width: 1100,
-                height: 1100,
-            },
-            fixed: false,
-        },
-        position: {
-            center: true,
-        },
-    },
-    '/tooling': {
-        size: {
-            min: {
-                width: 700,
-                height: 500,
-            },
-            max: {
-                width: 1000,
-                height: 1000,
-            },
-            fixed: false,
-        },
-        position: {
-            center: true,
-        },
-    },
-    '/desktop': {
-        size: {
-            min: {
-                width: 700,
-                height: 500,
-            },
-            max: {
-                width: 900,
-                height: 1000,
-            },
-            fixed: false,
-        },
-        position: {
-            center: true,
-        },
-    },
-    '/newsletter': {
-        size: {
-            min: {
-                width: 700,
-                height: 500,
-            },
-            max: {
-                width: 1200,
-                height: 1500,
-            },
-            fixed: false,
-        },
-        position: {
-            center: true,
-        },
-    },
-    '/blog': {
-        size: {
-            min: {
-                width: 700,
-                height: 500,
-            },
-            max: {
-                width: 1200,
-                height: 1500,
-            },
-            fixed: false,
-        },
-        position: {
-            center: true,
-        },
-    },
-    '/compare': {
-        size: {
-            min: {
-                width: 700,
-                height: 500,
-            },
-            max: {
-                width: 1200,
-                height: 1500,
-            },
-            fixed: false,
-        },
-        position: {
-            center: true,
-        },
-    },
-    '/research': {
-        size: {
-            min: {
-                width: 700,
-                height: 500,
-            },
-            max: {
-                width: 900,
-                height: 1000,
-            },
-            fixed: false,
-        },
-        position: {
-            center: true,
-        },
-    },
-    '/replay-vision': {
-        size: {
-            min: {
-                width: 700,
-                height: 500,
-            },
-            max: {
-                width: 900,
-                height: 1000,
-            },
-            fixed: false,
-        },
-        position: {
-            center: true,
-        },
-    },
-    '/careers-og': {
-        size: {
-            min: {
-                width: 700,
-                height: 500,
-            },
-            max: {
-                width: 800,
-                height: 1000,
-            },
-            fixed: false,
-        },
-        position: {
-            center: true,
-            getPositionDefaults: (size, windows, getDesktopCenterPosition) => {
-                if (typeof window === 'undefined') {
-                    return {
-                        x: 0,
-                        y: 0,
-                    }
-                }
-
-                const { x, y } = getDesktopCenterPosition(size)
-                const iconColumnRight = 145
-                const keyboardGardenImageLeft = window.innerWidth - 700
-                if (x + size.width > keyboardGardenImageLeft) {
-                    const availableWidth = keyboardGardenImageLeft - iconColumnRight
-                    const newX = iconColumnRight + Math.max(0, (availableWidth - size.width) / 2)
-                    return { x: newX, y }
-                }
-                return { x, y }
-            },
-        },
-    },
-    '/paint': {
-        size: {
-            min: {
-                width: 850,
-                height: 400,
-            },
-            max: {
-                width: 2000,
-                height: 2000,
-            },
-            fixed: false,
-        },
-    },
-    '/talk-to-a-human': {
-        size: {
-            min: {
-                width: 500,
-                height: 500,
-            },
-            max: {
-                width: 700,
-                height: 552,
-            },
-            fixed: true,
-            autoHeight: true,
-        },
-        position: {
-            center: true,
-        },
-        modal: {
-            type: 'standard',
-        },
-    },
-    '/merch/orders': {
-        size: {
-            min: {
-                width: 470,
-                height: 299,
-            },
-            max: {
-                width: 470,
-                height: 299,
-            },
-            fixed: true,
-            autoHeight: true,
-        },
-        position: {
-            center: true,
-        },
-    },
-    '/services': {
-        size: {
-            min: {
-                width: 700,
-                height: 500,
-            },
-            max: {
-                width: 850,
-                height: 1000,
-            },
-        },
-    },
-    // Free-tier allowances, opened from the pricing page. Not a route — see
-    // components/Pricing/Redesign/FreeTierModal.
-    'pricing-free-tier': {
-        size: {
-            min: {
-                width: 535,
-                height: 400,
-            },
-            max: {
-                width: 535,
-                height: 680,
-            },
-            fixed: true,
-            autoHeight: true,
-        },
-        position: {
-            center: true,
-        },
-        modal: {
-            type: 'standard',
-        },
-    },
-    // Event types explanation, opened from the pricing calculator. Not a route — see
-    // components/Pricing/PricingCalculator/EventTypesModal.
-    'pricing-event-types': {
-        size: {
-            min: {
-                width: 800,
-                height: 400,
-            },
-            max: {
-                width: 800,
-                height: 720,
-            },
-            fixed: true,
-            autoHeight: true,
-        },
-        position: {
-            center: true,
-        },
-        modal: {
-            type: 'standard',
-        },
-    },
-    // All products and per-unit rates, opened from the pricing calculator. Not a route — see
-    // components/Pricing/PricingCalculator/AllProductsRatesModal.
-    'pricing-all-rates': {
-        size: {
-            min: {
-                width: 800,
-                height: 400,
-            },
-            max: {
-                width: 800,
-                height: 720,
-            },
-            fixed: true,
-            autoHeight: true,
-        },
-        position: {
-            center: true,
-        },
-        modal: {
-            type: 'standard',
-        },
-    },
-    '/about': {
-        size: {
-            min: {
-                width: 750,
-                height: 500,
-            },
-            max: {
-                width: 900,
-                height: 1000,
-            },
-            fixed: false,
-        },
-        position: {
-            center: true,
-        },
-    },
-    '/partnerships': {
-        size: {
-            min: {
-                width: 700,
-                height: 500,
-            },
-            max: {
-                width: 900,
-                height: 1000,
-            },
-            fixed: false,
-        },
-        position: {
-            center: true,
-        },
-    },
-    '/context-warehouse': {
-        size: {
-            min: {
-                width: 750,
-                height: 500,
-            },
-            max: {
-                width: 1000,
-                height: 1000,
-            },
-            fixed: false,
-        },
-        position: {
-            center: true,
-        },
-    },
-    '/signup': {
-        size: {
-            min: {
-                width: 900,
-                height: 750,
-            },
-            max: {
-                width: 900,
-                height: 750,
-            },
-            fixed: true,
-        },
-    },
-    '/connect/posthog/redirect': {
-        size: {
-            min: {
-                width: 425,
-                height: 250,
-            },
-            max: {
-                width: 425,
-                height: 280,
-            },
-            fixed: true,
-            autoHeight: true,
-        },
-        position: {
-            center: true,
         },
     },
     '/display-options': {
@@ -978,635 +444,6 @@ const appSettings: AppSettings = {
         position: {
             center: true,
         },
-        toolbar: true,
-    },
-    '/terms': {
-        size: {
-            min: {
-                width: 1,
-                height: 1,
-            },
-            max: {
-                width: 10000,
-                height: 10000,
-            },
-        },
-        position: {
-            center: true,
-        },
-    },
-    '/privacy': {
-        size: {
-            min: {
-                width: 1,
-                height: 1,
-            },
-            max: {
-                width: 10000,
-                height: 10000,
-            },
-        },
-        position: {
-            center: true,
-        },
-    },
-    '/dpa': {
-        size: {
-            min: {
-                width: 1,
-                height: 1,
-            },
-            max: {
-                width: 10000,
-                height: 10000,
-            },
-        },
-        position: {
-            center: true,
-        },
-    },
-    '/baa': {
-        size: {
-            min: {
-                width: 1,
-                height: 1,
-            },
-            max: {
-                width: 10000,
-                height: 10000,
-            },
-        },
-        position: {
-            center: true,
-        },
-    },
-    '/vibe-check': {
-        closeOnEscape: true,
-        size: {
-            min: {
-                width: 750,
-                height: 575,
-            },
-            max: {
-                width: 750,
-                height: 575,
-            },
-            fixed: true,
-        },
-        position: {
-            center: true,
-        },
-    },
-    'research-talk': {
-        size: {
-            min: {
-                width: 960,
-                height: 682,
-            },
-            max: {
-                width: 960,
-                height: 682,
-            },
-            fixed: false,
-            autoHeight: true,
-        },
-        position: {
-            center: true,
-        },
-        modal: {
-            type: 'standard',
-        },
-    },
-    '/demo': {
-        toolbar: true,
-        size: {
-            min: {
-                width: 960,
-                height: 682,
-            },
-            max: {
-                width: 960,
-                height: 682,
-            },
-            fixed: true,
-            autoHeight: true,
-        },
-        position: {
-            center: true,
-        },
-        modal: {
-            type: 'standard',
-        },
-    },
-    '/changelog-video': {
-        size: {
-            min: {
-                width: 960,
-                height: 682,
-            },
-            max: {
-                width: 960,
-                height: 682,
-            },
-            fixed: false,
-            autoHeight: true,
-        },
-        position: {
-            center: true,
-        },
-    },
-    '/videos/play': {
-        size: {
-            min: {
-                width: 960,
-                height: 480,
-            },
-            max: {
-                width: 1440,
-                height: 810,
-            },
-            fixed: false,
-            autoHeight: true,
-        },
-        position: {
-            center: true,
-        },
-    },
-    '/sales': {
-        size: {
-            min: {
-                width: 875,
-                height: 600,
-            },
-            max: {
-                width: 1100,
-                height: 900,
-            },
-            fixed: false,
-        },
-        position: {
-            center: true,
-        },
-    },
-    '/spicy.mov': {
-        size: {
-            min: {
-                width: 960,
-                height: 682,
-            },
-            max: {
-                width: 960,
-                height: 682,
-            },
-            fixed: false,
-        },
-        position: {
-            center: true,
-        },
-        toolbar: true,
-    },
-    cher: {
-        size: {
-            min: {
-                width: 960,
-                height: 682,
-            },
-            max: {
-                width: 960,
-                height: 682,
-            },
-            fixed: false,
-        },
-        position: {
-            center: true,
-        },
-    },
-    'ask-max': {
-        size: {
-            min: {
-                width: 400,
-                height: 600,
-            },
-            max: {
-                width: 400,
-                height: 600,
-            },
-            fixed: false,
-        },
-        modal: {
-            type: 'floating',
-        },
-    },
-    'community-auth-signin': {
-        size: {
-            min: {
-                width: 470,
-                height: 299,
-            },
-            max: {
-                width: 470,
-                height: 299,
-            },
-            fixed: true,
-            autoHeight: true,
-        },
-        position: {
-            center: true,
-        },
-    },
-    'community-auth-register': {
-        size: {
-            min: {
-                width: 470,
-                height: 299,
-            },
-            max: {
-                width: 470,
-                height: 299,
-            },
-            fixed: true,
-            autoHeight: true,
-        },
-        position: {
-            center: true,
-        },
-    },
-    search: {
-        size: {
-            min: {
-                width: 550,
-                height: 72,
-            },
-            max: {
-                width: 800,
-                height: 72,
-            },
-            fixed: true,
-            autoHeight: true,
-        },
-        position: {
-            topCenter: true,
-        },
-    },
-    '/reset-password': {
-        size: {
-            min: {
-                width: 470,
-                height: 299,
-            },
-            max: {
-                width: 470,
-                height: 299,
-            },
-            fixed: true,
-            autoHeight: true,
-        },
-        position: {
-            center: true,
-        },
-    },
-    'community-auth-forgot-password': {
-        size: {
-            min: {
-                width: 470,
-                height: 299,
-            },
-            max: {
-                width: 470,
-                height: 299,
-            },
-            fixed: true,
-            autoHeight: true,
-        },
-        position: {
-            center: true,
-        },
-    },
-    share: {
-        size: {
-            min: {
-                width: 500,
-                height: 500,
-            },
-            max: {
-                width: 500,
-                height: 500,
-            },
-            fixed: true,
-            autoHeight: true,
-        },
-        position: {
-            center: true,
-        },
-    },
-    'media-upload': {
-        size: {
-            min: {
-                width: 900,
-                height: 500,
-            },
-            max: {
-                width: 900,
-                height: 800,
-            },
-        },
-        position: {
-            center: true,
-        },
-        modal: {
-            type: 'standard',
-        },
-        toolbar: true,
-    },
-    'hedgehog-generator': {
-        size: {
-            min: {
-                width: 550,
-                height: 650,
-            },
-            max: {
-                width: 550,
-                height: 650,
-            },
-            autoHeight: true,
-        },
-        position: {
-            center: true,
-        },
-        modal: {
-            type: 'standard',
-        },
-    },
-    'cool-tech-jobs-issue': {
-        size: {
-            min: {
-                width: 500,
-                height: 500,
-            },
-            max: {
-                width: 500,
-                height: 500,
-            },
-            fixed: true,
-            autoHeight: true,
-        },
-        position: {
-            center: true,
-        },
-    },
-    'cool-tech-jobs-add-a-job': {
-        size: {
-            min: {
-                width: 600,
-                height: 400,
-            },
-            max: {
-                width: 600,
-                height: 775,
-            },
-        },
-        position: {
-            center: true,
-        },
-    },
-    'signup-embed': {
-        size: {
-            min: {
-                width: 500,
-                height: 400,
-            },
-            max: {
-                width: 500,
-                height: 400,
-            },
-            fixed: true,
-        },
-        position: {
-            center: true,
-        },
-    },
-    'ask-a-question': {
-        size: {
-            min: {
-                width: 600,
-                height: 500,
-            },
-            max: {
-                width: 600,
-                height: 500,
-            },
-            fixed: true,
-            autoHeight: true,
-        },
-        position: {
-            center: true,
-        },
-    },
-    // Add/edit form from /side-projects. Not a route — opened via addWindow.
-    'side-project-form': {
-        size: {
-            min: {
-                width: 560,
-                height: 400,
-            },
-            max: {
-                width: 560,
-                height: 800,
-            },
-            fixed: true,
-            autoHeight: true,
-        },
-        position: {
-            center: true,
-        },
-    },
-    'application-success': {
-        size: {
-            min: {
-                width: 575,
-                height: 500,
-            },
-            max: {
-                width: 575,
-                height: 1000,
-            },
-            autoHeight: true,
-            fixed: true,
-        },
-        position: {
-            center: true,
-        },
-    },
-    'edit-roadmap': {
-        size: {
-            min: {
-                width: 650,
-                height: 500,
-            },
-            max: {
-                width: 650,
-                height: 800,
-            },
-        },
-        position: {
-            center: true,
-        },
-        modal: {
-            type: 'standard',
-        },
-    },
-    'add-roadmap': {
-        size: {
-            min: {
-                width: 650,
-                height: 500,
-            },
-            max: {
-                width: 650,
-                height: 800,
-            },
-        },
-        position: {
-            center: true,
-        },
-    },
-    '/achievements/manage': {
-        size: {
-            min: {
-                width: 550,
-                height: 700,
-            },
-            max: {
-                width: 550,
-                height: 780,
-            },
-            fixed: true,
-            autoHeight: true,
-        },
-        position: {
-            center: true,
-        },
-        toolbar: true,
-    },
-    '/community/achievements': {
-        size: {
-            min: {
-                width: 500,
-                height: 650,
-            },
-            max: {
-                width: 500,
-                height: 650,
-            },
-        },
-        position: {
-            center: true,
-        },
-        modal: {
-            type: 'standard',
-        },
-    },
-    '/community/reputation': {
-        size: {
-            min: {
-                width: 500,
-                height: 1000,
-            },
-            max: {
-                width: 500,
-                height: 1000,
-            },
-            autoHeight: true,
-        },
-        position: {
-            center: true,
-        },
-        modal: {
-            type: 'standard',
-        },
-    },
-    '/fm': {
-        size: {
-            min: {
-                width: 1100,
-                height: 660,
-            },
-            max: {
-                width: 1100,
-                height: 660,
-            },
-            fixed: true,
-        },
-    },
-    'fm/mixtapes': {
-        size: {
-            min: {
-                width: 450,
-                height: 709,
-            },
-            max: {
-                width: 450,
-                height: 709,
-            },
-            fixed: true,
-        },
-    },
-    '/fm/mixtapes/new': {
-        size: {
-            min: {
-                width: 850,
-                height: 597,
-            },
-            max: {
-                width: 850,
-                height: 597,
-            },
-            fixed: true,
-        },
-    },
-    '/fm/mixtapes/edit/:id': {
-        size: {
-            min: {
-                width: 850,
-                height: 597,
-            },
-            max: {
-                width: 850,
-                height: 597,
-            },
-            fixed: true,
-        },
-    },
-    'fm/dance-mode': {
-        size: {
-            min: {
-                width: 500,
-                height: 500,
-            },
-            max: {
-                width: 500,
-                height: 500,
-            },
-            fixed: true,
-        },
-    },
-    '/merch': {
-        toolbar: true,
-        hideTitle: true,
-    },
-    '/trash': {
-        toolbar: true,
-    },
-    '/ai': {
-        toolbar: true,
-    },
-    '/hog': {
-        toolbar: true,
-    },
-    '/changelog': {
-        toolbar: true,
-    },
-    '/feet-pics': {
         toolbar: true,
     },
 } as const
@@ -1637,12 +474,10 @@ const settingsFor = (key: string) =>
 export interface SiteSettings {
     colorMode: 'light' | 'dark' | 'system'
     theme: 'light' | 'dark'
-    skinMode: 'modern' | 'classic'
     cursor: 'default' | 'xl'
     screensaverDisabled?: boolean
     reduceTransparency?: boolean
-    clickBehavior?: 'single' | 'double'
-    performanceBoost?: boolean
+
     scrollbars?: 'system' | 'show' | 'auto'
 }
 
@@ -1659,10 +494,9 @@ const getInitialSiteSettings = (): SiteSettings => {
     const siteSettings: SiteSettings = {
         colorMode: 'system',
         theme: (typeof window !== 'undefined' && (window as any).__theme) || 'light',
-        skinMode: 'modern',
+
         cursor: 'default',
-        clickBehavior: 'double',
-        performanceBoost: false,
+
         screensaverDisabled: true,
         reduceTransparency: false,
         scrollbars: 'system',
@@ -1684,8 +518,15 @@ const getInitialSiteSettings = (): SiteSettings => {
     // Wallpapers were retired for the plain background; forget a choice saved earlier.
     delete (siteSettings as SiteSettings & { wallpaper?: string }).wallpaper
 
-    // The classic skin has been retired; force anyone with it saved back to modern
-    siteSettings.skinMode = 'modern'
+    // Drop preferences for retired desktop options from previously saved settings.
+    const retiredSettings = siteSettings as SiteSettings & {
+        skinMode?: string
+        clickBehavior?: string
+        performanceBoost?: boolean
+    }
+    delete retiredSettings.skinMode
+    delete retiredSettings.clickBehavior
+    delete retiredSettings.performanceBoost
 
     return siteSettings
 }
@@ -1699,10 +540,9 @@ export const Provider = ({ children, element, location }: AppProviderProps) => {
     const [siteSettings, setSiteSettings] = useState<SiteSettings>({
         colorMode: 'system',
         theme: 'light',
-        skinMode: 'modern',
+
         cursor: 'default',
-        clickBehavior: 'double',
-        performanceBoost: false,
+
         screensaverDisabled: true,
         reduceTransparency: false,
         scrollbars: 'system',
@@ -1719,7 +559,6 @@ export const Provider = ({ children, element, location }: AppProviderProps) => {
         windowsInViewRef.current = windowsInView
     }, [windowsInView])
     const stateWindows = element.props?.location?.state?.savedWindows
-    const posthog = usePostHog()
 
     // Hydrate exactly the server's frame first. Viewport-dependent wrappers and
     // expanded controls must not change until React has attached to the SSR content.
@@ -1738,16 +577,12 @@ export const Provider = ({ children, element, location }: AppProviderProps) => {
             undefined
         )
     }, [windows])
-    const [isNotificationsPanelOpen, setIsNotificationsPanelOpen] = useState(false)
     const [isActiveWindowsPanelOpen, setIsActiveWindowsPanelOpen] = useState(false)
     const [closingAllWindowsAnimation, setClosingAllWindowsAnimation] = useState(false)
     const [screensaverPreviewActive, setScreensaverPreviewActive] = useState(false)
     const [confetti, setConfetti] = useState(false)
-    const posthogInstance = undefined
     const [searchOpen, setSearchOpen] = useState<boolean>(false)
     const [searchInitialFilter, setSearchInitialFilter] = useState<string>('')
-    const [chatOpen, setChatOpen] = useState<boolean>(false)
-    const [chatParams, setChatParams] = useState<ChatParams | null>(null)
     const { addToast } = useToast()
 
     // Hydrate client-only state before first paint to avoid layout flash
@@ -1800,14 +635,15 @@ export const Provider = ({ children, element, location }: AppProviderProps) => {
         return url
     }, [location, desktopParams, isSSR])
 
+    const catalog = useQuirqApps()
     const menu = useMemo<Menu>(
         () => [
             { name: 'Home base', url: '/' },
             { name: 'Projects', url: '/projects' },
-            { name: 'Apps', children: getQuirqApps().map((app) => ({ name: app.name, url: app.path })) },
+            { name: 'Apps', children: catalog.map((app) => ({ name: app.name, url: app.path })) },
             { name: 'Display options', url: '/display-options' },
         ],
-        []
+        [catalog]
     )
 
     const closeWindow = useCallback((item: AppWindow) => {
@@ -1937,13 +773,6 @@ export const Provider = ({ children, element, location }: AppProviderProps) => {
             }
         }
 
-        if (key?.startsWith('ask-max')) {
-            return {
-                x: isSSR ? 0 : window.innerWidth - size.width - 20,
-                y: isSSR ? 0 : window.innerHeight - size.height - 20,
-            }
-        }
-
         const sortedWindows = [...windows].sort((a, b) => b.zIndex - a.zIndex)
         const previousWindow = sortedWindows[0]
 
@@ -1951,7 +780,7 @@ export const Provider = ({ children, element, location }: AppProviderProps) => {
             return getDesktopCenterPosition(size)
         }
 
-        if (previousWindow && !previousWindow.key?.startsWith('ask-max')) {
+        if (previousWindow) {
             const potentialX = previousWindow.position.x + 10
 
             const screenMidpoint = isSSR ? 0 : window.innerWidth / 2
@@ -1977,14 +806,10 @@ export const Provider = ({ children, element, location }: AppProviderProps) => {
         if (settings?.size?.fixed) {
             return { ...settings.size.min }
         }
-        const defaultSize =
-            settings?.size?.max ||
-            (key?.startsWith('ask-max')
-                ? appSettings['ask-max']?.size?.max
-                : {
-                      width: isSSR ? 0 : window.innerWidth * 0.9,
-                      height: isSSR ? 0 : window.innerHeight * 0.9,
-                  })
+        const defaultSize = settings?.size?.max || {
+            width: isSSR ? 0 : window.innerWidth * 0.9,
+            height: isSSR ? 0 : window.innerHeight * 0.9,
+        }
         return {
             width: Math.min(defaultSize.width, isSSR ? 0 : window.innerWidth * 0.9),
             height: Math.min(defaultSize.height, isSSR ? 0 : window.innerHeight * 0.9),
@@ -1997,19 +822,6 @@ export const Provider = ({ children, element, location }: AppProviderProps) => {
 
     function getInitialWindows(element: any) {
         return [createNewWindow(element, [], location, isSSR, taskbarHeight)]
-    }
-
-    function getKey(key: string) {
-        const experiment = appSettings[key]?.experiment
-        if (!experiment?.flag) return key
-        const assignedVariant = posthog?.getFeatureFlag?.(experiment?.flag)
-        if (!assignedVariant) return key
-        const keyToUse = Object.keys(appSettings).find(
-            (key) =>
-                appSettings[key]?.experiment?.flag === experiment?.flag &&
-                appSettings[key]?.experiment?.variant === assignedVariant
-        )
-        return keyToUse || key
     }
 
     function createNewWindow(
@@ -2027,7 +839,7 @@ export const Provider = ({ children, element, location }: AppProviderProps) => {
         // Gatsby's React element key differs between SSR and the browser. The URL
         // is the stable identity for both app settings and the window itself.
         const windowKey = element.props.location.pathname.replace(/\/$/, '') || '/'
-        const keyToUse = getKey(windowKey)
+        const keyToUse = windowKey
         const settings = settingsFor(keyToUse)
         const navigationState = isSSR ? {} : element.props.location.state || {}
         const size = isSSR
@@ -2044,24 +856,16 @@ export const Provider = ({ children, element, location }: AppProviderProps) => {
         const lastClickedElementRect = getLastClickedElementRect()
 
         // Windowed (centered, 85%×95%) is the default for regular pages. Fixed,
-        // modal, minimal, and ask-max windows manage their own sizing, and mobile
+        // modal and minimal windows manage their own sizing, and mobile
         // falls back to full-screen since a centered window reads poorly on narrow
         // viewports.
         const canWindow = isSSR || window.innerWidth >= 768
         const isWindowed =
             navigationState.windowed ??
-            (canWindow &&
-                !keyToUse?.startsWith('ask-max') &&
-                !settings?.size?.fixed &&
-                !element.props.minimal &&
-                !settings?.modal)
+            (canWindow && !settings?.size?.fixed && !element.props.minimal && !settings?.modal)
         const shouldExpand =
             navigationState.expanded ??
-            (!keyToUse?.startsWith('ask-max') &&
-                !settings?.size?.fixed &&
-                !element.props.minimal &&
-                !settings?.modal &&
-                !isWindowed)
+            (!settings?.size?.fixed && !element.props.minimal && !settings?.modal && !isWindowed)
 
         const newWindow: AppWindow = {
             element,
@@ -2254,25 +1058,6 @@ export const Provider = ({ children, element, location }: AppProviderProps) => {
     const openSearch = (initialFilter?: string) => {
         setSearchInitialFilter(initialFilter || '')
         setSearchOpen(true)
-    }
-
-    // Preserve the shell context API for shared controls without mounting upstream
-    // PostHog authentication or signup flows in the quirq home base.
-    const openSignIn = (_onSuccess?: (user: User) => void) => {
-        addToast({ description: 'This home base is public. Open an app to use its own sign-in.', duration: 3000 })
-    }
-    const openRegister = () => openSignIn()
-    const openForgotPassword = () => openSignIn()
-    const openStart = (_options: { subdomain?: string; initialTab?: string }) => {
-        navigate('/', { state: { newWindow: true } })
-    }
-
-    // The chat UI is rendered once as a global overlay (see `ChatOverlay`) rather
-    // than as a managed window. Opening a chat just stores its params and flips the
-    // `chatOpen` flag; a fresh set of params remounts the overlay's `ChatProvider`.
-    const openNewChat = (params: ChatParams) => {
-        setChatParams((previous) => ({ ...params, sessionKey: (previous?.sessionKey ?? 0) + 1 }))
-        setChatOpen(true)
     }
 
     function getSnapDimensions(side: 'left' | 'right') {
@@ -2607,7 +1392,6 @@ export const Provider = ({ children, element, location }: AppProviderProps) => {
         focusedWindow,
         closeWindow,
         openSearch,
-        openNewChat,
         siteSettings,
         updateSiteSettings,
         addToast,
@@ -2622,9 +1406,6 @@ export const Provider = ({ children, element, location }: AppProviderProps) => {
     ])
 
     useEffect(() => {
-        if (siteSettings.skinMode) {
-            document.body.setAttribute('data-skin', siteSettings.skinMode)
-        }
         if (siteSettings.cursor) {
             updateCursor(siteSettings.cursor)
         }
@@ -2642,34 +1423,6 @@ export const Provider = ({ children, element, location }: AppProviderProps) => {
     }, [])
 
     useEffect(() => {
-        if (compact) {
-            // nosemgrep: javascript.browser.security.wildcard-postmessage-configuration.wildcard-postmessage-configuration - intentional for docs embedding, parent origin unknown, non-sensitive ready signal
-            window.parent.postMessage(
-                {
-                    type: 'docs-ready',
-                },
-                '*'
-            )
-
-            // window.parent.postMessage(
-            //     {
-            //         type: 'docs-menu',
-            //         menu: docsMenu.children,
-            //     },
-            //     '*'
-            // )
-        }
-
-        const onMessage = (e: MessageEvent): void => {
-            if (e.data.type === 'theme-toggle') {
-                window.__setPreferredTheme(e.data.isDarkModeOn ? 'dark' : 'light')
-                return
-            }
-            if (e.data.type === 'navigate' && isSafeInternalPath(e.data.url)) {
-                navigate(e.data.url)
-            }
-        }
-
         // Merge into the current settings: this handler outlives the first render, and following the
         // operating system calls it whenever the system theme flips.
         window.__onThemeChange = (theme) => {
@@ -2683,24 +1436,7 @@ export const Provider = ({ children, element, location }: AppProviderProps) => {
                 return next
             })
         }
-
-        window.addEventListener('message', onMessage)
-
-        return () => window.removeEventListener('message', onMessage)
     }, [])
-
-    useEffect(() => {
-        if (compact) {
-            // nosemgrep: javascript.browser.security.wildcard-postmessage-configuration.wildcard-postmessage-configuration - intentional for docs embedding, parent origin unknown, non-sensitive navigation data
-            window.parent.postMessage(
-                {
-                    type: 'internal-navigation',
-                    url: location.pathname,
-                },
-                '*'
-            )
-        }
-    }, [location.pathname])
 
     useEffect(() => {
         setWindows((currentWindows) => currentWindows.map((w) => ({ ...w, modal: undefined })))
@@ -2824,14 +1560,8 @@ export const Provider = ({ children, element, location }: AppProviderProps) => {
         taskbarRef,
         expandWindow,
         getExpandedDimensions,
-        openSignIn,
-        openRegister,
-        openForgotPassword,
         updateSiteSettings,
-        openNewChat,
-        setIsNotificationsPanelOpen,
         setIsActiveWindowsPanelOpen,
-        openStart,
         animateClosingAllWindows,
         closeAllWindows,
         setClosingAllWindowsAnimation,
@@ -2839,7 +1569,6 @@ export const Provider = ({ children, element, location }: AppProviderProps) => {
         setConfetti,
         copyDesktopParams,
         setSearchOpen,
-        setChatOpen,
         updateTaskbarHeight,
         windowsInViewRef,
     }
@@ -2863,23 +1592,16 @@ export const Provider = ({ children, element, location }: AppProviderProps) => {
             handleSnapToSide: (...args) => latestActionsRef.current!.handleSnapToSide(...args),
             expandWindow: (...args) => latestActionsRef.current!.expandWindow(...args),
             getExpandedDimensions: (...args) => latestActionsRef.current!.getExpandedDimensions(...args),
-            openSignIn: (...args) => latestActionsRef.current!.openSignIn(...args),
-            openRegister: (...args) => latestActionsRef.current!.openRegister(...args),
-            openForgotPassword: (...args) => latestActionsRef.current!.openForgotPassword(...args),
             updateSiteSettings: (...args) => latestActionsRef.current!.updateSiteSettings(...args),
-            openNewChat: (...args) => latestActionsRef.current!.openNewChat(...args),
-            openStart: (...args) => latestActionsRef.current!.openStart(...args),
             animateClosingAllWindows: (...args) => latestActionsRef.current!.animateClosingAllWindows(...args),
             closeAllWindows: (...args) => latestActionsRef.current!.closeAllWindows(...args),
             copyDesktopParams: (...args) => latestActionsRef.current!.copyDesktopParams(...args),
             updateTaskbarHeight: (...args) => latestActionsRef.current!.updateTaskbarHeight(...args),
-            setIsNotificationsPanelOpen,
             setIsActiveWindowsPanelOpen,
             setClosingAllWindowsAnimation,
             setScreensaverPreviewActive,
             setConfetti,
             setSearchOpen,
-            setChatOpen,
             constraintsRef,
             taskbarRef,
             windowsInViewRef,
@@ -2892,33 +1614,20 @@ export const Provider = ({ children, element, location }: AppProviderProps) => {
             siteSettings,
             compact,
             isMobile,
-            posthogInstance,
             menu,
         }),
-        [siteSettings, compact, isMobile, posthogInstance, menu]
+        [siteSettings, compact, isMobile, menu]
     )
 
     const uiState = useMemo<AppUIStateContextType>(
         () => ({
-            isNotificationsPanelOpen,
             isActiveWindowsPanelOpen,
             closingAllWindowsAnimation,
             screensaverPreviewActive,
             confetti,
             searchOpen,
-            chatOpen,
-            chatParams,
         }),
-        [
-            isNotificationsPanelOpen,
-            isActiveWindowsPanelOpen,
-            closingAllWindowsAnimation,
-            screensaverPreviewActive,
-            confetti,
-            searchOpen,
-            chatOpen,
-            chatParams,
-        ]
+        [isActiveWindowsPanelOpen, closingAllWindowsAnimation, screensaverPreviewActive, confetti, searchOpen]
     )
 
     const windowsValue = useMemo<AppWindowsContextType>(() => ({ windows }), [windows])
@@ -2949,20 +1658,13 @@ export const Provider = ({ children, element, location }: AppProviderProps) => {
                                 taskbarRef,
                                 expandWindow,
                                 getExpandedDimensions,
-                                openSignIn,
-                                openRegister,
-                                openForgotPassword,
                                 siteSettings,
                                 updateSiteSettings,
-                                openNewChat,
-                                isNotificationsPanelOpen,
-                                setIsNotificationsPanelOpen,
                                 isActiveWindowsPanelOpen,
                                 setIsActiveWindowsPanelOpen,
                                 isMobile,
                                 compact,
                                 menu,
-                                openStart,
                                 animateClosingAllWindows,
                                 closingAllWindowsAnimation,
                                 setClosingAllWindowsAnimation,
@@ -2971,7 +1673,6 @@ export const Provider = ({ children, element, location }: AppProviderProps) => {
                                 setScreensaverPreviewActive,
                                 setConfetti,
                                 confetti,
-                                posthogInstance,
                                 desktopParams,
                                 copyDesktopParams,
                                 desktopCopied,
@@ -2980,9 +1681,6 @@ export const Provider = ({ children, element, location }: AppProviderProps) => {
                                 searchOpen,
                                 setSearchOpen,
                                 searchInitialFilter,
-                                chatOpen,
-                                setChatOpen,
-                                chatParams,
                                 updateTaskbarHeight,
                             }}
                         >

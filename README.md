@@ -1,20 +1,39 @@
+<p align="center">
+  <img src="static/quirq-icon.svg" width="64" height="64" alt="quirq logo" />
+</p>
+
 # quirq home base
 
-A customizable desktop for the apps, experiments, and open source projects in the [quirq GitHub organization](https://github.com/quirq-ai).
+**Everything quirq builds. One little space.**
 
-Repositories become app entries with their own URLs. The Home window, search, and the menus list every app from the same catalog; the desktop shows icons only for apps with a website (a homepage on GitHub, or a `launchUrl` in the mapping). A floating dock, after [Euler](https://github.com/quirq-ai/euler)'s, is the navigation bar: Home, Projects, quirqy (a [Blobatar](https://blobatar.dev/) avatar you can make your own, in a window of its own), search, and the list of open windows. The Home window follows Euler's Home: a greeting, the catalog at a glance, and a card for every app. The desktop is a plain background with the organization's [GitHub profile README](https://github.com/quirq-ai) written on it, read live. The interface keeps the playful desktop experience: glass icons, light and dark themes, screensavers, appearance settings, and multiple app windows with expand, restore, and close controls.
+A desktop for the apps, experiments, tools, and open source projects in the [quirq GitHub organization](https://github.com/quirq-ai). Explore a repository, read its docs, follow a project's progress, or open an app in its own window.
 
-Each app can have its own identity. Use a document view for Docs, a colorful showcase for an experiment, or a completely custom React page for a product. A shared data source does not require every app to look the same.
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/images/home-base-dark.jpg" />
+  <img src="docs/images/home-base-light.jpg" alt="quirq home base with its glass app icons, repository catalog, and floating dock" />
+</picture>
 
-This is a **Gatsby 4 / React 18 website**, adapted from [PostHog/posthog.com](https://github.com/PostHog/posthog.com). It presents repository metadata and READMEs, and links to or embeds already deployed apps. Opening an entry does **not** clone, install, deploy, or run that repository, and the browser does not control the host operating system.
+<p align="center">
+  <a href="#run-locally">Run locally</a> ·
+  <a href="docs/quirq-app-mapping.md">Map an app</a> ·
+  <a href="docs/development.md">Development guide</a> ·
+  <a href="docs/repository-audit.md">Repository audit</a>
+</p>
+
+## A home for your apps
+
+| Explore                                                              | Make it yours                                                                          | Keep work in view                                                                     |
+| -------------------------------------------------------------------- | -------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
+| A live catalog of public repositories, with search and type filters. | Glass icons, light and dark themes, appearance settings, and a personal quirqy avatar. | Projects grouped by phase, with public build and canary state.                        |
+| A file tree for each repository's Markdown docs.                     | Each app keeps its own name, color, route, and optional custom React view.             | Multiple windows, a floating dock, and expand, restore, minimize, and close controls. |
+
+The desktop uses **Gatsby 4, React 18, and Tailwind CSS**, with a shared flex-based window system and layouts that respond to each window's width. The interface adapts desktop components and artwork from [PostHog/posthog.com](https://github.com/PostHog/posthog.com); its old marketing pages and service integrations have been removed.
+
+Opening a repository shows public metadata and documentation. It does not install or run its code. App websites open in launch windows when their framing policy permits it; **Open in new tab** remains available when a website cannot be shown here.
 
 ## Run locally
 
-Prerequisites:
-
-- Git.
-- **Node.js 24.x**, matching [`.nvmrc`](.nvmrc) and the package engine.
-- **pnpm 10.23.0**, pinned by `packageManager` in [`package.json`](package.json). Use pnpm for this workspace.
+Use **Node.js 24.x** and **pnpm 10.23.0**, as pinned in [`.nvmrc`](.nvmrc) and [`package.json`](package.json).
 
 ```sh
 git clone https://github.com/quirq-ai/website.git
@@ -25,208 +44,97 @@ pnpm install --frozen-lockfile
 pnpm start
 ```
 
-Open [http://localhost:8001](http://localhost:8001). The development server binds to `127.0.0.1`; it is local to your computer. Stop it with `Ctrl+C`.
+Open [localhost:8001](http://localhost:8001). The development server binds to `127.0.0.1`; stop it with `Ctrl+C`.
 
-The committed GitHub snapshot is enough to start and build the site. No GitHub token, PostHog account, CMS credentials, or environment file is required for the default local setup. Dependency installation still needs network access and can take time because the retained upstream workspace is large.
+The committed snapshots are enough to start and build the site. No GitHub token, CMS account, or environment file is required.
 
-## How the data reaches the screen
+## From GitHub to the desktop
 
-```text
-quirq-ai public GitHub repositories
-                |
-          pnpm apps:sync
-                |
-    src/data/quirq-repositories.json
-                +
-         quirq.apps.json
-                |
-    shared catalog validation and mapping
-                |
-      Gatsby creates one route per app
-                |
- Home window + desktop + dock + search + app windows
+```mermaid
+flowchart LR
+    GitHub[Public GitHub repositories] --> Sync[pnpm apps:sync]
+    Sync --> Snapshot[Committed snapshot]
+    Mapping[quirq.apps.json] --> Catalog[Shared catalog]
+    Snapshot --> Catalog
+    Catalog --> Routes[Gatsby app routes]
+    Catalog --> Desktop[Home · dock · search · windows]
+    GitHub --> Live[Anonymous browser reads]
+    Live --> Desktop
 ```
 
-1. **Sync:** the script fetches the organization's public repositories and the READMEs for visible entries.
-2. **Snapshot:** the result is saved in a committed JSON file. Builds, server rendering, and each page's first paint use this saved data.
-3. **Mapping:** `quirq.apps.json` selects the organization and overrides names, icons, colors, visibility, paths, and launch destinations.
-4. **Routes:** Gatsby generates each app page from that same mapped catalog. Home base and navigation use the same entries, so their links match the generated routes.
-5. **Live:** in the visitor's browser, the desktop, Home base, and search read the organization's repository list from GitHub's public API and apply the same mapping, every 5 minutes while the tab is visible. App pages read their README from raw.githubusercontent.com. A repository created after the build opens at `/apps/<name>` through a live page ([`src/templates/quirq-live-app.tsx`](src/templates/quirq-live-app.tsx)). No token or backend is involved.
+**Built pages** use [`src/data/quirq-repositories.json`](src/data/quirq-repositories.json), mapped by [`quirq.apps.json`](quirq.apps.json). Builds validate this saved data and do not fetch GitHub.
 
-Public, non-archived repositories are included by default, including forks. quirq-ai shows every public repository, `.github` included, because `defaults.excludeRepositories` is empty; without that setting, `.github` is excluded. Repositories do not need an explicit mapping entry to appear. Use `hidden` or `defaults.excludeRepositories` to remove infrastructure or other entries that should not appear as apps. Private repositories are never included.
+**The browser** refreshes the public repository list every five minutes while the tab is visible. Repository docs and the organization's desktop profile come from public GitHub files. New repositories can open through `/apps/*` before the next deployment. If GitHub is unavailable, the catalog keeps its last usable list.
 
-Only Home base (`/`), Projects (`/projects`), Appearance (`/display-options`), the 404 page, and catalog app routes are active. The `infra-config` repository maps to the quirq infra v0 app at `/v0`, a guide to v0 with its live state. The original PostHog marketing, billing, community, and CMS services are not part of this build.
+Public, non-archived repositories and forks are included by default. This organization's mapping includes `.github` too. Visibility is an explicit catalog choice; private repository metadata never belongs in the snapshots.
 
-## Refresh the catalog
+## Give an app its own identity
 
-```sh
-pnpm apps:sync
-pnpm apps:check
-pnpm test
-```
-
-Review the changes to `src/data/quirq-repositories.json`, then commit the snapshot along with any mapping changes. Restart `pnpm start` after syncing or changing app routes. Run a new build and deployment to update the published site.
-
-**Visitors see GitHub changes without a deployment; the built pages do not.** New, renamed, and deleted repositories, descriptions, and READMEs reach the browser live (see step 5 above). `pnpm build` still validates and builds the saved snapshot and does not run a sync, so server-rendered HTML and each page's first paint use the snapshot until the next sync and deploy. This keeps builds reproducible and avoids requiring GitHub API access at build time. Anonymous browser reads allow 60 GitHub API requests an hour per visitor; when GitHub can't be reached, the last list stays on screen.
-
-The sync preserves the previous snapshot if repository fetching or validation fails. A missing README does not remove its repository from the catalog. For GitHub API rate limits, provide the optional `GITHUB_TOKEN` in the shell or CI environment that runs the sync. The token is not written to the snapshot or browser bundle.
-
-## Make each app its own
-
-Edit [`quirq.apps.json`](quirq.apps.json). Keys under `repositories` must match actual GitHub repository names. For example, this entry inside `repositories` gives XO Space a custom route, icon, showcase layout, and preferred restored dimensions:
+Edit a repository entry in [`quirq.apps.json`](quirq.apps.json):
 
 ```json
 {
     "xo-space": {
         "name": "XO Space",
-        "description": "Build, observe, and measure work across your local coding agents.",
         "path": "/xo-space",
         "icon": "planet",
         "color": "purple",
-        "category": "Apps",
         "featured": true,
         "window": { "width": 1080, "height": 760 }
     }
 }
 ```
 
-| Change | Mapping setting |
-| --- | --- |
-| Give an app its own URL | `path`, such as `/xo-space`; otherwise `/apps/<repository>` |
-| Change its identity | `name`, `description`, `icon`, `color`, and `category` |
-| Put it first in the Home window, and in the desktop's first column when it has a website | `featured: true` |
-| Hide an entry everywhere | `hidden: true` |
-| Build a bespoke app page | `component: "src/templates/MyApp.tsx"` |
-| Set a destination | `launchUrl`; defaults to the repository's GitHub homepage field |
-| Disable the launch destination | `launchUrl: null` |
-| Skip the frame check for an app known to allow frames | `launchMode`: `"window"` (quirq-ai's default; it takes effect only on an origin in `frameOrigins`), `"external"` (ask the site first), or `"embed"` (an App tab in the repository's page, per repository only) |
-| Set restored window dimensions | `window: { "width": 1080, "height": 760 }` |
+Choose an icon, color, description, route, visibility, launch destination, or a custom template under `src/templates/`. Repository types come from the organization's `role` property on GitHub. Keep app choices in the mapping so Home, desktop icons, search, and routes agree.
 
-A custom component receives `pageContext.app` and stays within the shared desktop and window system. See [`src/templates/quirq-app.tsx`](src/templates/quirq-app.tsx) for the default template and [`src/components/QuirqApp`](src/components/QuirqApp) for the reusable app views. Windows fit within the available desktop; multiple open windows share that space.
+The [app mapping guide](docs/quirq-app-mapping.md) covers every setting, live updates, documentation links, and launch-window framing rules. A destination's security headers decide whether it can be embedded; exact trusted quirq.dev origins can be configured through `frameOrigins`.
 
-Every link on the site opens in a window here, the page in an iframe, and never in a new tab of its own ([`src/templates/quirq-launch.tsx`](src/templates/quirq-launch.tsx)). Open app, Launch and the desktop icons open an app's website at `/launch/<repository>` (a desktop icon whose website can never open in a window, such as a shared-host or `external` one, opens the app's repository window instead); the organization README's links, shown as app icons on the desktop, open a link to an app's website in that app's window and any other page at `/launch/readme/<address>` ([`src/lib/quirqReadmeLinks.ts`](src/lib/quirqReadmeLinks.ts)); and any other link to another site, in docs, buttons or content, opens at `/launch/web/<address>` ([`src/lib/externalLinks.ts`](src/lib/externalLinks.ts), one click listener in [`gatsby-browser.tsx`](gatsby-browser.tsx)). A site decides with its headers whether it may be framed (`X-Frame-Options`, CSP `frame-ancestors`), and the browser hides that answer from the page, so before framing a page the window asks [`/api/frame-check`](src/api/frame-check.ts), the site's only server code, which reads the page's headers ([`src/lib/frameCheck.ts`](src/lib/frameCheck.ts)). A page that refuses (GitHub, Innernet, this site), is on a shared hosting platform where anyone can claim a name (such as `*.vercel.app` or `*.github.io`, so a name an app gives up can't be taken over to appear here as quirq's; a page whose server redirects there is caught too, but not a redirect a framed page makes with a script), can't be reached, isn't there, isn't https, or doesn't finish loading within 20 seconds shows **Oops** with an **Open in new tab** button. A frame the network drops shows the browser's own error page instead, under the same Open in new tab button. An origin in `frameOrigins` is framed without asking. Only an app's launch URL, a link the README itself has, or a page a click on this site opened is ever framed: an address someone else puts in a `/launch/web/` URL offers a new tab instead. Every Open in new tab button, and a Ctrl/Cmd- or middle-click on any link, opens a real new tab.
-
-For all supported values, validation rules, organization changes, and embedding details, read the [app mapping guide](docs/quirq-app-mapping.md).
-
-## Projects and phases
-
-`/projects` shows every repository the swarm is building, grouped as in [`quirq.projects.json`](quirq.projects.json), with a phase read from the repository's shape:
-
-| Phase | Rule |
-| --- | --- |
-| Thought | Notes or a README only, no code |
-| Prototype | Real code, but no CI |
-| Built | Code with CI on GitHub |
-| Shipping | Built, and onboarded to qq (`infra/repo.toml`), deployed, or in the daily canary |
-| Project | Has users: at least 10 GitHub stars or at least 5 people committing (`projectRule`), checked first |
-
-`pnpm projects:sync` reads each repository's default-branch file list and its commit authors with anonymous git clones that skip file contents, and star counts from one anonymous GitHub API request (falling back to the apps snapshot's counts). It needs no token and saves only counts, never names or emails, to `src/data/quirq-projects.json`. Commit that snapshot. People committing leaves out bots and the agent and automation emails listed under `automation`, and counts one person's several names and emails once. A `phase` with a `phaseReason` in `quirq.projects.json` overrides the computed phase. `projects:sync` and `projects:check` fail when a public repository is in no group and not marked `hidden`, so add new repositories to a group. Repositories in the daily canary also show their live tree status and canary commit, fetched in the browser from public state branches.
-
-## Commands
-
-| Command | Purpose |
-| --- | --- |
-| `pnpm start` | Run the development server at `http://localhost:8001` |
-| `pnpm apps:sync` | Fetch public GitHub metadata and READMEs into the snapshot |
-| `pnpm apps:check` | Validate the mapping and snapshot without network access; fails if a hidden repository still carries README text |
-| `pnpm projects:sync` | Read every project's files, committers and stars without a token and save the phase snapshot |
-| `pnpm projects:check` | Validate `quirq.projects.json` against the saved phase snapshot without network access |
-| `pnpm apps:prune` | Offline: clear README text for repositories that are no longer visible apps, without refetching |
-| `pnpm test` | Run catalog and app route regression tests |
-| `pnpm apps:test` | Run catalog tests only |
-| `pnpm test:app-routes` | Run Gatsby app route tests only |
-| `pnpm build` | Validate the snapshot, then generate the production site in `public/` |
-| `pnpm serve -H 127.0.0.1 -p 9000` | Preview an existing production build at `http://localhost:9000` |
-| `pnpm clean` | Remove generated Gatsby cache and build output |
-
-To check a production build locally:
+To refresh the built catalog:
 
 ```sh
-pnpm test
-pnpm build
-pnpm serve -H 127.0.0.1 -p 9000
+pnpm apps:sync
+pnpm apps:check
 ```
 
-GitHub Actions runs the quirq infra presubmit (`website-presubmit`: a frozen pnpm install, `pnpm build`, whose prebuild runs `pnpm apps:check` and `pnpm projects:check`, and `pnpm test`) on pull requests, and will run it in the merge queue once the gate apply onboards this repository (see below). It runs the same steps as `website-postsubmit` on every push to `main`, using Node 24.
+Review and commit the generated snapshot. Restart Gatsby after changing routes, then rebuild and deploy to refresh server-rendered pages. After hiding a repository, run `pnpm apps:sync` or the offline `pnpm apps:prune` to remove its README from the bundled snapshot.
 
-Check Home base, an app route, search, Appearance, and narrow and wide layouts in both themes when changing the UI. The catalog and routing tests do not replace browser checks. Other scripts retained in `package.json` serve upstream functionality and are not required for this app's normal workflow.
+## Follow projects from idea to use
 
-## quirq infra (qq)
+[`/projects`](src/pages/projects.tsx) groups repositories using [`quirq.projects.json`](quirq.projects.json). Phases come from repository evidence:
 
-This repository has a qq manifest and generated workflows from [quirq infra](https://github.com/quirq-ai/infra-config), the build, test and land system shared by the quirq repositories:
+| Thought            | Prototype  | Built         | Shipping                                               | Project                                                  |
+| ------------------ | ---------- | ------------- | ------------------------------------------------------ | -------------------------------------------------------- |
+| Notes or a README. | Real code. | Code with CI. | Built and onboarded to qq, deployed, or in the canary. | At least 10 stars or 5 people committing, checked first. |
 
-- [`infra/repo.toml`](infra/repo.toml) is the qq manifest: one `site` target of kind `gatsby-site` and the Node toolchain pin. Read or change it only with `qqsync` from [quirq-ai/sync](https://github.com/quirq-ai/sync). quirq-ai/recipes has no `gatsby-site` adapter yet, so `qq build` and `qq test` do not work here; use the pnpm commands above.
-- The presubmit and post-submit workflows (`.github/workflows/qq-*.yml`) are generated in [quirq-ai/infra-config](https://github.com/quirq-ai/infra-config) and copied here. Change them there, never by hand.
-- The landing rules for `main` (merge queue, squash merges, required checks) are declared in [quirq-ai/gate](https://github.com/quirq-ai/gate) `settings/github.toml`. They include a merge queue on `main`, but the gate apply that onboards this repository has not been run yet, so none of them is in force here.
+`pnpm projects:sync` refreshes the committed phase snapshot using public repository trees, star counts, and aggregate contributor counts. It stores no contributor names or emails. A manual phase override needs a `phaseReason`. Every public repository must belong to a group or be explicitly hidden.
 
-## Architecture
+The `/v0` app explains quirq infra and shows its public live state. See the [development guide](docs/development.md#quirq-infra) for workflow ownership.
 
-| File or directory | Responsibility |
-| --- | --- |
-| [`quirq.apps.json`](quirq.apps.json) | Organization, catalog defaults, and per-repository overrides |
-| [`scripts/sync-quirq-apps.mjs`](scripts/sync-quirq-apps.mjs) | Public GitHub API sync and snapshot validation command |
-| [`scripts/lib/quirq-catalog.mjs`](scripts/lib/quirq-catalog.mjs) | Shared normalization, inclusion rules, URL checks, and mapping logic |
-| [`src/data/quirq-repositories.json`](src/data/quirq-repositories.json) | Generated, committed GitHub snapshot; do not edit by hand |
-| [`src/lib/quirqApps.ts`](src/lib/quirqApps.ts) | Typed catalog access shared by the UI and Gatsby |
-| [`src/lib/quirqLiveApps.ts`](src/lib/quirqLiveApps.ts) | The live catalog: the organization's repository list read in the browser, shared by the desktop, Home base, search, and app pages |
-| [`src/templates/quirq-live-app.tsx`](src/templates/quirq-live-app.tsx) | The `/apps/*` page for repositories created after the build (`vercel.json` rewrites unknown `/apps/` paths to it) |
-| [`src/templates/quirq-launch.tsx`](src/templates/quirq-launch.tsx) | The `/launch/*` window: an app's website in an iframe (`vercel.json` rewrites `/launch/` paths to it) |
-| [`gatsby-config.js`](gatsby-config.js) | Active plugins, allowed source pages, and site metadata |
-| [`gatsby-node.ts`](gatsby-node.ts) | Generates mapped routes and excludes inactive upstream pages and queries |
-| [`src/templates/quirq-app.tsx`](src/templates/quirq-app.tsx) | Default generated app page and SEO |
-| [`src/components/HomeBase`](src/components/HomeBase) | The Euler-style Home window: greeting, catalog summary, app cards, filters, and the avatar panel |
-| [`src/components/Dock`](src/components/Dock) and [`src/components/QuirqAvatar`](src/components/QuirqAvatar) | The dock navigation bar (Home, Projects, quirqy, search, open windows) and the Blobatar avatar and its editor |
-| [`quirq.projects.json`](quirq.projects.json), [`scripts/lib/quirq-phases.mjs`](scripts/lib/quirq-phases.mjs) | Project groups, descriptions, phase overrides, and the phase rules |
-| [`src/components/QuirqProjects`](src/components/QuirqProjects) | The projects-by-phase view at `/projects` |
-| [`src/components/QuirqInfraV0`](src/components/QuirqInfraV0) | The quirq infra v0 guide and live view at `/v0` |
-| [`src/components/QuirqApp`](src/components/QuirqApp) | The repository window (one layout: header, doc tabs and an optional embedded App tab); the docs browser (every Markdown file in a [@pierre/trees](src/vendor/pierre-trees/README.md) file tree) and GitHub-style Markdown formatting |
-| [`src/lib/quirqDocs.ts`](src/lib/quirqDocs.ts) | A repository's doc list (GitHub git trees API) and files (raw.githubusercontent.com), and how links and images in docs resolve |
-| [`src/components/QuirqAppIcon`](src/components/QuirqAppIcon) | Mapped icons in the existing glass icon style |
-| [`src/components/QuirqSearch`](src/components/QuirqSearch) | Local catalog search and keyboard navigation |
-| [`src/components/Desktop`](src/components/Desktop) and [`src/components/QuirqProfile`](src/components/QuirqProfile) | Desktop icons, the plain background, and the organization README written on it. The inherited top bar in [`src/components/TaskBarMenu`](src/components/TaskBarMenu) is no longer mounted; the dock replaced it |
-| [`src/context/App.tsx`](src/context/App.tsx) and [`src/components/AppWindow`](src/components/AppWindow) | Shared app state, window lifecycle, layout, and controls |
-| [`src/pages/display-options.tsx`](src/pages/display-options.tsx) | Appearance and personalization settings |
-| [`vercel.json`](vercel.json) | Gatsby build and output configuration for Vercel, the `/apps/*` rewrite to the live app page, and the CSP that lets windows frame any https page and keeps other sites from framing this one |
+## Work on the site
 
-The retained UI uses Tailwind CSS, existing theme tokens, container queries, and shared window templates. Start with the component READMEs before changing the desktop shell. Add custom app templates under `src/templates/`; adding arbitrary files to `src/pages/` does not make them active routes in this fork.
+```sh
+pnpm apps:check
+pnpm projects:check
+pnpm source:check
+pnpm test
+pnpm build
+```
 
-Gatsby's query extraction is limited to the active pages, SEO, and mapped templates. If a custom template introduces a GraphQL query in a shared component, update the allowlist in `gatsby-node.ts` deliberately. The normal catalog uses imported JSON and does not require GraphQL queries.
+Preview the production output with `pnpm serve -H 127.0.0.1 -p 9000`. Before handing off UI changes, check wide and narrow windows in both themes, search, direct app routes, and the window lifecycle. Format only changed files.
 
-## Environment variables
+| Area                             | Start here                                                                                                                     |
+| -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| Catalog and live data            | [`src/lib/quirqApps.ts`](src/lib/quirqApps.ts), [`src/lib/quirqLiveApps.ts`](src/lib/quirqLiveApps.ts)                         |
+| Catalog validation and snapshots | [`scripts/lib/quirq-catalog.mjs`](scripts/lib/quirq-catalog.mjs), [`scripts/sync-quirq-apps.mjs`](scripts/sync-quirq-apps.mjs) |
+| Desktop and navigation           | [`Desktop`](src/components/Desktop), [`Dock`](src/components/Dock/README.md), [`HomeBase`](src/components/HomeBase/README.md)  |
+| Repository docs and launches     | [`QuirqApp`](src/components/QuirqApp/README.md), [`src/templates/quirq-launch.tsx`](src/templates/quirq-launch.tsx)            |
+| Window state and controls        | [`src/context/App.tsx`](src/context/App.tsx), [`AppWindow`](src/components/AppWindow)                                          |
+| Routes and hosting               | [`gatsby-node.ts`](gatsby-node.ts), [`gatsby-config.js`](gatsby-config.js), [`vercel.json`](vercel.json)                       |
 
-| Variable | Purpose |
-| --- | --- |
-| `GITHUB_TOKEN` | Optional authentication for the sync script's public GitHub API requests. Set in the shell or CI environment running `pnpm apps:sync`. |
-| `GATSBY_SITE_URL` | Optional absolute canonical site URL, such as your production `https://` domain. This is public metadata. |
-| `VERCEL_PROJECT_PRODUCTION_URL` / `VERCEL_URL` | Vercel-provided hostname fallback when `GATSBY_SITE_URL` is absent. |
-| `GATSBY_CPU_COUNT` | Optional Gatsby worker limit for machines with limited memory. |
-| `NODE_OPTIONS` | Optional Node runtime options, such as a larger heap for a build on a machine with enough RAM. |
+Read [`AGENTS.md`](AGENTS.md) and the relevant component README before editing shared code. The [development guide](docs/development.md) covers commands, environment variables, deployment, and troubleshooting. The [repository audit](docs/repository-audit.md) records the cleanup, intentionally retained upstream material, and verification limits.
 
-For Gatsby, configuration loads `.env.development.local` and `.env.development` during development, or `.env.production.local` and `.env.production` for a production build. The standalone sync script does **not** load these files; it reads `GITHUB_TOKEN` from its process environment. Keep tokens out of `quirq.apps.json`, committed files, and variables prefixed with `GATSBY_`, which are intended for browser use.
+## Attribution and licensing
 
-## Deploy on Vercel
+quirq's original additions retain the [Apache 2.0 license](LICENSE). Inherited desktop code and artwork retain the separate [upstream terms](LICENSE.posthog), including their website reuse restriction. Third-party vendored code keeps its own notices. The quirq name, marks, and approved brand art are reserved.
 
-1. Import `quirq-ai/website` into your Vercel team and select the repository root as the project directory.
-2. Use **Node.js 24.x**, the repository's pinned pnpm version, and `pnpm install --frozen-lockfile` for installation.
-3. Keep the settings in [`vercel.json`](vercel.json): **Gatsby**, build command **`pnpm build`**, and output directory **`public`**.
-4. Optionally set `GATSBY_SITE_URL` to the production domain, then deploy.
-5. Open Home base and a direct app URL in the deployment to check routing and the hydrated desktop UI.
-
-The committed snapshot is deployed as part of the website. A normal Vercel build needs no GitHub API token. Browsers pick up new repositories and README changes live; to refresh the server-rendered pages too, sync locally or in a separate CI job, review and commit the changed snapshot, then redeploy. Linked app deployments are managed separately; this website does not deploy them.
-
-## Troubleshooting
-
-- **Wrong Node or pnpm version:** check `node --version` and `pnpm --version` against the prerequisites. Use the committed lockfile and do not replace it with an npm lockfile.
-- **An app is missing or stale:** reload once; the live list refreshes on load and every 5 minutes. If it still lacks the app, check its visibility settings, and whether the browser has used up GitHub's 60 anonymous requests an hour. To refresh the built pages, run `pnpm apps:sync` and `pnpm apps:check`, restart Gatsby, and publish a new deployment.
-- **A route change does not appear:** stop the server, run `pnpm clean`, then run `pnpm start` again. The clean command removes generated output, not the catalog or mapping.
-- **GitHub sync returns a rate limit error:** provide `GITHUB_TOKEN` in the sync process environment, then retry. The existing snapshot remains usable when the sync fails.
-- **An app's window says Oops:** the destination's `X-Frame-Options` or CSP `frame-ancestors` header refuses this site, or the page couldn't be reached. Use Open in new tab. A mapping entry cannot override the site's policy; the site must allow `frame-ancestors` for this site's origin. If a window is blank instead (the frame check couldn't be asked, for example on a host without serverless functions), Open in new tab is in the window's bar.
-- **The build runs out of memory:** reduce Gatsby workers with `GATSBY_CPU_COUNT=2`; on a machine with sufficient RAM, set `NODE_OPTIONS=--max-old-space-size=8192`. Set these through your shell or hosting environment rather than changing the catalog.
-
-## Upstream attribution and license
-
-The desktop interface, much of the component library, artwork, and retained source originate from [PostHog/posthog.com](https://github.com/PostHog/posthog.com). quirq's organization catalog, mapping, app views, and active build configuration adapt that source for this project. This repository is not the official PostHog website.
-
-The repository retains its [Apache 2.0 license](LICENSE), and the original upstream terms are preserved separately in [LICENSE.posthog](LICENSE.posthog). The upstream license contains different terms for the `contents/` directory and the rest of the website, including an explicit website reuse restriction. The repository license does not replace those upstream terms. Read [LICENSING.md](LICENSING.md) for the scope of each license before reusing or redistributing material; this project should not be described as wholly MIT- or Apache-licensed.
-
-Inherited PostHog pages, components and scripts remain in `src/` and `scripts/` as an inactive design and implementation reference; they are excluded from the active page-generation pipeline. `static/` holds only files the active site loads, including three inherited PostHog images (`images/search.svg` and the two `questlog-*-sprite.png` files). PostHog's docs and blog content (`contents/`), its published brand files, its security reports and its other unused `static/` art were removed on 2026-10-05 and remain in git history. Upstream instructions and service integrations found in those files do not describe the quirq setup documented here.
+Read [LICENSING.md](LICENSING.md) before reusing or redistributing this repository. Adding quirq branding does not relicense inherited material.

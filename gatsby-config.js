@@ -10,8 +10,7 @@ const siteUrl = (
     'http://localhost:8001'
 ).replace(/\/$/, '')
 
-// The OS interface is retained; its content now comes from the checked-in GitHub
-// catalog. No PostHog CMS, billing, community, jobs, or monorepo sync runs here.
+// Build from the checked-in catalog; browsers refresh its public GitHub data live.
 module.exports = {
     flags: { DEV_SSR: false },
     siteMetadata: {
@@ -27,13 +26,11 @@ module.exports = {
     plugins: [
         'gatsby-plugin-react-helmet',
         'gatsby-plugin-postcss',
-        'gatsby-plugin-image',
         {
             resolve: 'gatsby-plugin-page-creator',
             options: {
                 path: path.join(__dirname, 'src/pages'),
-                // Filter before Gatsby evaluates collection-route GraphQL queries.
-                // A negated whole-path glob permits only these three root files.
+                // Keep filesystem routes explicit, before collection-route queries run.
                 ignore: '!{index.tsx,display-options.tsx,projects.tsx,404.js}',
             },
         },

@@ -290,13 +290,10 @@ export default function QuirqProjects(): JSX.Element {
 
     return (
         <Explorer
-            template="generic"
-            slug="projects"
             title="Projects"
             showTitle={false}
             transparent
             padding={false}
-            showAddressBar={false}
             headerBarOptions={['showBack', 'showForward']}
             rightActionButtons={
                 <>
