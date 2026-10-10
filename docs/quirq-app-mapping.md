@@ -66,14 +66,20 @@ A site's own security policy (`X-Frame-Options`, or CSP `frame-ancestors`) can p
 
 ## Repository types
 
-Each repository's type is the organization's `role` custom property on GitHub (single select: `project`, `agent`, `tool`, `library`, `docs`, `config`; required, default `project`). It is set on GitHub, by people or by automation, never in `quirq.apps.json`. The site reads it from `custom_properties.role` in the same repository list as everything else: `pnpm apps:sync` saves it in the snapshot as `role`, and browsers read it live. A value the site doesn't know (`QUIRQ_ROLES` in `scripts/lib/quirq-catalog.mjs`, with names and meanings in `src/lib/quirqRoles.ts`) is ignored. A live list that leaves custom properties out keeps the type the build saved.
+Each repository's type is the organization's `role` custom property on GitHub (single select: `project`, `agent`, `tool`, `library`, `docs`, `config`; required, default `project`). It is set on GitHub, by people or by automation, never in `quirq.apps.json` (a `role` key there fails `pnpm apps:check`). The site reads it from `custom_properties.role` in the same repository list as everything else: `pnpm apps:sync` saves it in the snapshot as `role`, and browsers read it live. A value the site doesn't know (`QUIRQ_ROLES` in `scripts/lib/quirq-catalog.mjs`, with names and meanings in `src/lib/quirqRoles.ts`) is ignored. Because `role` is required, a list that doesn't show it (no custom properties, an empty object, a null value) only means GitHub hid it, so the type already known (the snapshot's, or this browser's cached copy) stays.
 
-What a type changes:
+Types replace the mapping's categories only once at least three different types are in use (`showsRoles`, `MIN_ROLES_SHOWN`). While nearly every repository is still on the default, types would say little and label infrastructure as projects, so Home base and the windows look exactly as they do with categories. Then:
 
-- **Home base** filters by type (All apps, Projects, Agents, Tools, Libraries, Docs, Config; only the types some app has) and each card shows its type as a badge. While no app's type is known, the filters and cards fall back to the mapping's `category`.
-- **Order**: after featured apps, apps are listed by type in that order (projects first, config last), then by name, on the desktop, in Home base and in the menus. An app whose type isn't known sorts with projects.
-- **Repository window**: the type is a badge in the details beside the tabs, in place of the category; hovering it shows what the type means.
+- **Home base** filters by type (All apps, Projects, Agents, Tools, Libraries, Docs, Config; only the types some app has) and each card shows its type as a badge. A screen reader hears the type and what it means.
+- **Repository window**: the type is a badge in the details beside the tabs, in place of the category, with its meaning on hover and for screen readers.
+- An app whose type isn't known is treated as a project (GitHub's default) in the order and the filters, without a badge.
+
+Always, whatever the count:
+
+- **Order**: after featured apps, apps are listed by type in that order (projects first, config last), then by name, on the desktop, in Home base and in the menus.
 - **Search** matches a type's value, name and plural ("tool", "Tools").
+
+The snapshot only carries types after `pnpm apps:sync` runs once the organization's values are filled in (with `GITHUB_TOKEN` set if GitHub's anonymous list leaves custom properties out). Until then each page's first paint shows categories, and Home base switches to types when the live list arrives.
 
 ## What is included
 

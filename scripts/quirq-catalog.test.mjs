@@ -13,6 +13,7 @@ import {
     mergeLiveRepositories,
     normalizeAppPath,
     normalizeRepository,
+    showsRoles,
     safeWebUrl,
 } from './lib/quirq-catalog.mjs'
 import { fetchOrganizationRepositories, syncQuirqApps } from './sync-quirq-apps.mjs'
@@ -548,12 +549,17 @@ test("a repository's type comes from GitHub's role custom property and only know
     assert.equal(type({ custom_properties: { role: 'service' } }), null, 'a value this site does not know')
     assert.equal(type({ custom_properties: { role: ['tool'] } }), null)
     assert.equal(type({ custom_properties: {} }), null)
+    assert.equal(
+        type({ custom_properties: { role: null }, role: 'tool' }),
+        'tool',
+        'a hidden value keeps the saved one'
+    )
     assert.equal(type({}), null, 'GitHub left the property out')
     assert.equal(type({ role: 'tool' }), 'tool', 'the snapshot keeps the normalized value')
     assert.equal(type({ role: 'tool', custom_properties: { role: 'docs' } }), 'docs', 'GitHub wins')
 })
 
-test('a live list without custom properties keeps the bundled type; one with them replaces it', () => {
+test('a live list keeps the bundled type unless GitHub shows a known role', () => {
     const bundled = snapshot([repo('qq', { role: 'tool' }), repo('docs', { role: 'docs' })])
     const merged = mergeLiveRepositories(
         bundled,
@@ -568,8 +574,30 @@ test('a live list without custom properties keeps the bundled type; one with the
             ['qq', 'agent'],
         ]
     )
-    const cleared = mergeLiveRepositories(bundled, [repo('qq', { custom_properties: {} })], '2026-10-09T00:00:00Z')
-    assert.equal(cleared.repositories[0].role, null, 'GitHub sent properties without role')
+    // role is required on GitHub, so properties without it only mean GitHub hid the value.
+    for (const custom_properties of [{}, { role: null }]) {
+        const hidden = mergeLiveRepositories(bundled, [repo('qq', { custom_properties })], '2026-10-09T00:00:00Z')
+        assert.equal(hidden.repositories[0].role, 'tool', JSON.stringify(custom_properties))
+    }
+    // This browser's cached copy (normalized: `role`, no custom_properties) keeps its types.
+    const cached = merged.repositories.map(({ readmeMarkdown, readmePath, ...entry }) => entry)
+    const reread = mergeLiveRepositories(snapshot([repo('qq')]), cached, '2026-10-09T01:00:00Z')
+    assert.equal(reread.repositories.find((entry) => entry.name === 'qq').role, 'agent')
+})
+
+test('types replace categories only once three different types are in use', () => {
+    const apps = (...roles) => roles.map((role) => ({ role }))
+    assert.equal(showsRoles(apps()), false)
+    assert.equal(showsRoles(apps('project', 'project', null)), false, 'everything on the default')
+    assert.equal(showsRoles(apps('project', 'agent', 'project')), false, 'one repository set by hand')
+    assert.equal(showsRoles(apps('project', 'agent', 'tool', null)), true)
+})
+
+test('a mapping cannot set a type', () => {
+    assert.throws(
+        () => buildQuirqApps(snapshot([repo('gate')]), { ...config, repositories: { gate: { role: 'tool' } } }),
+        /gate\.role is set on GitHub/
+    )
 })
 
 test('apps carry their type and list featured first, then by type, then by name', () => {

@@ -70,7 +70,9 @@ export const QUIRQ_ROLES = ['project', 'agent', 'tool', 'library', 'docs', 'conf
  */
 export function repositoryRole(repo) {
     const value =
-        repo.custom_properties && typeof repo.custom_properties === 'object' ? repo.custom_properties.role : repo.role
+        repo.custom_properties && typeof repo.custom_properties === 'object' && repo.custom_properties.role != null
+            ? repo.custom_properties.role
+            : repo.role
     return typeof value === 'string' && QUIRQ_ROLES.includes(value) ? value : null
 }
 
@@ -288,9 +290,9 @@ export function mergeLiveRepositories(snapshot, liveRepositories, fetchedAt) {
         const bundled = readmes.get(key)
         repositories.push({
             ...repo,
-            // A list without custom properties (GitHub can leave them out) keeps the type the build read.
-            role:
-                raw.custom_properties && typeof raw.custom_properties === 'object' ? repo.role : bundled?.role ?? null,
+            // `role` is required on GitHub (default `project`), so a list without it (no custom properties,
+            // an empty object, a null value) only means GitHub didn't show it: keep the type already known.
+            role: repo.role ?? bundled?.role ?? null,
             readmeMarkdown: bundled?.readmeMarkdown ?? null,
             readmePath: bundled?.readmePath ?? null,
         })
@@ -320,10 +322,20 @@ function validatePresentation(settings, label) {
         settings.presentation === undefined,
         `${label}.presentation is no longer supported: every repository window uses the same layout`
     )
+    // A repository's type is its `role` custom property on GitHub, never a mapping setting.
+    assert(settings.role === undefined, `${label}.role is set on GitHub (the role custom property), not here`)
     for (const key of ['name', 'description', 'category']) {
         assert(settings[key] === undefined || typeof settings[key] === 'string', `${label}.${key} must be a string`)
     }
 }
+
+/**
+ * Whether the site shows types (filters, badges) instead of the mapping's categories: only once at least
+ * MIN_ROLES_SHOWN different types are in use. While nearly every repository is still on GitHub's
+ * default, types would say little and label infrastructure as projects, so categories stay.
+ */
+export const MIN_ROLES_SHOWN = 3
+export const showsRoles = (apps) => new Set(apps.map((app) => app.role).filter(Boolean)).size >= MIN_ROLES_SHOWN
 
 // A repository whose type isn't known sorts with projects, GitHub's default.
 const roleRank = (role) => (role ? QUIRQ_ROLES.indexOf(role) : 0)
