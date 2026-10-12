@@ -9,12 +9,14 @@ import Wrapper from './src/components/Wrapper'
 import { Provider } from './src/context/App'
 import { openExternalLinksInWindows } from './src/lib/externalLinks'
 import { siteHosts } from './src/lib/quirqReadmeLinks'
+import { startAnalytics } from './src/lib/quirqAnalytics'
 initKea(false)
 
 // Every link that leaves the site opens in a window here, the page in an iframe, or "Oops" with Open in
 // new tab when it can't be shown (AGENTS.md): one listener for every link, HTML inside content included.
 export const onClientEntry = () => {
     openExternalLinksInWindows(document, (path, state) => navigate(path, { state }), siteHosts())
+    startAnalytics()
 }
 
 export const wrapRootElement = ({ element }) => <ToastProvider>{wrapElement({ element })}</ToastProvider>

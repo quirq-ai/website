@@ -1,5 +1,6 @@
 require('dotenv').config({ path: `.env.${process.env.NODE_ENV}.local` })
 require('dotenv').config({ path: `.env.${process.env.NODE_ENV}` })
+require('dotenv').config()
 const path = require('path')
 
 const { name } = require('./quirq.apps.json')

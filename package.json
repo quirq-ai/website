@@ -328,7 +328,8 @@
             "puppeteer",
             "react-tsparticles",
             "sharp",
-            "tsparticles-engine"
+            "tsparticles-engine",
+            "workerd"
         ]
     }
 }
