@@ -38,7 +38,8 @@ That material remains attributable to its source repositories and subject to the
 respective terms. Every app page links back to its source repository.
 
 Dependencies, external images, and other third-party assets retain their own
-licenses and notices. [Blobatar](https://github.com/Alain00/blobatar) 2.7.0 is vendored,
-unmodified, in `src/vendor/blobatar/` under its MIT license, which is kept beside it. The components in `src/components/ui/` are adapted from
-[shadcn/ui](https://github.com/shadcn-ui/ui) under its MIT license, kept beside them in
-[`LICENSE.shadcn`](src/components/ui/LICENSE.shadcn). Their inclusion does not transfer ownership to quirq.
+licenses and notices. Their inclusion does not transfer ownership to quirq.
+[Blobatar](https://github.com/Alain00/blobatar) 2.7.0 is vendored, unmodified, in
+`src/vendor/blobatar/` under its MIT license, which is kept beside it. The components in
+`src/components/ui/` are adapted from [shadcn/ui](https://github.com/shadcn-ui/ui) under its
+MIT license, kept beside them in [`LICENSE.shadcn`](src/components/ui/LICENSE.shadcn).

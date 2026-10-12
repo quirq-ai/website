@@ -271,7 +271,8 @@ export function normalizeRepository(repo, organization) {
  * A snapshot built from GitHub's current repository list, read live in the browser. Repositories that
  * fail validation are dropped instead of failing the whole list. README text is not in GitHub's list,
  * so each repository keeps the README bundled for it, if any. `known` is the list the visitor already has
- * (this browser's last copy, or an earlier live read): a type it knows wins over the snapshot's.
+ * (this browser's last copy, or an earlier live read): its type fills in only where the build's snapshot has
+ * none, so a fresh build's types replace an old one a browser kept.
  */
 export function mergeLiveRepositories(snapshot, liveRepositories, fetchedAt, known = []) {
     assert(Array.isArray(liveRepositories), 'GitHub returned an invalid repository list')
@@ -299,7 +300,7 @@ export function mergeLiveRepositories(snapshot, liveRepositories, fetchedAt, kno
             ...repo,
             // `role` is required on GitHub (default `project`), so a list without it (no custom properties,
             // an empty object, a null value) only means GitHub didn't show it: keep the type already known.
-            role: repo.role ?? knownRoles.get(key) ?? bundled?.role ?? null,
+            role: repo.role ?? bundled?.role ?? knownRoles.get(key) ?? null,
             readmeMarkdown: bundled?.readmeMarkdown ?? null,
             readmePath: bundled?.readmePath ?? null,
         })
