@@ -11,13 +11,30 @@ import AppContainer from 'components/AppContainer'
 // taskbar, etc.).
 const WindowList = React.memo(function WindowList() {
     const { windows } = useAppWindows()
+    // Open windows share one row. On a phone, half the width is too narrow for any app, so only the
+    // frontmost window shows there; the others stay mounted, and the dock brings each one back.
+    // Fixed-size windows are overlays above the row, so they don't count.
+    const front = windows.reduce<(typeof windows)[number] | undefined>(
+        (top, item) =>
+            !item.minimized && !item.appSettings?.size?.fixed && item.zIndex > (top?.zIndex ?? -1) ? item : top,
+        undefined
+    )
 
     return (
         <div data-app="WindowList" className="flex size-full justify-center items-center">
             {windows.map((item) => (
                 // `contents` leaves the flex layout untouched. A minimized window stays mounted,
                 // hidden, so it keeps its state until it's restored.
-                <div key={item.key} className={item.minimized ? 'hidden' : 'contents'}>
+                <div
+                    key={item.key}
+                    className={
+                        item.minimized
+                            ? 'hidden'
+                            : item === front || item.appSettings?.size?.fixed
+                            ? 'contents'
+                            : 'contents [@media(max-width:767px)]:hidden'
+                    }
+                >
                     <AppWindow item={item} />
                 </div>
             ))}

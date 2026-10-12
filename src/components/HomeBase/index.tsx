@@ -263,7 +263,7 @@ export default function HomeBase() {
                                     <Icon path={icons.code} /> On GitHub
                                 </a>
                                 <Link to="/projects" state={{ newWindow: true }} className={primaryButton}>
-                                    See projects by phase
+                                    See phases
                                 </Link>
                             </div>
                         </div>
