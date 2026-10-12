@@ -1,8 +1,9 @@
 import type { PostHog } from '../types/posthog'
+import { getPostHog } from '../lib/quirqAnalytics'
 
 const usePostHog = (): PostHog | undefined => {
-    // The quirq desktop does not initialize or reuse PostHog's analytics account.
-    return undefined
+    // quirq's own PostHog project, when the build has a key (src/lib/quirqAnalytics.ts).
+    return getPostHog()
 }
 
 export default usePostHog

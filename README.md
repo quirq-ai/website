@@ -199,17 +199,18 @@ Gatsby's query extraction is limited to the active pages, SEO, and mapped templa
 | `GITHUB_TOKEN` | Optional authentication for the sync script's public GitHub API requests. Set in the shell or CI environment running `pnpm apps:sync`. |
 | `GATSBY_SITE_URL` | Optional absolute canonical site URL, such as your production `https://` domain. This is public metadata. |
 | `VERCEL_PROJECT_PRODUCTION_URL` / `VERCEL_URL` | Vercel-provided hostname fallback when `GATSBY_SITE_URL` is absent. |
+| `GATSBY_POSTHOG_KEY` | Optional PostHog project key (`phc_…`, public by design; see `.example.env`). When set at build time, the site sends pageviews, clicks and uncaught errors to quirq's PostHog project (US cloud) through the `/ingest` rewrites in `vercel.json`. Without it, no analytics code loads. |
 | `GATSBY_CPU_COUNT` | Optional Gatsby worker limit for machines with limited memory. |
 | `NODE_OPTIONS` | Optional Node runtime options, such as a larger heap for a build on a machine with enough RAM. |
 
-For Gatsby, configuration loads `.env.development.local` and `.env.development` during development, or `.env.production.local` and `.env.production` for a production build. The standalone sync script does **not** load these files; it reads `GITHUB_TOKEN` from its process environment. Keep tokens out of `quirq.apps.json`, committed files, and variables prefixed with `GATSBY_`, which are intended for browser use.
+For Gatsby, configuration loads `.env.development.local` and `.env.development` during development, or `.env.production.local` and `.env.production` for a production build, and then `.env` for anything those leave unset. The standalone sync script does **not** load these files; it reads `GITHUB_TOKEN` from its process environment. Keep tokens out of `quirq.apps.json`, committed files, and variables prefixed with `GATSBY_`, which are intended for browser use.
 
 ## Deploy on Vercel
 
 1. Import `quirq-ai/website` into your Vercel team and select the repository root as the project directory.
 2. Use **Node.js 24.x**, the repository's pinned pnpm version, and `pnpm install --frozen-lockfile` for installation.
 3. Keep the settings in [`vercel.json`](vercel.json): **Gatsby**, build command **`pnpm build`**, and output directory **`public`**.
-4. Optionally set `GATSBY_SITE_URL` to the production domain, then deploy.
+4. Optionally set `GATSBY_SITE_URL` to the production domain and `GATSBY_POSTHOG_KEY` to turn analytics on, then deploy.
 5. Open Home base and a direct app URL in the deployment to check routing and the hydrated desktop UI.
 
 The committed snapshot is deployed as part of the website. A normal Vercel build needs no GitHub API token. Browsers pick up new repositories and README changes live; to refresh the server-rendered pages too, sync locally or in a separate CI job, review and commit the changed snapshot, then redeploy. Linked app deployments are managed separately; this website does not deploy them.
