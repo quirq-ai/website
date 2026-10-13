@@ -1,14 +1,4 @@
-interface PostHogClient {
-    init: (
-        key: string,
-        options: {
-            api_host: string
-            ui_host: string
-            defaults: string
-            capture_exceptions: boolean
-        }
-    ) => void
-}
+import type { PostHog } from '../types/posthog'
 
 // PostHog analytics and error tracking, on only when the build has GATSBY_POSTHOG_KEY (a public
 // project key). posthog-js can't be added with pnpm (the workspace trust policy), so the browser loads
@@ -21,8 +11,14 @@ const ASSET_HOST = process.env.NODE_ENV === 'production' ? '/ingest' : 'https://
 
 declare global {
     interface Window {
-        posthog?: PostHogClient
+        posthog?: PostHog
     }
+}
+
+/** The PostHog client once its script has loaded; undefined before that, on the server, and without a key. */
+export function getPostHog(): PostHog | undefined {
+    const posthog = typeof window !== 'undefined' ? window.posthog : undefined
+    return posthog?.__loaded ? posthog : undefined
 }
 
 export function startAnalytics(): void {

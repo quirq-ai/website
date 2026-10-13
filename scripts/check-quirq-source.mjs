@@ -161,6 +161,8 @@ export function auditSource(root, entrypointOverrides) {
         'src/pages/display-options.tsx',
         'src/pages/projects.tsx',
         'src/pages/404.js',
+        // Kept for the next analytics change (suraj, 2026-10-13): the PostHog client hook, not imported yet.
+        'src/hooks/usePostHog.ts',
         ...sourceFiles.filter((file) => file.startsWith('src/api/') || /\.d\.ts$/.test(file)),
         ...Object.values(mapping.repositories).flatMap((app) => (app.component ? [app.component] : [])),
     ]
