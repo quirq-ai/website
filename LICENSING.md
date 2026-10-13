@@ -20,13 +20,13 @@ The original upstream license is preserved verbatim in
 [LICENSE.posthog](LICENSE.posthog), including its copyright notice.
 It contains two different sets of terms:
 
-- Outside `contents/`, the upstream notice asks that the website not be
-  duplicated, copied, or used for commercial or noncommercial purposes.
-- Within `contents/`, the upstream notice includes MIT license terms. That inherited
-  PostHog content was removed from this repository on 2026-10-05; it remains in git history.
+-   Outside `contents/`, the upstream notice asks that the website not be
+    duplicated, copied, or used for commercial or noncommercial purposes.
+-   Within `contents/`, the upstream notice includes MIT license terms. That inherited
+    PostHog content was removed from this repository on 2026-10-05; it remains in git history.
 
-The inherited desktop interface, artwork, components, fonts, and reference content
-are not relicensed by adding quirq branding or an Apache license to this repository.
+The inherited desktop interface, artwork, components, and fonts are not relicensed
+by adding quirq branding or an Apache license to this repository.
 Read the original notices when determining permissions for their use or distribution.
 The package metadata deliberately does not describe the entire repository as MIT
 or Apache licensed.
@@ -43,3 +43,13 @@ licenses and notices. Their inclusion does not transfer ownership to quirq.
 `src/vendor/blobatar/` under its MIT license, which is kept beside it. The components in
 `src/components/ui/` are adapted from [shadcn/ui](https://github.com/shadcn-ui/ui) under its
 MIT license, kept beside them in [`LICENSE.shadcn`](src/components/ui/LICENSE.shadcn).
+
+## Audit cleanup
+
+Unused upstream source, build integrations, documentation, and artwork were removed
+during the 2026-10-10 repository audit. Retained desktop components and icon artwork
+remain subject to the upstream notice; deletion of other files does not change it.
+README screenshots show this adapted interface and retain the same attribution.
+
+The vendored [@pierre/trees and its runtime dependencies](src/vendor/pierre-trees/README.md)
+retain the Apache-2.0 or MIT licenses and notices kept beside each package.

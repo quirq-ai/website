@@ -1,19 +1,10 @@
-import type { PostHog } from './types/posthog'
-
-declare module '*.svg' {
-    const content: React.HTMLImageElement
-    export default content
-}
-declare module '*.png' {
-    const content: React.HTMLImageElement
-    export default content
-}
+export {}
 
 declare global {
     interface Window {
-        __setPreferredTheme: (theme: string) => void
-        __theme: string
+        __setPreferredTheme: (theme: string) => 'light' | 'dark'
+        __preferredTheme: 'light' | 'dark' | 'system'
+        __theme: 'light' | 'dark'
         __onThemeChange: (theme: string) => void
-        posthog: PostHog | undefined
     }
 }

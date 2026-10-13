@@ -1,4 +1,4 @@
-# QuirqProjects
+# quirq projects
 
 The Projects page at `/projects` (`src/pages/projects.tsx`): every repository the swarm is building, grouped and
 placed on a phase ladder, so a visitor can see how far each one has come.

@@ -1,13 +1,11 @@
 import React, { useState } from 'react'
 import { createPortal } from 'react-dom'
-import WindowTabs from 'components/WindowTabs'
-import { Fieldset } from 'components/OSFieldset'
+
 import { ToggleGroup, ToggleOption } from 'components/RadixUI/ToggleGroup'
 import { IconDay, IconEye, IconHide, IconInfo, IconLaptop, IconNight } from '@posthog/icons'
 import { SEO } from 'components/seo'
 import { useApp } from '../context/App'
 import type { SiteSettings } from '../context/App'
-import { DebugContainerQuery } from 'components/DebugContainerQuery'
 import Tooltip from 'components/RadixUI/Tooltip'
 import { Screensaver } from '../components/Screensaver'
 

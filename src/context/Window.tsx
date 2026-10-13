@@ -1,7 +1,12 @@
-import { IMenu } from 'components/PostLayout/types'
 import React, { createContext, useContext, useMemo } from 'react'
 import { AppSetting, MenuItem } from './App'
 import { MenuItemType } from 'components/RadixUI/MenuBar'
+
+export interface WindowMenuItem {
+    name: string
+    url?: string
+    children?: WindowMenuItem[]
+}
 
 export interface AppWindow {
     element: React.ReactNode
@@ -68,45 +73,37 @@ export interface AppWindow {
 interface WindowProviderProps {
     children: React.ReactNode
     appWindow: AppWindow
-    menu: IMenu[]
-    setMenu: (menu: IMenu[]) => void
+    menu: WindowMenuItem[]
+    setMenu: (menu: WindowMenuItem[]) => void
     goBack: () => void
     goForward: () => void
     canGoBack: boolean
     canGoForward: boolean
-    dragControls?: any
+
     pageOptions?: MenuItemType[]
     setPageOptions: (pageOptions: MenuItemType[]) => void
     setActiveInternalMenu: (activeInternalMenu: MenuItem) => void
     internalMenu: MenuItem[]
     activeInternalMenu?: MenuItem
     parent: MenuItem
-    view: 'marketing' | 'developer'
-    setView: (view: 'marketing' | 'developer') => void
-    hasDeveloperMode: boolean
-    setHasDeveloperMode: (hasDeveloperMode: boolean) => void
     animating?: boolean
 }
 
 interface WindowContextType {
     appWindow?: AppWindow
-    menu?: IMenu[]
-    setMenu?: (menu: IMenu[]) => void
+    menu?: WindowMenuItem[]
+    setMenu?: (menu: WindowMenuItem[]) => void
     goBack: () => void
     goForward: () => void
     canGoBack: boolean
     canGoForward: boolean
-    dragControls?: any
+
     pageOptions?: MenuItemType[]
     setPageOptions: (pageOptions: MenuItemType[]) => void
     setActiveInternalMenu: (activeInternalMenu: MenuItem) => void
     internalMenu: MenuItem[]
     activeInternalMenu?: MenuItem
     parent: MenuItem
-    view: 'marketing' | 'developer'
-    setView: (view: 'marketing' | 'developer') => void
-    hasDeveloperMode: boolean
-    setHasDeveloperMode: (hasDeveloperMode: boolean) => void
     animating?: boolean
 }
 
@@ -136,14 +133,6 @@ export const Context = createContext<WindowContextType>({
         url: '',
         children: [],
     },
-    view: 'marketing',
-    setView: () => {
-        // No-op default implementation
-    },
-    hasDeveloperMode: false,
-    setHasDeveloperMode: () => {
-        // No-op default implementation
-    },
     animating: false,
 })
 
@@ -156,21 +145,17 @@ export const Provider = ({
     goForward,
     canGoBack,
     canGoForward,
-    dragControls,
+
     pageOptions,
     setPageOptions,
     setActiveInternalMenu,
     internalMenu,
     activeInternalMenu,
     parent,
-    view,
-    setView,
-    hasDeveloperMode,
-    setHasDeveloperMode,
     animating,
 }: WindowProviderProps) => {
-    // Memoize so unrelated AppWindow state changes (e.g. `closing`, dragging, snap
-    // indicators) don't create a new value identity and re-render every useWindow()
+    // Memoize so unrelated AppWindow state changes (e.g. `closing`)
+    // don't create a new value identity and re-render every useWindow()
     // consumer in the page before the close animation can paint.
     const value = useMemo(
         () => ({
@@ -181,17 +166,13 @@ export const Provider = ({
             goForward,
             canGoBack,
             canGoForward,
-            dragControls,
+
             pageOptions,
             setPageOptions,
             setActiveInternalMenu,
             internalMenu,
             activeInternalMenu,
             parent,
-            view,
-            setView,
-            hasDeveloperMode,
-            setHasDeveloperMode,
             animating,
         }),
         [
@@ -202,17 +183,13 @@ export const Provider = ({
             goForward,
             canGoBack,
             canGoForward,
-            dragControls,
+
             pageOptions,
             setPageOptions,
             setActiveInternalMenu,
             internalMenu,
             activeInternalMenu,
             parent,
-            view,
-            setView,
-            hasDeveloperMode,
-            setHasDeveloperMode,
             animating,
         ]
     )

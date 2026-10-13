@@ -165,11 +165,8 @@ export default function HomeBase() {
 
     return (
         <Explorer
-            template="generic"
-            slug="home-base"
             title="Home base"
             showTitle={false}
-            showAddressBar={false}
             transparent
             padding={false}
             headerBarOptions={['showBack', 'showForward']}

@@ -76,13 +76,10 @@ export function MissingApp({
         <>
             <SEO title={title} />
             <Explorer
-                template="generic"
-                slug="apps"
                 title={title}
                 showTitle={false}
                 transparent
                 padding={false}
-                showAddressBar={false}
                 headerBarOptions={['showBack', 'showForward']}
                 rightActionButtons={
                     <OSButton asLink to="/" size="sm" className={touchTarget}>

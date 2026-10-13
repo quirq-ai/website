@@ -2,8 +2,7 @@
  * Picks the sidebar section a URL belongs to.
  *
  * `AppWindow` renders the children of the section this returns. The logic lives outside the
- * React tree so that `activeMenu.test.ts` can run it against the real nav data under
- * `node --test`. See `pnpm test:navs`.
+ * React tree so it can be reused by the shared window menus.
  */
 
 export interface MenuNode {
@@ -33,7 +32,10 @@ export const containsURL = (items: MenuNode[] | undefined, value: string | undef
     return false
 }
 
-export function getActiveMenuSection<T extends MenuNode>(sections: T[] | undefined, url: string | undefined): T | undefined {
+export function getActiveMenuSection<T extends MenuNode>(
+    sections: T[] | undefined,
+    url: string | undefined
+): T | undefined {
     // First section that lists the page in its sidebar wins
     const listed = sections?.find((section) => containsURL(section.children, url))
     if (listed) return listed

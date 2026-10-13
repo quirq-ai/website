@@ -14,6 +14,14 @@ const source = ts.transpileModule(fs.readFileSync(path.join(root, 'gatsby-node.t
 }).outputText
 const normalize = (route) => route.replace(/\/$/, '') || '/'
 
+test('Gatsby Functions resolves its project loader and the JSX plugin comes from Gatsby', () => {
+    // Functions names babel-loader in its webpack config, so it must be available
+    // at the site root. Babel itself and the JSX transform are framework-owned.
+    assert.equal(typeof require('babel-loader'), 'function')
+    const gatsbyRequire = createRequire(require.resolve('gatsby/package.json'))
+    assert.ok(gatsbyRequire.resolve('@babel/plugin-transform-react-jsx'))
+})
+
 function setup() {
     const apps = initialApps.map((app) => ({ ...app }))
     const hooks = {}
@@ -52,7 +60,7 @@ for (const legacyFirst of [false, true]) {
     })
 }
 
-test('future custom routes also replace any legacy source page', () => {
+test('future custom routes also replace a colliding source page', () => {
     const { apps, hooks, actions, pages } = setup()
     apps.find((app) => app.repo === 'xo-space').path = '/self-driving'
     hooks.createPages({ actions })
@@ -85,7 +93,7 @@ test('an old catalog route is rejected after its configured path changes', () =>
     assert.equal(pages.size, initialApps.length + 2)
 })
 
-test('native page creator ignores archived source files before evaluating collection queries', () => {
+test('native page creator rejects unsupported source files before evaluating collection queries', () => {
     const config = require('../gatsby-config.js')
     const plugin = config.plugins.find((entry) => entry.resolve === 'gatsby-plugin-page-creator')
     assert.ok(plugin, "Override Gatsby's default page creator, not an additional page source")
@@ -97,7 +105,7 @@ test('native page creator ignores archived source files before evaluating collec
     let queries = 0
     const graphql = () => {
         queries++
-        throw new Error('Archived collection routes must be filtered before GraphQL runs')
+        throw new Error('Unsupported collection routes must be filtered before GraphQL runs')
     }
     function visit(directory, relative = '') {
         for (const entry of fs.readdirSync(directory, { withFileTypes: true })) {

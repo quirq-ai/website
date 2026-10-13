@@ -11,7 +11,8 @@ shadcn's source and restyled with this site's color tokens (`bg-primary`, `bg-ac
   bar in the primary text color.
 - `Button` and `ButtonLink`: `default`, `outline`, `ghost` and `link` variants in `sm`, `default` and `lg` sizes.
   `ButtonLink` replaces shadcn's `asChild`: it renders a Gatsby `Link` for internal paths and a new-tab anchor for
-  `https://` URLs.
+  `https://` URLs. The shared external-link listener opens plain clicks in a site window; modifier clicks
+  and browsers without JavaScript retain the browser-tab fallback.
 
 Variants are a plain class map rather than `class-variance-authority`, to avoid a new dependency.
 

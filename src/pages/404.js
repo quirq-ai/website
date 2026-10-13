@@ -11,14 +11,7 @@ export default function NotFound() {
                 not to index it. */}
             <SEO title="404: Page not found" noindex />
             {/* Explorer pads its content only in a wide window, so the page keeps its own inset on a phone. */}
-            <Explorer
-                template="generic"
-                slug="404"
-                title="This app isn't here"
-                showAddressBar={false}
-                showTitle={false}
-                padding={false}
-            >
+            <Explorer title="This app isn't here" showTitle={false} padding={false}>
                 <div className="p-4">
                     <h1>This app isn't here</h1>
                     <p>This address isn't part of the current quirq app collection.</p>

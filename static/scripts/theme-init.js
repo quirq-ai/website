@@ -1,4 +1,4 @@
-(function () {
+;(function () {
     window.__onThemeChange = function () {}
     var darkQuery = window.matchMedia('(prefers-color-scheme: dark)')
     function resolve(theme) {
@@ -37,23 +37,9 @@
     }
     setTheme(resolve(preferredTheme))
 
-    // Set initial skin / reduce-transparency before React hydrates
+    // Set initial transparency preference before React hydrates.
     try {
-        // The classic skin has been retired; always render the modern skin
-        document.body.setAttribute('data-skin', 'modern')
         var siteSettings = JSON.parse(localStorage.getItem('siteSettings') || '{}')
-        document.body.setAttribute(
-            'data-reduce-transparency',
-            siteSettings.reduceTransparency ? 'true' : 'false'
-        )
-    } catch (err) {}
-
-    // Hide dismissed WizardHint variants before first paint
-    try {
-        ;['warehouse-wizard-hint-dismissed', 'ai-observability-wizard-hint-dismissed'].forEach(function (key) {
-            if (localStorage.getItem(key) === '1') {
-                document.documentElement.classList.add(key)
-            }
-        })
+        document.body.setAttribute('data-reduce-transparency', siteSettings.reduceTransparency ? 'true' : 'false')
     } catch (err) {}
 })()

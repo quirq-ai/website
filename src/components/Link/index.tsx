@@ -1,35 +1,11 @@
-import { TooltipContent, TooltipContentProps } from 'components/GlossaryElement'
-import Tooltip from 'components/Tooltip'
 import { Link as GatsbyLink } from 'gatsby'
-import React, { useMemo } from 'react'
-import usePostHog from '../../hooks/usePostHog'
+import React from 'react'
 import { IconArrowUpRight } from '@posthog/icons'
 import ContextMenu, { ContextMenuItemProps } from 'components/RadixUI/ContextMenu'
-import { useAppSettings } from '../../context/App'
-import { useWindow } from '../../context/Window'
-import { isAbsoluteWebUrl } from '../../lib/externalLinks'
+import { isAbsoluteWebUrl, NEW_TAB } from '../../lib/externalLinks'
 
-const POSTHOG_APP_HOSTNAMES = new Set(['app.posthog.com', 'us.posthog.com', 'eu.posthog.com'])
-
-// The app tells a visitor who arrived from the website apart from one who opened it directly by
-// reading document.referrer, so links to it keep `noopener` but drop `noreferrer`. Matched on the
-// hostname, not a substring, so a third-party URL that merely contains one cannot claim the referrer.
-const isPostHogAppHref = (url?: string): boolean => {
-    if (!url) {
-        return false
-    }
-    try {
-        return POSTHOG_APP_HOSTNAMES.has(new URL(url, 'https://posthog.com').hostname)
-    } catch {
-        return false
-    }
-}
-
-const externalLinkRel = (url?: string): string => (isPostHogAppHref(url) ? 'noopener' : 'noopener noreferrer')
-
-// Helper function to create standard context menu items
-const createStandardMenuItems = (url: string, state?: any, isExternal = false): ContextMenuItemProps[] => {
-    const fullUrl = url?.startsWith('/')
+const createStandardMenuItems = (url: string, state: any, isExternal: boolean): ContextMenuItemProps[] => {
+    const fullUrl = url.startsWith('/')
         ? `${
               typeof window !== 'undefined'
                   ? window.location.origin
@@ -53,9 +29,7 @@ const createStandardMenuItems = (url: string, state?: any, isExternal = false): 
             type: 'item',
             newTab: true,
             children: (
-                // Keeps noreferrer, unlike the anchors below. `url` reaches href on this line, and
-                // CodeQL reports js/xss-through-dom against any line this file changes here.
-                <a href={url} target="_blank" rel="noreferrer">
+                <a href={url} {...NEW_TAB}>
                     Open in new browser tab
                 </a>
             ),
@@ -66,8 +40,9 @@ const createStandardMenuItems = (url: string, state?: any, isExternal = false): 
         },
     ]
 }
+
 export interface Props {
-    to: string
+    to?: string
     children: React.ReactNode
     className?: string
     wrapperClassName?: string
@@ -77,46 +52,11 @@ export interface Props {
     externalNoIcon?: boolean
     iconClasses?: string
     state?: any
-    event?: string
     href?: string
-    glossary?: TooltipContentProps[]
-    preview?: TooltipContentProps
     disabled?: boolean
     contextMenu?: boolean
     customMenuItems?: ContextMenuItemProps[]
-    [key: string]: any // Allow spread props
-}
-
-const MenuWrapper = ({
-    children,
-    menuItems,
-    className = '',
-}: {
-    children: React.ReactNode
-    menuItems: ContextMenuItemProps[]
-    className?: string
-}) => {
-    return (
-        <ContextMenu menuItems={menuItems} className={className}>
-            {children}
-        </ContextMenu>
-    )
-}
-
-function resolveRelativeLink(url?: string, href?: string) {
-    if (!url || !href) return url
-    const mdRegex = /\.(md|mdx)(?=$|[?#])/
-    const relativeRegex = /^\.\.?\//
-    const isMarkdownLink = relativeRegex.test(url) && mdRegex.test(url)
-    if (isMarkdownLink) {
-        try {
-            const urlObj = new URL(url, href)
-            return urlObj.pathname.replace(mdRegex, '') + urlObj.search + urlObj.hash
-        } catch {
-            return url
-        }
-    }
-    return url
+    [key: string]: any
 }
 
 export default function Link({
@@ -131,189 +71,59 @@ export default function Link({
     externalNoIcon,
     iconClasses = '',
     state = {},
-    event = '',
     href,
-    glossary,
     contextMenu = true,
     customMenuItems = [],
     ...other
 }: Props): JSX.Element {
-    const { appWindow } = useWindow()
-    const { posthogInstance, compact } = useAppSettings()
-    const posthog = usePostHog()
-    const locationHref = appWindow?.element?.props?.location?.href
-    const initialUrl = to || href
-    const url = resolveRelativeLink(initialUrl, locationHref)
-    const linkState = state?.newWindow && state?.preventScroll === undefined ? { ...state, preventScroll: true } : state
-    const internal = !disablePrefetch && url && /^\/(?!\/)/.test(url)
-    const isPostHogAppUrl = isPostHogAppHref(url)
-    const preview =
-        other.preview ||
-        glossary?.find((glossaryItem) => {
-            return glossaryItem?.slug === url?.replace(/https:\/\/posthog.com/gi, '')
-        })
-    const isSignupUrl = useMemo(() => {
-        if (!url) return false
-        try {
-            const urlObj = new URL(url)
-            return isPostHogAppUrl && urlObj.pathname === '/signup'
-        } catch {
-            return false
-        }
-    }, [url, isPostHogAppUrl])
+    const url = to || href
+    const internal = !disablePrefetch && !!url && /^\/(?!\/)/.test(url)
+    const linkState = state?.newWindow && state.preventScroll === undefined ? { ...state, preventScroll: true } : state
+    const isExternal = !internal || !!external || !!externalNoIcon
+    const opensNewTab = !!external || !!externalNoIcon || isAbsoluteWebUrl(url)
+    const menuItems = url
+        ? [
+              ...createStandardMenuItems(url, state, isExternal),
+              ...(customMenuItems.length ? [{ type: 'separator' as const }, ...customMenuItems] : []),
+          ]
+        : []
 
-    const handleClick = async (e: React.MouseEvent<HTMLButtonElement> | React.MouseEvent<HTMLAnchorElement>) => {
-        if (isPostHogAppUrl && !posthogInstance) {
-            posthog?.createPersonProfile?.()
-        }
-        if (event && posthog) {
-            posthog.capture(event)
-        }
-        onClick && onClick(e)
-        if (compact && url && !internal) {
-            e.preventDefault()
-            if (isPostHogAppUrl) {
-                // nosemgrep: javascript.browser.security.wildcard-postmessage-configuration.wildcard-postmessage-configuration - intentional for docs embedding, parent origin unknown, non-sensitive navigation URL
-                window.parent.postMessage(
-                    {
-                        type: 'external-navigation',
-                        url,
-                    },
-                    '*'
-                )
-            } else {
-                window.open(url, '_blank', 'noopener,noreferrer')
-            }
-        }
-    }
-
-    // A link to another site carries a new-tab target, flagged `external` or not, for a Ctrl/Cmd- or
-    // middle-click and for no JavaScript; a plain click opens it in a window here (AGENTS.md).
-    const opensNewTab = isSignupUrl || !!external || !!externalNoIcon || isAbsoluteWebUrl(url)
-
-    // Determine if link is external
-    const isExternal = Boolean(
-        !internal || !!external || !!externalNoIcon || (url && !url.startsWith('/') && !url.includes('posthog.com'))
-    )
-
-    // Create context menu items
-    const menuItems =
-        contextMenu && url
-            ? [
-                  ...createStandardMenuItems(url, state, isExternal),
-                  ...(customMenuItems.length > 0 ? [{ type: 'separator' as const }, ...customMenuItems] : []),
-              ]
-            : []
-
-    return !contextMenu || !url ? (
-        <>
-            {onClick && !url ? (
-                <button onClick={handleClick} className={className} disabled={disabled}>
-                    {children}
-                </button>
-            ) : internal ? (
-                preview ? (
-                    <Tooltip
-                        tooltipClassName={compact ? 'hidden' : ''}
-                        offset={[0, 0]}
-                        placement="left-start"
-                        content={(setOpen) => (
-                            <TooltipContent
-                                setOpen={setOpen}
-                                title={preview.title}
-                                slug={url}
-                                description={preview.description}
-                                video={preview.video}
-                                ctaLabel={preview.ctaLabel}
-                            />
-                        )}
-                    >
-                        <GatsbyLink {...other} to={url} className={className} state={linkState} onClick={handleClick}>
-                            {children || null}
-                        </GatsbyLink>
-                    </Tooltip>
+    const element =
+        onClick && !url ? (
+            <button {...other} onClick={onClick} className={className} disabled={disabled}>
+                {children}
+            </button>
+        ) : internal ? (
+            <GatsbyLink {...other} to={url!} className={className} state={linkState} onClick={onClick}>
+                {children}
+            </GatsbyLink>
+        ) : (
+            // Plain clicks are intercepted by the site's shared external-link listener.
+            <a
+                {...other}
+                href={url}
+                className={`${className} group`}
+                onClick={onClick}
+                {...(opensNewTab ? NEW_TAB : {})}
+            >
+                {external ? (
+                    <span className="inline-flex justify-center items-center group">
+                        <span className="font-semibold underline">{children}</span>
+                        <IconArrowUpRight
+                            className={`size-4 text-muted group-hover:text-secondary relative ${iconClasses}`}
+                        />
+                    </span>
                 ) : (
-                    <GatsbyLink {...other} to={url} className={className} state={linkState} onClick={handleClick}>
-                        {children}
-                    </GatsbyLink>
-                )
-            ) : (
-                // eslint-disable-next-line react/jsx-no-target-blank -- externalLinkRel always sets noopener; the rule cannot read a computed rel
-                <a
-                    rel={externalLinkRel(url)}
-                    onClick={handleClick}
-                    {...other}
-                    href={url}
-                    className={`${className} group`}
-                    target={opensNewTab ? '_blank' : ''}
-                >
-                    {external ? (
-                        <span className="inline-flex justify-center items-center group">
-                            <span className="font-semibold underline">{children}</span>
-                            <IconArrowUpRight
-                                className={`size-4 text-muted group-hover:text-secondary relative ${iconClasses}`}
-                            />
-                        </span>
-                    ) : (
-                        children
-                    )}
-                </a>
-            )}
-        </>
+                    children
+                )}
+            </a>
+        )
+
+    return contextMenu && url ? (
+        <ContextMenu menuItems={menuItems} className={wrapperClassName}>
+            {element}
+        </ContextMenu>
     ) : (
-        <MenuWrapper menuItems={menuItems} className={wrapperClassName}>
-            {onClick && !url ? (
-                <button onClick={handleClick} className={className} disabled={disabled}>
-                    {children}
-                </button>
-            ) : internal ? (
-                preview ? (
-                    <Tooltip
-                        tooltipClassName={compact ? 'hidden' : ''}
-                        offset={[0, 0]}
-                        placement="left-start"
-                        content={(setOpen) => (
-                            <TooltipContent
-                                setOpen={setOpen}
-                                title={preview.title}
-                                slug={url}
-                                description={preview.description}
-                                video={preview.video}
-                                ctaLabel={preview.ctaLabel}
-                            />
-                        )}
-                    >
-                        <GatsbyLink {...other} to={url} className={className} state={linkState} onClick={handleClick}>
-                            {children || null}
-                        </GatsbyLink>
-                    </Tooltip>
-                ) : (
-                    <GatsbyLink {...other} to={url} className={className} state={linkState} onClick={handleClick}>
-                        {children}
-                    </GatsbyLink>
-                )
-            ) : (
-                // eslint-disable-next-line react/jsx-no-target-blank -- externalLinkRel always sets noopener; the rule cannot read a computed rel
-                <a
-                    rel={externalLinkRel(url)}
-                    onClick={handleClick}
-                    {...other}
-                    href={url}
-                    className={`${className} group`}
-                    target={opensNewTab ? '_blank' : ''}
-                >
-                    {external ? (
-                        <span className="inline-flex justify-center items-center group">
-                            <span className="font-semibold underline">{children}</span>
-                            <IconArrowUpRight
-                                className={`size-4 text-muted group-hover:text-secondary relative ${iconClasses}`}
-                            />
-                        </span>
-                    ) : (
-                        children
-                    )}
-                </a>
-            )}
-        </MenuWrapper>
+        element
     )
 }

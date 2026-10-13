@@ -2,17 +2,17 @@ import React, { useState, useCallback, useEffect, useMemo } from 'react'
 import * as ScrollArea from '@radix-ui/react-scroll-area'
 import * as RadioGroup from '@radix-ui/react-radio-group'
 import * as Icons from '@posthog/icons'
-import { IMenu } from 'components/PostLayout/types'
-import { Link, navigate } from 'gatsby'
+import type { WindowMenuItem } from '../../context/Window'
+import { navigate } from 'gatsby'
 import { useWindow } from '../../context/Window'
 
 // --- Data Structure ---
 
 // Custom hook to process file data and provide utility functions
-function useFileData(sampleData: IMenu[]) {
-    const rootItems: IMenu[] = []
+function useFileData(sampleData: WindowMenuItem[]) {
+    const rootItems: WindowMenuItem[] = []
 
-    function processData(items: IMenu[], parentId: IMenu | null = null) {
+    function processData(items: WindowMenuItem[], parentId: WindowMenuItem | null = null) {
         items.forEach((item) => {
             if (!parentId) {
                 rootItems.push(item)
@@ -25,7 +25,7 @@ function useFileData(sampleData: IMenu[]) {
 
     processData(sampleData) // Process sample data into a structure for easier lookup
 
-    const getItemChildren = useCallback((item: IMenu | null): IMenu[] => {
+    const getItemChildren = useCallback((item: WindowMenuItem | null): WindowMenuItem[] => {
         if (item === null) return rootItems // Root level
         return item.children || []
     }, [])
@@ -36,7 +36,7 @@ function useFileData(sampleData: IMenu[]) {
 // --- Components ---
 
 interface FileColumnProps {
-    items: IMenu[]
+    items: WindowMenuItem[]
     selectedId: number | null
     onSelect: (id: number) => void
 }
@@ -92,13 +92,20 @@ const FileColumn: React.FC<FileColumnProps> = ({ items, selectedId, onSelect }) 
     )
 }
 
-export const FileMenu: React.FC<{ initialPath?: IMenu[]; menu: IMenu[] }> = ({ initialPath = [], menu }) => {
+export const FileMenu: React.FC<{ initialPath?: WindowMenuItem[]; menu: WindowMenuItem[] }> = ({
+    initialPath = [],
+    menu,
+}) => {
     const { appWindow } = useWindow()
     const { getItemChildren } = useFileData(menu)
-    const [path, setPath] = useState<(IMenu | null)[]>([null, ...initialPath]) // Start with null for root
+    const [path, setPath] = useState<(WindowMenuItem | null)[]>([null, ...initialPath]) // Start with null for root
 
     useEffect(() => {
-        const findPath = (items: IMenu[], targetPath: string, currentPath: IMenu[] = []): IMenu[] | null => {
+        const findPath = (
+            items: WindowMenuItem[],
+            targetPath: string,
+            currentPath: WindowMenuItem[] = []
+        ): WindowMenuItem[] | null => {
             for (const item of items) {
                 const newPath = [...currentPath, item]
                 if (item.url?.split('?')[0] === targetPath) {
@@ -123,7 +130,7 @@ export const FileMenu: React.FC<{ initialPath?: IMenu[]; menu: IMenu[] }> = ({ i
     }, [menu])
 
     const handleSelect = useCallback(
-        (columnIndex: number, item: IMenu) => {
+        (columnIndex: number, item: WindowMenuItem) => {
             if (item.url && !item.children) {
                 return navigate(item.url)
             }
@@ -136,7 +143,7 @@ export const FileMenu: React.FC<{ initialPath?: IMenu[]; menu: IMenu[] }> = ({ i
     )
 
     const columns = useMemo(() => {
-        const columns: { items: IMenu[]; selectedItem: IMenu | null }[] = []
+        const columns: { items: WindowMenuItem[]; selectedItem: WindowMenuItem | null }[] = []
         for (let i = 0; i < path.length; i++) {
             const parentItem = path[i] // The item selected in the previous column (or null for root)
             const items = getItemChildren(parentItem)

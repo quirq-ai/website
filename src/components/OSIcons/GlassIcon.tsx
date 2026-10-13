@@ -1,6 +1,6 @@
 import React, { useId } from 'react'
 
-/** One sub-shape of a glyph. Multi-segment glyphs (e.g. the PostHog hedgehog) pass an array. */
+/** One sub-shape of a glyph. Multi-segment glyphs (e.g. a segmented logo) pass an array. */
 export type GlyphPart = { d: string; fillRule?: 'nonzero' | 'evenodd' }
 
 export interface GlassIconProps {
@@ -45,11 +45,10 @@ export interface GlassIconProps {
  *
  * Multi-segment glyphs (an array of parts) are flattened into ONE shape: a single
  * union fill + a single drop shadow around the whole outer silhouette, with each
- * segment's bevel drawn by per-segment masked strokes. Overlapping segments (the
- * hedgehog spines) are separated by crisp light bevels, NOT by per-segment shadows
+ * segment's bevel drawn by per-segment masked strokes. Overlapping segments  are separated by crisp light bevels, NOT by per-segment shadows
  * (those would stack into dark grooves and break the single-glyph read). Each part
  * keeps its own `fillRule`, so `nonzero` spines coexist with an `evenodd` cut-out
- * (the hedgehog's eye).
+ * (an eye).
  *
  * The frost is a plain HTML element (NOT an SVG `<foreignObject>`, where browsers
  * refuse to render `backdrop-filter`) clipped to the silhouette via an
