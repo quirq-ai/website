@@ -75,6 +75,8 @@ Types replace the mapping's categories only once at least three different types 
 - **Order**: after featured apps, apps are listed by type in that order (projects first, config last), then by name, on the desktop, in Home base and in the menus. Without types the order is featured apps, then by name.
 - An app whose type isn't known is treated as a project (GitHub's default) in the order and the filters, and shows neither a type nor a category, on its card or in its window.
 
+The **Projects** page (`/projects`) always lists only repositories whose type is project (or not known), in their `quirq.projects.json` groups.
+
 Always, whatever the count, **search** matches a type's value, name and plural ("tool", "Tools").
 
 The snapshot only carries types after `pnpm apps:sync` runs once the organization's values are filled in (with `GITHUB_TOKEN` set if GitHub's anonymous list leaves custom properties out). Until then each page's first paint shows categories, and Home base switches to types when the live list arrives.

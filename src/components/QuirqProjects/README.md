@@ -1,7 +1,10 @@
 # quirq projects
 
-The Projects page at `/projects` (`src/pages/projects.tsx`): every repository the swarm is building, grouped and
-placed on a phase ladder, so a visitor can see how far each one has come.
+The Projects page at `/projects` (`src/pages/projects.tsx`): the projects the swarm is building, grouped and placed
+on a phase ladder, so a visitor can see how far each one has come. It lists only repositories whose type (the
+organization's `role` property, read live) is project, in their groups from `quirq.projects.json`; a group left with
+none is not shown. A repository whose type isn't known yet stays, since project is the organization's default type, so
+until the snapshot carries types the first paint lists every group and the live list trims it.
 
 ## Phases
 

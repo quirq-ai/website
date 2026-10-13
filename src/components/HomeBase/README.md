@@ -1,6 +1,6 @@
 # Home base
 
-The Home window at `/`, laid out after [Euler](https://github.com/quirq-ai/euler)'s Home, inside the existing Explorer and desktop window system. It opens on a first visit to `/`, and the dock's Home icon opens it or brings it forward. Closing it reveals the desktop and its icons.
+The Home window at `/`, laid out after [Euler](https://github.com/quirq-ai/euler)'s Home, inside the existing Explorer and desktop window system. A visit to `/` lands on the desktop with this window closed (the server renders it hidden, for its title and text, and the browser closes it; see `isLanding` in `src/context/App.tsx`); the dock's Home icon opens it or brings it forward. Closing it reveals the desktop and its icons.
 
 From top to bottom:
 

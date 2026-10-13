@@ -468,6 +468,9 @@ for (const app of getQuirqApps()) {
 
 // Repositories created after the build (/apps/<name>) and apps' websites in their own windows
 // (/launch/<name>) get the same window behavior as the catalog apps built with the site.
+/** The home page, `/`, opened directly: a visitor lands on the desktop with no window open. */
+const isLanding = (element: WindowElement) => (element.props.location.pathname.replace(/\/$/, '') || '/') === '/'
+
 const settingsFor = (key: string) =>
     appSettings[key] ?? (/^\/(apps|launch)\//.test(key || '') ? appSettings['/'] : undefined)
 
@@ -562,8 +565,13 @@ export const Provider = ({ children, element, location }: AppProviderProps) => {
 
     // Hydrate exactly the server's frame first. Viewport-dependent wrappers and
     // expanded controls must not change until React has attached to the SSR content.
+    // Landing on `/` shows the desktop with no window open; the server renders the Home window hidden
+    // (for its title and text), and the browser closes it. The dock's Home item opens it.
     const [windows, setWindows] = useState<AppWindow[]>(() => [
-        createNewWindow(element, [], location, true, taskbarHeight),
+        {
+            ...createNewWindow(element, [], location, true, taskbarHeight),
+            minimized: isLanding(element),
+        },
     ])
     const initialPageHandled = useRef(false)
     const windowsRef = useRef(windows)
@@ -821,7 +829,7 @@ export const Provider = ({ children, element, location }: AppProviderProps) => {
     }
 
     function getInitialWindows(element: any) {
-        return [createNewWindow(element, [], location, isSSR, taskbarHeight)]
+        return isLanding(element) ? [] : [createNewWindow(element, [], location, isSSR, taskbarHeight)]
     }
 
     function createNewWindow(

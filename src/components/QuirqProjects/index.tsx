@@ -14,6 +14,7 @@ import {
     type TreeStatus,
 } from 'components/QuirqInfraV0/live'
 import { getQuirqApps } from 'lib/quirqApps'
+import { useQuirqApps } from 'lib/quirqLiveApps'
 import {
     getQuirqProjectGroups,
     projectsFetchedAt,
@@ -25,8 +26,9 @@ import {
 
 type Filter = 'all' | PhaseId
 
-const groups = getQuirqProjectGroups()
-const allProjects = groups.flatMap((group) => group.projects)
+type Group = ReturnType<typeof getQuirqProjectGroups>[number]
+
+const allGroups = getQuirqProjectGroups()
 const phaseIndex = Object.fromEntries(quirqPhases.map((phase, index) => [phase.id, index])) as Record<PhaseId, number>
 const appPaths = new Map(getQuirqApps().map((app) => [app.repo, app.path]))
 const reached = (project: QuirqProject, phase: PhaseId) => phaseIndex[project.phase] >= phaseIndex[phase]
@@ -240,7 +242,24 @@ function Ladder({ counts }: { counts: Record<PhaseId, number> }) {
     )
 }
 
-function Listing({ filter, live }: { filter: Filter; live: Record<string, Live | 'error'> }) {
+/**
+ * Only repositories whose type (the organization's `role` property) is project. A repository whose type
+ * isn't known yet stays, since project is the organization's default type.
+ */
+function useProjectGroups(): Group[] {
+    const apps = useQuirqApps()
+    return useMemo(() => {
+        const roles = new Map(apps.map((app) => [app.repo, app.role]))
+        return allGroups
+            .map((group) => ({
+                ...group,
+                projects: group.projects.filter((project) => (roles.get(project.name) ?? 'project') === 'project'),
+            }))
+            .filter((group) => group.projects.length > 0)
+    }, [apps])
+}
+
+function Listing({ groups, filter, live }: { groups: Group[]; filter: Filter; live: Record<string, Live | 'error'> }) {
     const visible = groups
         .map((group) => ({
             ...group,
@@ -273,14 +292,16 @@ function Listing({ filter, live }: { filter: Filter; live: Record<string, Live |
 
 export default function QuirqProjects(): JSX.Element {
     const [filter, setFilter] = useState<Filter>('all')
+    const groups = useProjectGroups()
+    const allProjects = useMemo(() => groups.flatMap((group) => group.projects), [groups])
     const counts = useMemo(() => {
         const result = Object.fromEntries(quirqPhases.map((phase) => [phase.id, 0])) as Record<PhaseId, number>
         for (const project of allProjects) result[project.phase] += 1
         return result
-    }, [])
+    }, [allProjects])
     const canaryRepos = useMemo(
         () => allProjects.filter((project) => project.signals?.inCanary).map((project) => project.name),
-        []
+        [allProjects]
     )
     const live = useCanaryLive(canaryRepos)
     const filters: { value: Filter; label: string }[] = [
@@ -313,9 +334,13 @@ export default function QuirqProjects(): JSX.Element {
                         <div className="min-w-0">
                             <h1 className="m-0 mb-2 text-3xl font-bold tracking-tight @xl:text-4xl">Projects</h1>
                             <p className="m-0 max-w-2xl text-base text-secondary">
-                                Everything the swarm is building, and how far each one has come. A repo’s phase is read
-                                from its shape: notes, code, CI, shipping, then users, counted by GitHub stars and
-                                people committing.
+                                The projects the swarm is building, by group, and how far each one has come. A project’s
+                                phase is read from its shape: notes, code, CI, shipping, then users, counted by GitHub
+                                stars and people committing. Tools, libraries, docs, config and agents are on{' '}
+                                <Link to="/" className="underline underline-offset-2">
+                                    Home base
+                                </Link>
+                                .
                             </p>
                         </div>
                     </div>
@@ -345,7 +370,7 @@ export default function QuirqProjects(): JSX.Element {
                         </TabsList>
                         {filters.map((option) => (
                             <TabsContent key={option.value} value={option.value}>
-                                <Listing filter={option.value} live={live} />
+                                <Listing groups={groups} filter={option.value} live={live} />
                             </TabsContent>
                         ))}
                     </Tabs>
