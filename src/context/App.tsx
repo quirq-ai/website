@@ -15,6 +15,7 @@ import { navigate } from 'gatsby'
 import { getQuirqApps } from '../lib/quirqApps'
 import { findQuirqApp, useQuirqApps } from '../lib/quirqLiveApps'
 import { QUIRQY_WINDOW } from '../lib/quirqAvatar'
+import { isLandingPath, LANDING_STATE, startsOnDesktop } from '../lib/landing'
 import { useToast } from './Toast'
 import { IconDay, IconLaptop, IconNight } from '@posthog/icons'
 import qs from 'qs'
@@ -468,9 +469,6 @@ for (const app of getQuirqApps()) {
 
 // Repositories created after the build (/apps/<name>) and apps' websites in their own windows
 // (/launch/<name>) get the same window behavior as the catalog apps built with the site.
-/** The home page, `/`, opened directly: a visitor lands on the desktop with no window open. */
-const isLanding = (element: WindowElement) => (element.props.location.pathname.replace(/\/$/, '') || '/') === '/'
-
 const settingsFor = (key: string) =>
     appSettings[key] ?? (/^\/(apps|launch)\//.test(key || '') ? appSettings['/'] : undefined)
 
@@ -565,14 +563,12 @@ export const Provider = ({ children, element, location }: AppProviderProps) => {
 
     // Hydrate exactly the server's frame first. Viewport-dependent wrappers and
     // expanded controls must not change until React has attached to the SSR content.
-    // Landing on `/` shows the desktop with no window open; the server renders the Home window hidden
-    // (for its title and text), and the browser closes it. The dock's Home item opens it.
-    const [windows, setWindows] = useState<AppWindow[]>(() => [
-        {
-            ...createNewWindow(element, [], location, true, taskbarHeight),
-            minimized: isLanding(element),
-        },
-    ])
+    // A visit to `/` lands on the desktop with no window open (`lib/landing`); the dock's Home opens it.
+    const [windows, setWindows] = useState<AppWindow[]>(() =>
+        isLandingPath(element.props.location.pathname)
+            ? []
+            : [createNewWindow(element, [], location, true, taskbarHeight)]
+    )
     const initialPageHandled = useRef(false)
     const windowsRef = useRef(windows)
     useEffect(() => {
@@ -601,7 +597,14 @@ export const Provider = ({ children, element, location }: AppProviderProps) => {
         setIsMobile(isMobileValue)
         setSiteSettings(getInitialSiteSettings())
         const parsed = qs.parse(new URL(location.href).search.substring(1))
-        setWindows(parsed.windows ? [] : getInitialWindows(element))
+        const sharedWindows = Boolean(parsed.windows)
+        if (startsOnDesktop({ pathname: element.props.location.pathname, framed: compactValue, sharedWindows })) {
+            setWindows([])
+            // Going Back to this entry later shows the desktop as it is, instead of opening Home base.
+            window.history.replaceState({ ...window.history.state, [LANDING_STATE]: true }, '')
+        } else {
+            setWindows(sharedWindows ? [] : getInitialWindows(element))
+        }
     }, [])
 
     const desktopParams = useMemo(() => {
@@ -829,7 +832,7 @@ export const Provider = ({ children, element, location }: AppProviderProps) => {
     }
 
     function getInitialWindows(element: any) {
-        return isLanding(element) ? [] : [createNewWindow(element, [], location, isSSR, taskbarHeight)]
+        return [createNewWindow(element, [], location, isSSR, taskbarHeight)]
     }
 
     function createNewWindow(
@@ -1200,7 +1203,7 @@ export const Provider = ({ children, element, location }: AppProviderProps) => {
         const urlObj = new URL(location.href)
         const queryString = urlObj?.search.substring(1)
         const parsed = qs.parse(queryString)
-        if (parsed?.windows || location.state?.skipPageUpdate) {
+        if (parsed?.windows || location.state?.skipPageUpdate || location.state?.[LANDING_STATE]) {
             return
         }
         updatePages(element)

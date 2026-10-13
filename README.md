@@ -100,9 +100,9 @@ Review and commit the generated snapshot. Restart Gatsby after changing routes, 
 
 ## Follow projects from idea to use
 
-[`/projects`](src/pages/projects.tsx) groups repositories using [`quirq.projects.json`](quirq.projects.json). Phases come from repository evidence:
+[`/projects`](src/pages/projects.tsx) lists the repositories whose type (the organization's `role` property) is project, grouped using [`quirq.projects.json`](quirq.projects.json). Phases come from repository evidence:
 
-| Thought            | Prototype  | Built         | Shipping                                               | Project                                                  |
+| Thought            | Prototype  | Built         | Shipping                                               | In use                                                   |
 | ------------------ | ---------- | ------------- | ------------------------------------------------------ | -------------------------------------------------------- |
 | Notes or a README. | Real code. | Code with CI. | Built and onboarded to qq, deployed, or in the canary. | At least 10 stars or 5 people committing, checked first. |
 

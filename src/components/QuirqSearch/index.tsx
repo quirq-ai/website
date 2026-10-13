@@ -24,7 +24,7 @@ const searchEntries = (apps: QuirqApp[]) => [
     {
         id: 'projects',
         name: 'Projects',
-        description: 'Everything the swarm is building, by phase.',
+        description: 'The projects the swarm is building, by group and phase.',
         path: '/projects',
         icon: 'rocket',
         color: 'green',

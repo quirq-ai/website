@@ -14,7 +14,8 @@ import {
     type TreeStatus,
 } from 'components/QuirqInfraV0/live'
 import { getQuirqApps } from 'lib/quirqApps'
-import { useQuirqApps } from 'lib/quirqLiveApps'
+import { useQuirqCatalog } from 'lib/quirqLiveApps'
+import { projectGroupsOnly } from 'lib/quirqProjectFilter'
 import {
     getQuirqProjectGroups,
     projectsFetchedAt,
@@ -242,21 +243,10 @@ function Ladder({ counts }: { counts: Record<PhaseId, number> }) {
     )
 }
 
-/**
- * Only repositories whose type (the organization's `role` property) is project. A repository whose type
- * isn't known yet stays, since project is the organization's default type.
- */
+/** Only repositories whose type (the organization's `role` property) is project (`projectGroupsOnly`). */
 function useProjectGroups(): Group[] {
-    const apps = useQuirqApps()
-    return useMemo(() => {
-        const roles = new Map(apps.map((app) => [app.repo, app.role]))
-        return allGroups
-            .map((group) => ({
-                ...group,
-                projects: group.projects.filter((project) => (roles.get(project.name) ?? 'project') === 'project'),
-            }))
-            .filter((group) => group.projects.length > 0)
-    }, [apps])
+    const { repositories } = useQuirqCatalog()
+    return useMemo(() => projectGroupsOnly(allGroups, repositories), [repositories])
 }
 
 function Listing({ groups, filter, live }: { groups: Group[]; filter: Filter; live: Record<string, Live | 'error'> }) {
@@ -360,20 +350,24 @@ export default function QuirqProjects(): JSX.Element {
                             .
                         </p>
                     </section>
-                    <Tabs value={filter} onValueChange={(value) => setFilter(value as Filter)}>
-                        <TabsList aria-label="Filter projects by phase">
+                    {allProjects.length === 0 ? (
+                        <p className="m-0 text-secondary">No repository has the project type yet.</p>
+                    ) : (
+                        <Tabs value={filter} onValueChange={(value) => setFilter(value as Filter)}>
+                            <TabsList aria-label="Filter projects by phase">
+                                {filters.map((option) => (
+                                    <TabsTrigger key={option.value} value={option.value}>
+                                        {option.label}
+                                    </TabsTrigger>
+                                ))}
+                            </TabsList>
                             {filters.map((option) => (
-                                <TabsTrigger key={option.value} value={option.value}>
-                                    {option.label}
-                                </TabsTrigger>
+                                <TabsContent key={option.value} value={option.value}>
+                                    <Listing groups={groups} filter={option.value} live={live} />
+                                </TabsContent>
                             ))}
-                        </TabsList>
-                        {filters.map((option) => (
-                            <TabsContent key={option.value} value={option.value}>
-                                <Listing groups={groups} filter={option.value} live={live} />
-                            </TabsContent>
-                        ))}
-                    </Tabs>
+                        </Tabs>
+                    )}
                 </div>
             </div>
         </Explorer>
