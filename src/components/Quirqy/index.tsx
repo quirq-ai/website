@@ -11,7 +11,7 @@ const glass =
 
 /**
  * quirqy: the appearance of your quirq character, and nothing else, in a window of its own. The window
- * has no route; the dock (and Home base's Personalize) opens it with `useOpenQuirqy`.
+ * has no route; Home base's Personalize opens it with `useOpenQuirqy`.
  */
 export default function QuirqyWindow(_props: { location: { pathname: string }; newWindow?: boolean }) {
     return (

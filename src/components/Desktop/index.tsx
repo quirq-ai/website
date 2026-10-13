@@ -38,17 +38,10 @@ const asDesktopApp = (app: QuirqApp): AppItem => {
     }
 }
 
-const editApp: AppItem = {
-    label: 'Edit',
-    Icon: <QuirqAppIcon icon="palette" color="orange" />,
-    url: '/display-options',
-    source: 'desktop',
-}
-
 /**
  * The repositories with a website (`isDesktopApp`), kept live, split evenly between the two icon
- * columns: the featured apps lead the left; Edit stays in the top-right corner. Repositories without a
- * website are in Home base, search and the menus, not here. Home base and Projects are on the dock.
+ * columns: the featured apps lead the left. Repositories without a website are in Home base, search and
+ * the menus, not here. Home base, Projects and Edit (Display options) are on the dock.
  */
 function useDesktopApps() {
     const catalog = useQuirqApps()
@@ -57,14 +50,14 @@ function useDesktopApps() {
         const featured = withWebsite.filter((app) => app.featured).slice(0, 6)
         const rest = withWebsite.filter((app) => !featured.includes(app)).map(asDesktopApp)
         const leading = featured.map(asDesktopApp)
-        const leftCount = Math.max(leading.length, Math.ceil((leading.length + rest.length + 1) / 2))
+        const leftCount = Math.max(leading.length, Math.ceil((leading.length + rest.length) / 2))
         const leftRest = rest.slice(0, leftCount - leading.length)
         const rightRest = rest.slice(leftRest.length)
         return {
             left: [...leading, ...leftRest],
-            right: [editApp, ...rightRest],
-            // Phones show one grid: the same order, with Edit last.
-            mobile: [...leading, ...leftRest, ...rightRest, editApp],
+            right: rightRest,
+            // Phones show one grid, in the same order.
+            mobile: [...leading, ...leftRest, ...rightRest],
         }
     }, [catalog])
 }
