@@ -18,8 +18,16 @@ const MAX_PAGES = 10
 // The last list this browser read, so a return visit starts from it while it refreshes.
 const CACHE_KEY = 'quirq.repositories.v1'
 
+/**
+ * A public repository's type as GitHub sent it: any value, even one this site doesn't know (`role` is
+ * null only when GitHub didn't show it), with whether it is archived. Hidden repositories are included.
+ */
+export type RepositoryType = { name: string; role: string | null; archived: boolean }
+
 export type QuirqCatalog = {
     apps: QuirqApp[]
+    /** Every public repository in the list, including the ones the catalog hides. */
+    repositories: RepositoryType[]
     /** Public repositories in the organization, including any the catalog hides. */
     repositoryCount: number
     /** When the list was read from GitHub. */
@@ -33,8 +41,24 @@ export type QuirqCatalog = {
 
 type Repository = (typeof snapshot.repositories)[number]
 
+/** The `role` value GitHub sent for a repository (or a cached copy kept), whether or not this site knows it. */
+function sentRole(item: unknown): string | undefined {
+    const repo = (item ?? {}) as { custom_properties?: { role?: unknown }; roleValue?: unknown }
+    const value = repo.custom_properties?.role ?? repo.roleValue
+    return typeof value === 'string' && value ? value : undefined
+}
+
+function repositoryTypes(repositories: Repository[], sent = new Map<string, string>()): RepositoryType[] {
+    return repositories.map((repo) => ({
+        name: repo.name,
+        role: sent.get(repo.name.toLowerCase()) ?? repo.role ?? null,
+        archived: repo.archived === true,
+    }))
+}
+
 const bundled: QuirqCatalog = {
     apps: getQuirqApps(),
+    repositories: repositoryTypes(snapshot.repositories),
     repositoryCount: snapshot.repositories.length,
     fetchedAt: snapshot.fetchedAt,
     status: 'bundled',
@@ -63,6 +87,12 @@ function emit(next: QuirqCatalog) {
 /** Applies a repository list from GitHub (or this browser's copy of one). Returns the list to cache. */
 function apply(repositories: unknown[], fetchedAt: string, status: QuirqCatalog['status']) {
     const merged = mergeLiveRepositories(snapshot, repositories, fetchedAt, current)
+    const sent = new Map<string, string>()
+    for (const item of repositories) {
+        const name = (item as { name?: unknown })?.name
+        const role = sentRole(item)
+        if (typeof name === 'string' && role) sent.set(name.toLowerCase(), role)
+    }
     const nextSignature = signatureOf(merged.repositories)
     let apps = catalog.apps
     if (nextSignature !== signature) {
@@ -71,8 +101,13 @@ function apply(repositories: unknown[], fetchedAt: string, status: QuirqCatalog[
         signature = nextSignature
     }
     current = merged.repositories
-    emit({ apps, repositoryCount: merged.repositories.length, fetchedAt, status })
-    return merged.repositories.map(({ readmeMarkdown, readmePath, ...repo }: Repository) => repo)
+    const types = repositoryTypes(merged.repositories, sent)
+    emit({ apps, repositories: types, repositoryCount: merged.repositories.length, fetchedAt, status })
+    // The cached copy keeps the value GitHub sent, so a type this site doesn't know yet stays not a project.
+    return merged.repositories.map(({ readmeMarkdown, readmePath, ...repo }: Repository, index: number) => ({
+        ...repo,
+        roleValue: types[index].role,
+    }))
 }
 
 function readCache() {

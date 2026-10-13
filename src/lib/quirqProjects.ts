@@ -34,9 +34,12 @@ const groups = buildQuirqProjects(snapshot, config) as QuirqProjectGroup[]
 
 const projectRule = { ...DEFAULT_PROJECT_RULE, ...config.projectRule }
 
-/** The phases, with the Project rule worded from the thresholds in quirq.projects.json. */
+/**
+ * The phases, with the last one's rule worded from the thresholds in quirq.projects.json. The last phase
+ * (id `project`) reads "In use" on the page, since every repository the Projects page lists is a project.
+ */
 export const quirqPhases = (PHASES as Phase[]).map((phase) =>
-    phase.id === 'project' ? { ...phase, rule: projectRuleText(projectRule) } : phase
+    phase.id === 'project' ? { ...phase, name: 'In use', rule: projectRuleText(projectRule) } : phase
 )
 export const projectsFetchedAt: string = snapshot.fetchedAt
 /** Where the star counts came from: `github-api`, or `apps-snapshot <ISO date>` when the API was unavailable. */

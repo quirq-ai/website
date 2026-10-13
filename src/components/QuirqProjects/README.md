@@ -1,13 +1,18 @@
 # quirq projects
 
-The Projects page at `/projects` (`src/pages/projects.tsx`): every repository the swarm is building, grouped and
-placed on a phase ladder, so a visitor can see how far each one has come.
+The Projects page at `/projects` (`src/pages/projects.tsx`): the projects the swarm is building, grouped and placed
+on a phase ladder, so a visitor can see how far each one has come. It lists only repositories whose type (the
+organization's `role` property, read live) is project, in their groups from `quirq.projects.json`; a group left with
+none is not shown (`projectGroupsOnly` in `src/lib/quirqProjectFilter.ts`). A repository GitHub shows no type for counts
+as a project, the organization's default; an archived repository, one missing from the organization's public list, or
+any other type, even one this site doesn't know yet, does not. The first paint uses the types in the bundled snapshot,
+so run `pnpm apps:sync` after types change.
 
 ## Phases
 
 The rules live in `scripts/lib/quirq-phases.mjs` and are shared with the sync script and its tests: Thought (notes
 only), Prototype (code, no CI), Built (code with CI), Shipping (built, and onboarded to qq, deployed, or in the daily
-canary) and Project (users: at least 10 GitHub stars or at least 5 people committing, per `projectRule` in
+canary) and In use (id `project`; users: at least 10 GitHub stars or at least 5 people committing, per `projectRule` in
 `quirq.projects.json`, checked before the others). A hand-set `phase` with a `phaseReason` overrides the computed one.
 
 ## What each card loads
