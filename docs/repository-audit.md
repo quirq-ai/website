@@ -42,7 +42,7 @@ No inherited PostHog CMS, billing, customer, mail, or notification service is co
 
 ## Keep the tree relevant
 
-`pnpm source:check` runs in the prebuild hook. It checks unresolved local imports, unreachable first-party executable files, unused or undeclared direct dependencies, and recorded vendor file integrity. Framework and CLI roots are explicit so discarded tests or helpers cannot keep an obsolete feature alive accidentally. Gatsby's copied cache templates are also inspected: their navigation, scrolling, event, script, server utility, and polyfill modules must resolve from the project root under the existing webpack configuration.
+`pnpm source:check` runs first in `pnpm test`, not in the prebuild hook: Vercel's Gatsby builder adds its own plugin import to `gatsby-node.ts` and restores an old `.cache`, which the check would reject as undeclared dependencies. It checks unresolved local imports, unreachable first-party executable files, unused or undeclared direct dependencies, and recorded vendor file integrity. Framework and CLI roots are explicit so discarded tests or helpers cannot keep an obsolete feature alive accidentally. Gatsby's copied cache templates are also inspected: their navigation, scrolling, event, script, server utility, and polyfill modules must resolve from the project root under the existing webpack configuration.
 
 When adding a Gatsby page, API route, custom template, script, or genuine tool entrypoint, update the roots deliberately. Keep third-party packages separate from first-party source. Do not silence a failure with a broad directory exclusion.
 

@@ -26,11 +26,11 @@
         "start": "gatsby develop -H 127.0.0.1 -p 8001",
         "serve": "gatsby serve",
         "clean": "gatsby clean",
-        "test": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --test scripts/quirq-catalog.test.mjs scripts/quirq-phases.test.mjs scripts/quirq-source.test.mjs gatsby/quirqRoutes.test.cjs src/lib/quirqDocs.test.ts src/lib/quirqReadmeLinks.test.ts src/lib/externalLinks.test.ts src/lib/frameCheck.test.ts src/lib/quirqRoles.test.ts",
+        "test": "node scripts/check-quirq-source.mjs && node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --test scripts/quirq-catalog.test.mjs scripts/quirq-phases.test.mjs scripts/quirq-source.test.mjs gatsby/quirqRoutes.test.cjs src/lib/quirqDocs.test.ts src/lib/quirqReadmeLinks.test.ts src/lib/externalLinks.test.ts src/lib/frameCheck.test.ts src/lib/quirqRoles.test.ts",
         "test:app-routes": "node --test gatsby/quirqRoutes.test.cjs",
         "prepare": "husky",
         "source:check": "node scripts/check-quirq-source.mjs",
-        "prebuild": "pnpm apps:check && pnpm projects:check && pnpm source:check",
+        "prebuild": "pnpm apps:check && pnpm projects:check",
         "format": "prettier --write \"{src,scripts,gatsby}/**/*.{js,jsx,ts,tsx,mjs,cjs,json,css}\" \"*.{js,jsx,ts,tsx,json,yaml}\""
     },
     "dependencies": {
