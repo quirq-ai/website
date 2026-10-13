@@ -1,7 +1,12 @@
 {
     "organization": "quirq-ai",
     "name": "quirq",
-    "frameOrigins": ["https://docs.quirq.dev", "https://quitter.quirq.dev", "https://research.quirq.dev"],
+    "frameOrigins": [
+        "https://docs.quirq.dev",
+        "https://quitter.quirq.dev",
+        "https://research.quirq.dev",
+        "https://wiki.quirq.dev"
+    ],
     "defaults": {
         "category": "Apps",
         "launchMode": "window",
