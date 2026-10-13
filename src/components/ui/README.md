@@ -21,5 +21,8 @@ import { Badge } from 'components/ui/badge'
 ;<Badge variant="good">open</Badge>
 ```
 
+shadcn/ui is MIT licensed. Its license is kept beside the copies in [LICENSE.shadcn](LICENSE.shadcn), with the
+shadcn commit `button.tsx` follows; keep it there and name the commit when you copy another component.
+
 Add further shadcn components here the same way: copy the source, swap shadcn's CSS variables for the site tokens,
 and check both themes.

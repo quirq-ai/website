@@ -585,6 +585,41 @@ test('a live list keeps the bundled type unless GitHub shows a known role', () =
     assert.equal(reread.repositories.find((entry) => entry.name === 'qq').role, 'agent')
 })
 
+test("a live list that hides types keeps the snapshot's, then the ones this visitor already has", () => {
+    const bundled = snapshot([repo('qq'), repo('gate')])
+    const first = mergeLiveRepositories(
+        bundled,
+        [repo('qq', { custom_properties: { role: 'agent' } }), repo('gate', { custom_properties: { role: 'tool' } })],
+        '2026-10-09T00:00:00Z'
+    )
+    const hidden = mergeLiveRepositories(
+        bundled,
+        [repo('qq', { custom_properties: {} }), repo('gate', { custom_properties: { role: 'docs' } })],
+        '2026-10-09T01:00:00Z',
+        first.repositories
+    )
+    assert.deepEqual(
+        hidden.repositories.map((entry) => [entry.name, entry.role]),
+        [
+            ['gate', 'docs'],
+            ['qq', 'agent'],
+        ],
+        'a hidden value keeps the known one; a shown value wins'
+    )
+    // The build's snapshot outranks the visitor's copy, so an old type a browser kept never sticks.
+    const rebuilt = mergeLiveRepositories(
+        snapshot([repo('qq', { role: 'tool' })]),
+        [repo('qq', { custom_properties: {} })],
+        '2026-10-09T02:00:00Z',
+        first.repositories
+    )
+    assert.equal(rebuilt.repositories[0].role, 'tool')
+    for (const known of [undefined, null, [null], [{ name: 'qq', custom_properties: { role: 'service' } }]]) {
+        const merged = mergeLiveRepositories(bundled, [repo('qq')], '2026-10-09T01:00:00Z', known)
+        assert.equal(merged.repositories[0].role, null, JSON.stringify(known))
+    }
+})
+
 test('types replace categories only once three different types are in use', () => {
     const apps = (...roles) => roles.map((role) => ({ role }))
     assert.equal(showsRoles(apps()), false)
@@ -597,6 +632,17 @@ test('a mapping cannot set a type', () => {
     assert.throws(
         () => buildQuirqApps(snapshot([repo('gate')]), { ...config, repositories: { gate: { role: 'tool' } } }),
         /gate\.role is set on GitHub/
+    )
+})
+
+test('without types shown, apps list featured first, then by name', () => {
+    const apps = buildQuirqApps(
+        snapshot([repo('wiki'), repo('qq', { role: 'agent' }), repo('gate'), repo('website')]),
+        { ...config, repositories: { website: { featured: true } } }
+    )
+    assert.deepEqual(
+        apps.map((app) => app.repo),
+        ['website', 'gate', 'qq', 'wiki']
     )
 })
 

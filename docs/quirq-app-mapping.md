@@ -72,12 +72,10 @@ Types replace the mapping's categories only once at least three different types 
 
 - **Home base** filters by type (All apps, Projects, Agents, Tools, Libraries, Docs, Config; only the types some app has) and each card shows its type as a badge. A screen reader hears the type and what it means.
 - **Repository window**: the type is a badge in the details beside the tabs, in place of the category, with its meaning on hover and for screen readers.
-- An app whose type isn't known is treated as a project (GitHub's default) in the order and the filters, without a badge.
+- **Order**: after featured apps, apps are listed by type in that order (projects first, config last), then by name, on the desktop, in Home base and in the menus. Without types the order is featured apps, then by name.
+- An app whose type isn't known is treated as a project (GitHub's default) in the order and the filters, and shows neither a type nor a category, on its card or in its window.
 
-Always, whatever the count:
-
-- **Order**: after featured apps, apps are listed by type in that order (projects first, config last), then by name, on the desktop, in Home base and in the menus.
-- **Search** matches a type's value, name and plural ("tool", "Tools").
+Always, whatever the count, **search** matches a type's value, name and plural ("tool", "Tools").
 
 The snapshot only carries types after `pnpm apps:sync` runs once the organization's values are filled in (with `GITHUB_TOKEN` set if GitHub's anonymous list leaves custom properties out). Until then each page's first paint shows categories, and Home base switches to types when the live list arrives.
 

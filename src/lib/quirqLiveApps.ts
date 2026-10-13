@@ -42,6 +42,8 @@ const bundled: QuirqCatalog = {
 let catalog = bundled
 // The visible repository data behind `catalog.apps`, so an unchanged list keeps the same apps array.
 let signature = signatureOf(snapshot.repositories)
+// The repository list behind `catalog`, so a later read that hides types keeps the ones already known.
+let current: unknown[] = snapshot.repositories
 const listeners = new Set<() => void>()
 let timer: number | undefined
 let inflight: AbortController | null = null
@@ -60,7 +62,7 @@ function emit(next: QuirqCatalog) {
 
 /** Applies a repository list from GitHub (or this browser's copy of one). Returns the list to cache. */
 function apply(repositories: unknown[], fetchedAt: string, status: QuirqCatalog['status']) {
-    const merged = mergeLiveRepositories(snapshot, repositories, fetchedAt)
+    const merged = mergeLiveRepositories(snapshot, repositories, fetchedAt, current)
     const nextSignature = signatureOf(merged.repositories)
     let apps = catalog.apps
     if (nextSignature !== signature) {
@@ -68,6 +70,7 @@ function apply(repositories: unknown[], fetchedAt: string, status: QuirqCatalog[
         apps = buildQuirqApps(merged, quirqConfig) as QuirqApp[]
         signature = nextSignature
     }
+    current = merged.repositories
     emit({ apps, repositoryCount: merged.repositories.length, fetchedAt, status })
     return merged.repositories.map(({ readmeMarkdown, readmePath, ...repo }: Repository) => repo)
 }

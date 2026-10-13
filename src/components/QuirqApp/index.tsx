@@ -72,12 +72,16 @@ export default function RepositoryApp({ app }: { app: QuirqApp }) {
         if (key !== 'docs') docs.selectDoc(key)
     }
     // The repository's type (its `role` on GitHub) says what it is; the mapping's category is the fallback.
-    // Shown once Home base shows types too (`showsRoles`), so the two never disagree.
-    const catalog = useQuirqApps()
-    const type = app.role && showsRoles(catalog) ? roleInfo[app.role] : null
-    const details = [app.language, type ? null : app.category, app.stars > 0 ? `☆ ${app.stars}` : null, updated].filter(
-        Boolean
-    )
+    // Shown once Home base shows types too (`showsRoles`), so the two never disagree: then an app whose type
+    // isn't known shows neither, like its Home base card.
+    const typed = showsRoles(useQuirqApps())
+    const type = app.role && typed ? roleInfo[app.role] : null
+    const details = [
+        app.language,
+        typed ? null : app.category,
+        app.stars > 0 ? `☆ ${app.stars}` : null,
+        updated,
+    ].filter(Boolean)
 
     return (
         <Explorer
