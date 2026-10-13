@@ -13,10 +13,10 @@ Use Node.js 24 and pnpm 10.23.0. Install with `pnpm install --frozen-lockfile`; 
 | `pnpm projects:sync`              | Refresh project evidence and phase counts using public data.                            |
 | `pnpm projects:check`             | Validate project groups and the saved snapshot, offline.                                |
 | `pnpm source:check`               | Check active source reachability, local imports, and direct dependencies.               |
-| `pnpm test`                       | Run quirq catalog, phases, routes, docs, link, role, and frame-policy regression tests. |
+| `pnpm test`                       | Run the source check, then the catalog, phases, routes, docs, link, role, and frame-policy tests. |
 | `pnpm apps:test`                  | Run catalog tests only.                                                                 |
 | `pnpm test:app-routes`            | Run generated-route tests only.                                                         |
-| `pnpm build`                      | Run prebuild checks and generate the production site in `public/`.                      |
+| `pnpm build`                      | Run the catalog and project checks, then generate the production site in `public/`.     |
 | `pnpm serve -H 127.0.0.1 -p 9000` | Preview a production build.                                                             |
 | `pnpm clean`                      | Remove generated Gatsby cache and output.                                               |
 
@@ -59,7 +59,7 @@ The site's only API route is [`/api/frame-check`](../src/api/frame-check.ts). It
 
 [`infra/repo.toml`](../infra/repo.toml) declares the site's qq target and Node pin. Change the manifest through `qqsync` from [quirq-ai/sync](https://github.com/quirq-ai/sync). Use the pnpm commands for local development.
 
-The `qq-website-*` presubmit and postsubmit workflows are generated in [quirq-ai/infra-config](https://github.com/quirq-ai/infra-config). Edit them there, never in this repository. They run a frozen install, production build, and tests; the build's prebuild hook runs the catalog, project, and source checks.
+The `qq-website-*` presubmit and postsubmit workflows are generated in [quirq-ai/infra-config](https://github.com/quirq-ai/infra-config). Edit them there, never in this repository. They run a frozen install, production build, and tests; the build's prebuild hook runs the catalog and project checks, and `pnpm test` runs the source check first.
 
 Landing rules are managed by [quirq-ai/gate](https://github.com/quirq-ai/gate). Follow the current rules shown by GitHub. Pull request approval is a human action.
 
