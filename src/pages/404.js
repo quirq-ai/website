@@ -10,11 +10,15 @@ export default function NotFound() {
                 og tags and no llms.txt signpost — and nothing telling a search engine
                 not to index it. */}
             <SEO title="404: Page not found" noindex />
-            <Explorer title="This app isn't here">
-                <p>This address isn't part of the current quirq app collection.</p>
-                <OSButton asLink to="/" variant="primary">
-                    Back to home base
-                </OSButton>
+            {/* Explorer pads its content only in a wide window, so the page keeps its own inset on a phone. */}
+            <Explorer title="This app isn't here" showTitle={false} padding={false}>
+                <div className="p-4">
+                    <h1>This app isn't here</h1>
+                    <p>This address isn't part of the current quirq app collection.</p>
+                    <OSButton asLink to="/" variant="primary">
+                        Back to home base
+                    </OSButton>
+                </div>
             </Explorer>
         </>
     )

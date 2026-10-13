@@ -70,7 +70,9 @@ export const QUIRQ_ROLES = ['project', 'agent', 'tool', 'library', 'docs', 'conf
  */
 export function repositoryRole(repo) {
     const value =
-        repo.custom_properties && typeof repo.custom_properties === 'object' ? repo.custom_properties.role : repo.role
+        repo.custom_properties && typeof repo.custom_properties === 'object' && repo.custom_properties.role != null
+            ? repo.custom_properties.role
+            : repo.role
     return typeof value === 'string' && QUIRQ_ROLES.includes(value) ? value : null
 }
 
@@ -268,11 +270,19 @@ export function normalizeRepository(repo, organization) {
 /**
  * A snapshot built from GitHub's current repository list, read live in the browser. Repositories that
  * fail validation are dropped instead of failing the whole list. README text is not in GitHub's list,
- * so each repository keeps the README bundled for it, if any.
+ * so each repository keeps the README bundled for it, if any. `known` is the list the visitor already has
+ * (this browser's last copy, or an earlier live read): its type fills in only where the build's snapshot has
+ * none, so a fresh build's types replace an old one a browser kept.
  */
-export function mergeLiveRepositories(snapshot, liveRepositories, fetchedAt) {
+export function mergeLiveRepositories(snapshot, liveRepositories, fetchedAt, known = []) {
     assert(Array.isArray(liveRepositories), 'GitHub returned an invalid repository list')
     const readmes = new Map(snapshot.repositories.map((repo) => [repo.name.toLowerCase(), repo]))
+    const knownRoles = new Map(
+        (Array.isArray(known) ? known : []).map((repo) => [
+            String(repo?.name).toLowerCase(),
+            repositoryRole(repo ?? {}),
+        ])
+    )
     const names = new Set()
     const repositories = []
     for (const raw of liveRepositories) {
@@ -288,9 +298,9 @@ export function mergeLiveRepositories(snapshot, liveRepositories, fetchedAt) {
         const bundled = readmes.get(key)
         repositories.push({
             ...repo,
-            // A list without custom properties (GitHub can leave them out) keeps the type the build read.
-            role:
-                raw.custom_properties && typeof raw.custom_properties === 'object' ? repo.role : bundled?.role ?? null,
+            // `role` is required on GitHub (default `project`), so a list without it (no custom properties,
+            // an empty object, a null value) only means GitHub didn't show it: keep the type already known.
+            role: repo.role ?? bundled?.role ?? knownRoles.get(key) ?? null,
             readmeMarkdown: bundled?.readmeMarkdown ?? null,
             readmePath: bundled?.readmePath ?? null,
         })
@@ -320,10 +330,20 @@ function validatePresentation(settings, label) {
         settings.presentation === undefined,
         `${label}.presentation is no longer supported: every repository window uses the same layout`
     )
+    // A repository's type is its `role` custom property on GitHub, never a mapping setting.
+    assert(settings.role === undefined, `${label}.role is set on GitHub (the role custom property), not here`)
     for (const key of ['name', 'description', 'category']) {
         assert(settings[key] === undefined || typeof settings[key] === 'string', `${label}.${key} must be a string`)
     }
 }
+
+/**
+ * Whether the site shows types (filters, badges) instead of the mapping's categories: only once at least
+ * MIN_ROLES_SHOWN different types are in use. While nearly every repository is still on GitHub's
+ * default, types would say little and label infrastructure as projects, so categories stay.
+ */
+export const MIN_ROLES_SHOWN = 3
+export const showsRoles = (apps) => new Set(apps.map((app) => app.role).filter(Boolean)).size >= MIN_ROLES_SHOWN
 
 // A repository whose type isn't known sorts with projects, GitHub's default.
 const roleRank = (role) => (role ? QUIRQ_ROLES.indexOf(role) : 0)
@@ -347,7 +367,7 @@ export function buildQuirqApps(snapshot, config) {
     const overrides = new Map(
         Object.entries(config.repositories || {}).map(([repo, override]) => [repo.toLowerCase(), override])
     )
-    return snapshot.repositories
+    const apps = snapshot.repositories
         .map((repo) => normalizeRepository(repo, config.organization))
         .flatMap((repo) => {
             assert(!names.has(repo.name.toLowerCase()), `Duplicate repository: ${repo.name}`)
@@ -409,12 +429,15 @@ export function buildQuirqApps(snapshot, config) {
                 },
             ]
         })
-        .sort(
-            (a, b) =>
-                Number(b.featured) - Number(a.featured) ||
-                roleRank(a.role) - roleRank(b.role) ||
-                a.name.localeCompare(b.name)
-        )
+    // Types order the list only while the site shows them (`showsRoles`); otherwise a type the visitor
+    // can't see would put one repository out of alphabetical order with no visible reason.
+    const typed = showsRoles(apps)
+    return apps.sort(
+        (a, b) =>
+            Number(b.featured) - Number(a.featured) ||
+            (typed ? roleRank(a.role) - roleRank(b.role) : 0) ||
+            a.name.localeCompare(b.name)
+    )
 }
 
 /**

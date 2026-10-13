@@ -85,7 +85,7 @@ Edit a repository entry in [`quirq.apps.json`](quirq.apps.json):
 }
 ```
 
-Choose an icon, color, description, route, visibility, launch destination, or a custom template under `src/templates/`. Repository types come from the organization's `role` property on GitHub. Keep app choices in the mapping so Home, desktop icons, search, and routes agree.
+Choose an icon, color, description, route, visibility, launch destination, or a custom template under `src/templates/`. Repository types come from the organization's `role` property on GitHub. Type filters, badges, and ordering appear once three types are in use; search always matches types. Keep app choices in the mapping so Home, desktop icons, search, and routes agree.
 
 The [app mapping guide](docs/quirq-app-mapping.md) covers every setting, live updates, documentation links, and launch-window framing rules. A destination's security headers decide whether it can be embedded; exact trusted quirq.dev origins can be configured through `frameOrigins`.
 
@@ -132,6 +132,8 @@ Preview the production output with `pnpm serve -H 127.0.0.1 -p 9000`. Before han
 | Routes and hosting               | [`gatsby-node.ts`](gatsby-node.ts), [`gatsby-config.js`](gatsby-config.js), [`vercel.json`](vercel.json)                       |
 
 Read [`AGENTS.md`](AGENTS.md) and the relevant component README before editing shared code. The [development guide](docs/development.md) covers commands, environment variables, deployment, and troubleshooting. The [repository audit](docs/repository-audit.md) records the cleanup, intentionally retained upstream material, and verification limits.
+
+Optional analytics and error tracking use quirq's own PostHog project. Set the public `GATSBY_POSTHOG_KEY` at build time to enable pageviews, clicks, and uncaught error reporting through the `/ingest` rewrites. Without a key, the browser loads no analytics script. See [environment variables](docs/development.md#environment-variables) and [`.example.env`](.example.env).
 
 ## Attribution and licensing
 

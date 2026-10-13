@@ -6,6 +6,8 @@ import QuirqAppIcon from 'components/QuirqAppIcon'
 import { getLaunchTarget, type QuirqApp } from 'lib/quirqApps'
 import { docLabel, readmeSummary } from 'lib/quirqDocs'
 import { roleInfo } from 'lib/quirqRoles'
+import { useQuirqApps } from 'lib/quirqLiveApps'
+import { showsRoles } from '../../../scripts/lib/quirq-catalog.mjs'
 import { Badge } from 'components/ui/badge'
 import { useAppSettings } from '../../context/App'
 import DocsBrowser, { useRepositoryDocs } from './DocsBrowser'
@@ -70,10 +72,16 @@ export default function RepositoryApp({ app }: { app: QuirqApp }) {
         if (key !== 'docs') docs.selectDoc(key)
     }
     // The repository's type (its `role` on GitHub) says what it is; the mapping's category is the fallback.
-    const type = app.role ? roleInfo[app.role] : null
-    const details = [app.language, type ? null : app.category, app.stars > 0 ? `☆ ${app.stars}` : null, updated].filter(
-        Boolean
-    )
+    // Shown once Home base shows types too (`showsRoles`), so the two never disagree: then an app whose type
+    // isn't known shows neither, like its Home base card.
+    const typed = showsRoles(useQuirqApps())
+    const type = app.role && typed ? roleInfo[app.role] : null
+    const details = [
+        app.language,
+        typed ? null : app.category,
+        app.stars > 0 ? `☆ ${app.stars}` : null,
+        updated,
+    ].filter(Boolean)
 
     return (
         <Explorer
@@ -144,6 +152,7 @@ export default function RepositoryApp({ app }: { app: QuirqApp }) {
                                     <Badge variant="outline" title={type.meaning} data-testid="app-type">
                                         <span className="sr-only">Type: </span>
                                         {type.label}
+                                        <span className="sr-only">. {type.meaning}</span>
                                     </Badge>
                                 )}
                                 {details.map((detail) => (

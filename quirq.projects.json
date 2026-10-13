@@ -50,7 +50,7 @@
         {
             "name": "Other",
             "description": "Plans, older repos and placeholders.",
-            "repos": ["monitoring", "xo-cowork-api", "environment", "quirq_ai", "quirqy"]
+            "repos": ["monitoring", "xo-cowork-api", "environment", "quirq_ai", "quirqy", "vangogh"]
         }
     ],
     "repositories": {
@@ -153,6 +153,9 @@
         },
         "quirqy": {
             "description": "An empty placeholder."
+        },
+        "vangogh": {
+            "description": "An empty placeholder with a license only."
         }
     }
 }

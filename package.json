@@ -120,7 +120,8 @@
             "husky",
             "lmdb",
             "msgpackr-extract",
-            "sharp"
+            "sharp",
+            "workerd"
         ],
         "overrides": {
             "undici": "5.26.3"

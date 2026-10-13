@@ -32,22 +32,23 @@ Keep links within the site relative. When changing a public route, consider a re
 
 ## Environment variables
 
-| Variable                                       | Purpose                                                                                                                                  |
-| ---------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
-| `GITHUB_TOKEN`                                 | Optional authentication for `pnpm apps:sync` to increase public API limits. Never commit it or expose it in a browser-prefixed variable. |
-| `GATSBY_SITE_URL`                              | Public canonical site URL.                                                                                                               |
-| `VERCEL_PROJECT_PRODUCTION_URL` / `VERCEL_URL` | Vercel-provided hostname fallback when no canonical URL is set.                                                                          |
-| `GATSBY_CPU_COUNT`                             | Limit Gatsby workers on machines with limited memory.                                                                                    |
-| `NODE_OPTIONS`                                 | Node runtime options, such as a larger build heap.                                                                                       |
+| Variable                                       | Purpose                                                                                                                                                                                                                                                           |
+| ---------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `GITHUB_TOKEN`                                 | Optional authentication for `pnpm apps:sync` to increase public API limits. Never commit it or expose it in a browser-prefixed variable.                                                                                                                          |
+| `GATSBY_SITE_URL`                              | Public canonical site URL.                                                                                                                                                                                                                                        |
+| `GATSBY_POSTHOG_KEY`                           | Optional public PostHog project key (`phc_…`; see `.example.env`). At build time, enables quirq's analytics and error tracking, using `/ingest` rewrites on deployed sites and PostHog's US cloud directly in development. Without it, no analytics script loads. |
+| `VERCEL_PROJECT_PRODUCTION_URL` / `VERCEL_URL` | Vercel-provided hostname fallback when no canonical URL is set.                                                                                                                                                                                                   |
+| `GATSBY_CPU_COUNT`                             | Limit Gatsby workers on machines with limited memory.                                                                                                                                                                                                             |
+| `NODE_OPTIONS`                                 | Node runtime options, such as a larger build heap.                                                                                                                                                                                                                |
 
-Gatsby loads `.env.development.local` and `.env.development` for development, or `.env.production.local` and `.env.production` for a production build. The standalone sync scripts read their process environment; they do not load those files. Normal builds need no environment file.
+Gatsby loads `.env.development.local` and `.env.development` for development, or `.env.production.local` and `.env.production` for a production build, then `.env` for values those leave unset. The standalone sync scripts read their process environment; they do not load those files. Normal builds need no environment file.
 
 ## Deploy on Vercel
 
 1. Import `quirq-ai/website`, using the repository root.
 2. Select Node.js 24 and the pinned pnpm version; install with `pnpm install --frozen-lockfile`.
 3. Keep [`vercel.json`](../vercel.json): Gatsby, `pnpm build`, and output directory `public`.
-4. Optionally set `GATSBY_SITE_URL` to the production domain, then deploy.
+4. Optionally set `GATSBY_SITE_URL` to the production domain and `GATSBY_POSTHOG_KEY` to enable analytics, then deploy.
 5. Check Home, a direct repository URL, `/apps/*`, and `/launch/*` in the hydrated site.
 
 Builds use the committed snapshots. Browser reads update repository listings and documentation between deployments; server-rendered HTML updates after syncing, committing, and deploying. This website does not deploy the linked apps.

@@ -8,20 +8,22 @@ import Wrapper from './src/components/Wrapper'
 import { Provider } from './src/context/App'
 import { openExternalLinksInWindows } from './src/lib/externalLinks'
 import { siteHosts } from './src/lib/quirqReadmeLinks'
+import { startAnalytics } from './src/lib/quirqAnalytics'
 
 // Every link that leaves the site opens in a window here, the page in an iframe, or "Oops" with Open in
 // new tab when it can't be shown (AGENTS.md): one listener for every link, HTML inside content included.
 export const onClientEntry = () => {
     openExternalLinksInWindows(document, (path, state) => navigate(path, { state }), siteHosts())
+    startAnalytics()
 }
 
 export const wrapRootElement = ({ element }) => <ToastProvider>{element}</ToastProvider>
 
-export const onRouteUpdate = ({ location, prevLocation }: RouteUpdateArgs) => {
+export const onRouteUpdate = ({ prevLocation }: RouteUpdateArgs) => {
     // This is checked and set on initial load in the body script set in gatsby-ssr.js
     // Checking for prevLocation prevents this from happening twice
     if (typeof window !== 'undefined' && prevLocation) {
-        var theme = (window as any).__theme
+        const theme = (window as any).__theme
 
         document.body.className = theme
     }

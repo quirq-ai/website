@@ -38,7 +38,7 @@ The window lifecycle remains shared infrastructure: route changes, history, laun
 -   **Vendor packages:** Blobatar, @pierre/trees, and its runtime dependencies remain unmodified with pinned provenance and their own licenses/notices. The source check verifies their recorded file hashes.
 -   **Public repository data:** metadata and Markdown in the committed snapshots belong to the repositories they describe. The audit does not rewrite or remove external content based on a keyword match.
 
-No PostHog CMS, analytics, billing, customer, mail, or notification service is configured by the active site.
+No inherited PostHog CMS, billing, customer, mail, or notification service is configured by the active site. The optional analytics loader introduced for quirq's own PostHog project on `main` after the audit is retained; it loads no script without `GATSBY_POSTHOG_KEY`. It does not restore the old PostHog site integration or unused hooks.
 
 ## Keep the tree relevant
 
@@ -77,3 +77,9 @@ Validation uses Node 24.21.0 and pnpm 10.23.0. The frozen install, catalog/proje
 Browser verification covers 1440 × 1000 and 390 × 844 viewports, light and dark appearance, Home filtering, dock search and dismissal, Projects, direct repository routes, Markdown selection from the vendored file tree, the avatar app, and the launch fallback. It verifies opening a second window, expand/restore, keyboard minimize/reopen, close, narrow-window scrolling, and the approved quirq screensaver. The final 404 page search opens and closes on an outside click. A local iframe harness verifies compact navigation and opens `vangogh`, a live repository absent from the saved snapshot. No browser console errors were recorded. The README uses actual light and dark screenshots of the production build.
 
 The build retains existing Browserslist/baseline data-age and Babel deprecation warnings. The Tailwind vendor-scan warning is resolved by explicitly excluding third-party shadow-root/inline-styled code from utility scanning.
+
+## Integration with later main changes
+
+On 2026-10-13, the audit branch was merged with `main` at `ee8bf47`. The resolution preserves the subsequent repository-type fixes, phone window state and filter sizing, 404 inset, refreshed project snapshot, shadcn license notice, and optional quirq analytics loader. The loader keeps its active client type locally; the unused legacy analytics hook and broader inherited types remain removed.
+
+The dependency graph is unchanged: 63 direct dependencies and 1,808 locked packages, with main's build-script allowance retained. The frozen install, catalog/project checks, source check (101 active files and 94 vendor hashes), all 88 tests, and clean production build pass. Browser checks at 1280 × 900 and 390 × 844 cover light/dark Home and 404 views, background phone windows retaining state, and expand/restore/close controls; no console errors were recorded. Analytics startup was also checked without a key, during server rendering, with an existing client, and with development/production script URLs and initialization options.
