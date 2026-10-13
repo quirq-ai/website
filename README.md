@@ -24,7 +24,7 @@ A desktop for the apps, experiments, tools, and open source projects in the [qui
 
 | Explore                                                              | Make it yours                                                                          | Keep work in view                                                                     |
 | -------------------------------------------------------------------- | -------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
-| A live catalog of public repositories, with search and type filters. | Glass icons, light and dark themes, appearance settings, and a personal quirqy avatar. | Projects grouped by phase, with public build and canary state.                        |
+| A live catalog of public repositories, with search and type filters. | Glass icons, light and dark themes, and appearance settings.                           | Projects grouped by phase, with public build and canary state.                        |
 | A file tree for each repository's Markdown docs.                     | Each app keeps its own name, color, route, and optional custom React view.             | Multiple windows, a floating dock, and expand, restore, minimize, and close controls. |
 
 The desktop uses **Gatsby 4, React 18, and Tailwind CSS**, with a shared flex-based window system and layouts that respond to each window's width. The interface adapts desktop components and artwork from [PostHog/posthog.com](https://github.com/PostHog/posthog.com); its old marketing pages and service integrations have been removed.

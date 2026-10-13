@@ -1,6 +1,6 @@
 # quirqy
 
-The quirqy window: the appearance of your quirq character (the Blobatar avatar) and nothing else. **Personalize** in the Home window opens it. It is off the dock for now, until quirqy is reintroduced.
+The quirqy window: the appearance of your quirq character (the Blobatar avatar) and nothing else. Nothing opens it for now: it left the dock and Home base's **Personalize** until quirqy is reintroduced ([#25](https://github.com/quirq-ai/website/issues/25)). `scripts/check-quirq-source.mjs` keeps it as a root so the source check accepts it.
 
 ```tsx
 const openQuirqy = useOpenQuirqy()

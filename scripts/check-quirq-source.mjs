@@ -163,6 +163,9 @@ export function auditSource(root, entrypointOverrides) {
         'src/pages/404.js',
         // Kept for the next analytics change (suraj, 2026-10-13): the PostHog client hook, not imported yet.
         'src/hooks/usePostHog.ts',
+        // Kept for quirqy's return (suraj, 2026-10-13, issue #25): the avatar and its window, not shown for now.
+        'src/components/Quirqy/index.tsx',
+        'src/components/QuirqAvatar/index.tsx',
         ...sourceFiles.filter((file) => file.startsWith('src/api/') || /\.d\.ts$/.test(file)),
         ...Object.values(mapping.repositories).flatMap((app) => (app.component ? [app.component] : [])),
     ]
