@@ -58,7 +58,7 @@ export default function Wrapper() {
                 <Desktop />
                 <WindowList />
             </div>
-            {/* The dock is the navigation bar: Home, Projects, search and open windows. */}
+            {/* The dock is the navigation bar: Home, Projects, Edit, search and open windows. */}
             {!compact && <Dock />}
             <SearchOverlay />
         </AppContainer>

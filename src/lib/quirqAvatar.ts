@@ -6,7 +6,7 @@ import { happy, idle, sleepy, smug, surprised, thinking, wink } from 'vendor/blo
 // Euler's euler-avatar.js. Avatars render locally from a name (the seed); nothing calls a service.
 
 export const AVATAR_STORAGE_KEY = 'quirq.avatar.v1'
-/** The quirqy window (the avatar's appearance, opened from the dock) has no route; this is its key. */
+/** The quirqy window (the avatar's appearance; hidden until issue #25) has no route; this is its key. */
 export const QUIRQY_WINDOW = 'quirqy'
 const AVATAR_CHANGE_EVENT = 'quirq:avatar-change'
 

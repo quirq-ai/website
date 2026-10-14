@@ -3,9 +3,7 @@ import Explorer from 'components/Explorer'
 import Link from 'components/Link'
 import OSButton from 'components/OSButton'
 import { QuirqAppTile } from 'components/QuirqAppIcon'
-import { QuirqWordmark } from 'components/QuirqBrand'
-import { QuirqAvatarTile } from 'components/QuirqAvatar'
-import { useOpenQuirqy } from 'components/Quirqy'
+import { QuirqMark, QuirqWordmark } from 'components/QuirqBrand'
 import { getLaunchTarget, quirqConfig, type QuirqApp } from 'lib/quirqApps'
 import { useQuirqCatalog } from 'lib/quirqLiveApps'
 import { quirqRoles, roleInfo, roleKeywords } from 'lib/quirqRoles'
@@ -41,7 +39,6 @@ const Icon = ({ path, className = 'size-3.5' }: { path: string; className?: stri
 const icons = {
     external: 'M14 4h6v6m0-6L10 14M10 5H6a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2v-4',
     search: 'M17 17l4 4M10.5 4a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13Z',
-    settings: 'M4 7h5m6 0h5M4 17h11m4 0h1M12 4v6M17 14v6',
     code: 'm8 8-4 4 4 4m8-8 4 4-4 4',
 }
 
@@ -135,7 +132,7 @@ const Metric = ({ value, label, live }: { value: number; label: string; live?: b
 /**
  * The Home window at `/`, laid out after Euler's Home: a greeting with the catalog at a glance, and
  * every app as a card. The dock's Home opens it; opening an app from a card opens that app's own
- * window, and Personalize opens the quirqy window, where the Blobatar avatar is made yours.
+ * window. The Blobatar avatar and Personalize are hidden until quirqy is reintroduced (issue #25).
  */
 export default function HomeBase() {
     const now = useNow()
@@ -143,8 +140,6 @@ export default function HomeBase() {
     const { apps } = catalog
     const [query, setQuery] = useState('')
     const [filterKey, setFilterKey] = useState(allApps.key)
-    // The avatar's appearance lives in the quirqy window, which the dock also opens.
-    const personalize = useOpenQuirqy()
     const filters = useMemo(() => filtersFor(apps), [apps])
     const typed = filters.some((item) => item.key.startsWith('role:'))
     // A filter the live list no longer has (its last app changed type, say) falls back to all apps.
@@ -182,7 +177,7 @@ export default function HomeBase() {
             >
                 <header className="flex items-center justify-between gap-5">
                     <div className="inline-flex items-center gap-2.5">
-                        <QuirqAvatarTile className="size-10 rounded-xl" avatarClassName="size-8" />
+                        <QuirqMark className="size-10" />
                         <QuirqWordmark className="h-6 w-auto text-primary" />
                     </div>
                     <div className="flex items-center gap-3 @xl:gap-5">
@@ -196,13 +191,6 @@ export default function HomeBase() {
                             <span className="size-[5px] rounded-full bg-[#78a28e]" />{' '}
                             {catalog.status === 'live' ? 'Live' : `Synced ${syncedDate(catalog.fetchedAt)}`}
                         </span>
-                        <button
-                            type="button"
-                            onClick={personalize}
-                            className="inline-flex items-center gap-1.5 min-h-10 text-xs font-semibold text-secondary hover:text-primary"
-                        >
-                            <Icon path={icons.settings} /> Personalize
-                        </button>
                     </div>
                 </header>
 
